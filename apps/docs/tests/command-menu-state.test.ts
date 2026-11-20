@@ -13,13 +13,11 @@ import {
 import { menuCommandState, type MenuStateInput } from '../src/renderer/commands/menu-state'
 
 const BODY: MenuStateInput = {
-  aiSidebar: true,
   darkPage: false,
   hasDoc: true,
   editable: true,
   inTable: false,
   inTextBox: false,
-  spellcheck: true,
   readOnlyRecommended: false,
   onDisk: true,
   view: {
@@ -65,12 +63,9 @@ const disabled = (over: Partial<MenuStateInput>) =>
   new Set(state(over).disabled.filter((id) => !PLANNED.has(id)))
 
 describe('menu command state', () => {
-  it('checks the AI sidebar and dark page toggles from app state', () => {
-    const toggles = (over: Partial<MenuStateInput>) =>
-      state(over).checked.filter((id) => id.startsWith('toggle-a') || id === 'toggle-dark')
-    expect(toggles({})).toEqual(['toggle-ai'])
-    expect(toggles({ aiSidebar: false, darkPage: true })).toEqual(['toggle-dark'])
-    expect(toggles({ aiSidebar: false })).toEqual([])
+  it('checks the dark page toggle from app state', () => {
+    expect(state({ darkPage: true }).checked).toContain('toggle-dark')
+    expect(state({ darkPage: false }).checked).not.toContain('toggle-dark')
   })
 
   it('checks the current layout and the panes that are showing in the View menu', () => {
@@ -101,11 +96,6 @@ describe('menu command state', () => {
     // Read Mode is a view of its own: no layout is ticked while it is on
     const reading = state({ view: { ...BODY.view, readMode: true } })
     expect(reading.checked).not.toContain('view-print-layout')
-  })
-
-  it('Hide Spelling Errors is ticked while spell checking is off', () => {
-    expect(state({}).checked).not.toContain('tools-hide-spelling')
-    expect(state({ spellcheck: false }).checked).toContain('tools-hide-spelling')
   })
 
   it('a command that only holds its place in the menu is always greyed out', () => {
@@ -162,8 +152,6 @@ describe('menu command state', () => {
       'insert-advanced-symbol',
       'insert-date-time',
       'insert-field-dialog',
-      'tools-thesaurus',
-      'tools-translate-selection',
     ])
     // what is selected can still be kept as AutoText
     expect(off.has('insert-autotext-new')).toBe(false)
@@ -203,8 +191,6 @@ describe('menu command state', () => {
       'insert-field-dialog',
       'insert-link',
       'insert-table',
-      'tools-thesaurus',
-      'tools-translate-selection',
     ])
     // Fit Text and a new AutoText entry take the cells' text, as in Word
     const cells = disabled({ inTable: true, cellsSelected: true })
@@ -240,7 +226,6 @@ describe('menu command state', () => {
         'preferences',
         'shortcuts',
         'table-gridlines',
-        'toggle-ai',
         'toggle-dark',
         'tools-customize-keyboard',
         'view-ribbon',
@@ -259,14 +244,12 @@ describe('menu command state', () => {
       'format-equation-options',
       'view-header-footer',
       'insert-comment',
-      'ai-proofread',
       'align-center',
       'insert-image',
       'insert-page-break',
       'table-delete-rows',
       'table-properties',
       'table-formula',
-      'tools-translate-selection',
     ] as const)
       expect(off.has(id)).toBe(true)
     for (const id of [
@@ -275,8 +258,6 @@ describe('menu command state', () => {
       'find',
       // Replace opens the Find panel, which offers no replacing in a read-only document
       'replace',
-      // Thesaurus only reads the selection; Translate Selection would rewrite it
-      'tools-thesaurus',
       'word-count',
       'zoom-in',
       'table-select-row',
@@ -358,14 +339,14 @@ describe('menu command state', () => {
   it('keeps only real command ids from an IPC payload', () => {
     expect(
       toCommandMenuState({
-        checked: ['toggle-ai', 'no-such-command', 7, null, 'toString'],
+        checked: ['toggle-dark', 'no-such-command', 7, null, 'toString'],
         disabled: ['save', '__proto__'],
       }),
-    ).toEqual({ checked: ['toggle-ai'], disabled: ['save'] })
+    ).toEqual({ checked: ['toggle-dark'], disabled: ['save'] })
   })
 
   it('reads a malformed payload as nothing checked or disabled', () => {
-    for (const value of [null, undefined, 'x', 3, {}, { checked: 'toggle-ai', disabled: {} }]) {
+    for (const value of [null, undefined, 'x', 3, {}, { checked: 'toggle-dark', disabled: {} }]) {
       expect(toCommandMenuState(value)).toEqual({ checked: [], disabled: [] })
     }
   })

@@ -26,9 +26,6 @@ export const nl = {
   ribbonLangVietnamese: 'Vietnamees',
   ribbonLangTurkish: 'Turks',
   ribbonLangHungarian: 'Hongaars',
-  ribbonAiCreditNote: 'Gebruikt AI en verbruikt tegoed',
-  ribbonAiRewriteConfirm:
-    'Deze actie roept AI aan: het verbruikt tegoed en kan de volledige inhoud herschrijven. Doorgaan? (U wordt niet opnieuw gevraagd.)',
   ribbonTabHome: 'Start',
   ribbonTabDraw: 'Tekenen',
   ribbonTabLayout: 'Indeling',
@@ -87,7 +84,6 @@ export const nl = {
   ribbonOpen: 'Openen…',
   ribbonSave: 'Opslaan',
   ribbonSaveAs: 'Opslaan als…',
-  ribbonNameWithAi: 'Naam geven met AI…',
   ribbonConvert: 'Converteren',
   ribbonConvertTip: 'Converteren naar PDF, HTML, Markdown of afbeeldingen',
   ribbonConvertPdf: 'Converteren naar PDF…',
@@ -163,7 +159,6 @@ export const nl = {
   ribbonIcons: 'Pictogrammen',
   ribbonDateTime: 'Datum en tijd',
   ribbonNumber: 'Nummer',
-  ribbonThesaurus: 'Synoniemenlijst',
   ribbonWordCount: 'Woorden tellen',
   ribbonProofingLanguage: 'Taal',
   ribbonProofingNoCheck: 'Spelling en grammatica niet controleren',
@@ -308,7 +303,6 @@ export const nl = {
   ribbonReplaceTip: 'Tekst zoeken en vervangen',
   ribbonSelectAll: 'Alles selecteren',
   ribbonSelectAllTip: 'Het hele document selecteren',
-  ribbonAiAssistantTip: 'De AI-assistent openen',
   ribbonRemoveTableStyleTip: 'Tabelstijl verwijderen',
   ribbonNoStyle: 'Geen stijl',
   ribbonApplyTableStyleTip: 'Tabelstijl {name} toepassen',
@@ -842,23 +836,10 @@ export const nl = {
   ribbonSourceJournalName: 'Naam van tijdschrift',
   ribbonSourceSiteName: 'Naam van website',
   ribbonSourcePublisher: 'Uitgever',
-  ribbonEditorBtn: 'Editor',
-  ribbonEditorTip: 'AI controleert spelling, grammatica en interpunctie',
-  ribbonEditorPrompt:
-    'Corrigeer het hele document: herstel typefouten, interpunctie en grammaticale fouten zonder de oorspronkelijke betekenis en alineastructuur te wijzigen.',
   ribbonGroupProofing: 'Controle',
   ribbonSpellcheckBtn: 'Spelling',
   ribbonSpellcheckTip:
     'Spelling controleren tijdens het typen — onderstreept mogelijke fouten rood',
-  ribbonTranslate: 'Vertalen',
-  ribbonTranslateTip: 'AI vertaalt het document',
-  ribbonTranslatePrompt:
-    'Vertaal het hele document naar het {lang}, met behoud van de alineastructuur en kopniveaus.',
-  ribbonTranslateSelectionPrompt:
-    'Vertaal de geselecteerde inhoud naar het {lang}, met behoud van de alineastructuur.',
-  ribbonEditorSelectionPrompt:
-    'Corrigeer de geselecteerde inhoud: herstel typefouten, interpunctie en grammaticale fouten zonder de oorspronkelijke betekenis en alineastructuur te wijzigen.',
-  ribbonTranslateTo: 'Vertalen naar het {lang}',
   ribbonGroupLanguage: 'Taal',
   ribbonNewComment: 'Nieuwe opmerking',
   ribbonNewCommentTip: 'Een opmerking bij de selectie toevoegen',
@@ -875,16 +856,6 @@ export const nl = {
   ribbonPrevCommentTip: 'Naar de vorige opmerking',
   ribbonNextComment: 'Volgende',
   ribbonNextCommentTip: 'Naar de volgende opmerking',
-  ribbonAiComments: 'AI-opmerkingen',
-  ribbonAiRevisions: 'AI-revisieoverzicht',
-  ribbonAiRevisionsTip:
-    'De AI leest de {count} openstaande wijzigingen, vat ze per sectie samen en markeert risico\u2019s',
-  ribbonAiRevisionsPrompt:
-    'Vat alle openstaande bijgehouden wijzigingen in het document samen: begin met algemene statistieken (aantal invoegingen/verwijderingen, auteurs, datumbereik), beschrijf daarna de wijzigingen per sectie (noem blokindexen) en sluit af met aandachtspunten (verwijderde verplichtingen of voorbehouden, gewijzigde getallen/datums/bedragen). Alleen samenvatten — wijzig het document niet en accepteer/weiger geen enkele wijziging.',
-  ribbonAiCommentsTip:
-    'De AI verwerkt de {count} onopgeloste opmerkingen: wijzigen, beantwoorden, oplossen',
-  ribbonAiCommentsPrompt:
-    'Handel alle onopgeloste opmerkingen in het document af: pas per opmerking de gevraagde wijziging toe, antwoord met wat er is veranderd en markeer die daarna als opgelost; is een opmerking een vraag of onduidelijk, antwoord dan zonder het document te wijzigen.',
   ribbonShowCommentsTip: 'Opmerkingen weergeven ({count})',
   ribbonShowCommentsContextual: 'Contextueel',
   ribbonShowCommentsList: 'Lijst',
@@ -1274,8 +1245,6 @@ export const nl = {
   ribbonColWidthSpacing: 'Breedte en afstand',
   ribbonColNo: 'Kolomnr.',
   ribbonColStartNew: 'Nieuwe kolom beginnen',
-  ribbonTranslationLanguageTitle: 'Vertaaltaal voor document instellen',
-  ribbonTranslationLanguageLabel: 'Vertalen naar',
   ribbonAddTextNone: 'Niet weergeven in inhoudsopgave',
   ribbonLnRestartPage: 'Opnieuw beginnen op elke pagina',
   ribbonLnRestartSection: 'Opnieuw beginnen in elke sectie',

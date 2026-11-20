@@ -10,13 +10,9 @@ import { CodeBlockView } from './CodeBlockView'
 import { ImageAwareLink, LocalImage } from './localImage'
 import { BlockDragHandle } from './blockDragHandle'
 import { BlockKeymap } from './blockKeymap'
-import { AiHighlight } from './aiHighlight'
-import { AiQueueAnchors } from './aiQueueAnchors'
-import { InactiveSelection } from './inactiveSelection'
 import { Highlight } from './highlight'
 import { SearchHighlight } from './searchHighlight'
 import { buildMathExtensions } from './math'
-import { Redaction } from './Redaction'
 import {
   BlockStartEscapedParagraph,
   SelectiveEscapeMarkdown,
@@ -146,9 +142,6 @@ export function buildExtensions(options: BuildExtensionsOptions): AnyExtension[]
     ...buildMathExtensions(),
     // ==highlight== (Obsidian's text highlight)
     Highlight,
-    // text the reader withholds from the model: the words stay in the document
-    // and in the file, and only the model-facing view replaces them
-    Redaction,
     LocalImage,
     // links open externally via main-process guard
     ImageAwareLink.configure({ openOnClick: false }),
@@ -172,9 +165,6 @@ export function buildExtensions(options: BuildExtensionsOptions): AnyExtension[]
     }),
     BlockDragHandle,
     BlockKeymap,
-    AiHighlight,
-    AiQueueAnchors,
-    InactiveSelection,
     SearchHighlight,
     Placeholder.configure({ placeholder: () => t('placeholder') }),
     SlashCommand.configure({

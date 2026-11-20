@@ -230,8 +230,8 @@ export const shiftPendingEdit = (
   }
 }
 
-/** Paragraph-level pending edit (rewrite or pure move): the editor and the AI tools
-    always record the logical paragraph text on those, while a line edit never gets one —
+/** Paragraph-level pending edit (rewrite or pure move): the editors always record
+    the logical paragraph text on those, while a line edit never gets one —
     even after a block move gives it an origin */
 const isBlockEdit = (e: LocalTextEdit): boolean => e.input.blockSource !== undefined
 
@@ -251,7 +251,7 @@ export const editCarriesBlock = (te: LocalTextEdit, block: TextBlock): boolean =
   )
 }
 
-/** Where a new AI text edit lands among the pending edits. A paragraph rewrite
+/** Where a new text edit lands among the pending edits. A paragraph rewrite
     supersedes the pending edits that claim its objects — the block-level edit of the
     same block and any line edits inside it — and rebuilds at the block's pending
     displacement: the engine cannot translate and rebuild in one edit, so this is what

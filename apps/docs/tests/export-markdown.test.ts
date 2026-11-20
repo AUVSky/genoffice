@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Editor } from '@tiptap/core'
 import { editorExtensions } from '../src/renderer/editor/extensions'
-import { parseHtmlFragment, replaceBlockRange } from '../src/renderer/ai/protocol'
+import { parseHtmlFragment, replaceBlockRange } from '../src/renderer/doc-core/protocol'
 import { documentToMarkdown, restrictedHtmlToMarkdown } from '../src/renderer/export-markdown'
 
 describe('restrictedHtmlToMarkdown', () => {

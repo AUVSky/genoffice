@@ -32,8 +32,6 @@ function fixture(kind: TabKind) {
     printPdf: vi.fn(),
     saveMarkdown: vi.fn(),
     printMarkdown: vi.fn(),
-    saveHtml: vi.fn(),
-    printHtml: vi.fn(),
   }
   return { deps, contents }
 }
@@ -68,22 +66,17 @@ describe('document actions from a background tab context menu', () => {
     expect(deps.printPdf).toHaveBeenCalledWith(contents)
   })
 
-  it.each(['markdown', 'html'] as const)(
-    'uses the %s save and print workflow for untitled tabs too',
-    (kind) => {
-      const { deps, contents } = fixture(kind)
-      const tabs = deps.tabs.list()
-      delete tabs[1]!.filePath
-      deps.tabs.list = () => tabs
-      for (const action of ['save', 'saveAs', 'print'] as const)
-        runTabDocumentAction(deps, 'clicked', action)
-      const save = kind === 'markdown' ? deps.saveMarkdown : deps.saveHtml
-      const print = kind === 'markdown' ? deps.printMarkdown : deps.printHtml
-      expect(save).toHaveBeenNthCalledWith(1, contents, 'save')
-      expect(save).toHaveBeenNthCalledWith(2, contents, 'saveAs')
-      expect(print).toHaveBeenCalledWith(contents)
-    },
-  )
+  it('uses the markdown save and print workflow for untitled tabs too', () => {
+    const { deps, contents } = fixture('markdown')
+    const tabs = deps.tabs.list()
+    delete tabs[1]!.filePath
+    deps.tabs.list = () => tabs
+    for (const action of ['save', 'saveAs', 'print'] as const)
+      runTabDocumentAction(deps, 'clicked', action)
+    expect(deps.saveMarkdown).toHaveBeenNthCalledWith(1, contents, 'save')
+    expect(deps.saveMarkdown).toHaveBeenNthCalledWith(2, contents, 'saveAs')
+    expect(deps.printMarkdown).toHaveBeenCalledWith(contents)
+  })
 
   it.each(['home', 'help'] as const)('does not send editor commands to a %s tab', (kind) => {
     const { deps, contents } = fixture(kind)
@@ -95,13 +88,13 @@ describe('document actions from a background tab context menu', () => {
   it.each(['save', 'saveAs', 'print'] as const)(
     'does not activate or send %s to a Present tab',
     (action) => {
-      const { deps, contents } = fixture('html')
+      const { deps, contents } = fixture('markdown')
       deps.tabs.canDetachTab = () => false
       runTabDocumentAction(deps, 'clicked', action)
       expect(deps.tabs.activateTab).not.toHaveBeenCalled()
       expect(contents.send).not.toHaveBeenCalled()
-      expect(deps.saveHtml).not.toHaveBeenCalled()
-      expect(deps.printHtml).not.toHaveBeenCalled()
+      expect(deps.saveMarkdown).not.toHaveBeenCalled()
+      expect(deps.printMarkdown).not.toHaveBeenCalled()
     },
   )
 

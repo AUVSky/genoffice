@@ -1,21 +1,6 @@
 import type { zh } from './zh'
 
 export const fr = {
-  // ── Withholding cells from the model ──
-  redactMenuLabel: 'Masquer la sélection à l’IA',
-  redactDialogDesc:
-    'La sélection reste dans le document et dans le fichier ; le modèle ne voit que le marqueur ci-dessous. Donnez-lui un nom pour qu’il sache ce qu’il désigne.',
-  redactDialogScope:
-    'Le masquage ne concerne que l’IA de cette application. La CLI, les outils MCP et l’exportation sans interface lisent le fichier directement et voient toujours ces mots.',
-  redactDialogPlaceholder: 'Nom du placeholder, ex. : téléphone du client',
-  redactCancel: 'Annuler',
-  redactInsert: 'Masquer',
-  redactEnable: 'Clic droit sur une sélection pour la masquer au modèle.',
-  redactNeedsSavedRow:
-    "Cette ligne n'est pas encore dans le fichier. Enregistrez d'abord, puis masquez la cellule.",
-  redactRecoveredFromNames:
-    'Une autre application a réécrit ce fichier et effacé la trace de ce qui est masqué. Les cellules masquées ont été retrouvées dans les noms du classeur ; la sauvegarde restaure la trace complète.',
-
   appMergeWorkbooks: 'Fusionner des classeurs',
   appMergeWorkbooksTip: "Ajouter les feuilles d'autres fichiers Excel à ce classeur",
   appMergeWorkbooksPicking: 'Choisissez les fichiers à fusionner…',
@@ -167,15 +152,11 @@ export const fr = {
   appRefresh: 'Actualiser',
   appRefreshHintIn: 'Recalculer le tableau croisé dynamique actuel',
   appRefreshHintOut: "Sélectionnez d'abord la zone du tableau croisé dynamique, puis actualisez",
-  appAttachmentReadFailed: '{name} : échec de la lecture',
   appTooManyImages: '{max} images maximum par message ; les images en trop ont été ignorées',
-  appAppliedRevision:
-    'Appliqué (révision {revision}) — annulez avec ⌘Z, enregistrez dans le fichier avec ⌘S.',
   appCannotReadImage: 'Impossible de lire le fichier image.',
   appTableNotDeletable:
     "Le tableau « {name} » n'existe pas ou n'a pas été créé pendant cette session — les tableaux déjà présents dans le fichier ne peuvent pas encore être supprimés.",
   appImageNotLoaded: "L'image n'a pas pu être chargée : {path}",
-  appApplyFailed: "⚠️ Échec de l'application : {reason}",
   appPivotChartNeedsFile:
     "Ouvrez d'abord un fichier XLSX — le graphique croisé dynamique est écrit dans le fichier.",
   appCursorNotInPivot:
@@ -332,16 +313,7 @@ export const fr = {
   appSavedTwoPhase: 'Enregistré.',
   appSaveSecondFailed:
     'La structure est enregistrée, mais la deuxième phase (tableaux croisés dynamiques/tableaux/noms définis) a échoué : {reason}',
-  appReadyInitial: 'Prêt pour une commande IA locale et déterministe.',
-  appAiThinking: "L'IA réfléchit…",
-  appAiDone: "L'IA a terminé",
-  appAiTurnLimit:
-    "(Limite de tours d'appels d'outils atteinte pour cette requête ; la réponse ci-dessus se base sur ce qui a été lu et peut être incomplète.)",
-  appAiTruncatedNote:
-    '(La réponse a été tronquée par la limite de longueur et peut être incomplète.)',
-  appAiStopped: '(arrêté)',
-  appAiNoSummary: "L'IA a terminé sans générer de résumé.",
-  appAiNoAction: "L'IA n'a effectué aucune action ni donné de réponse. Réessayez ou reformulez.",
+  appReadyInitial: 'Prêt.',
   appNewConversation: 'Nouvelle conversation démarrée.',
   appPivotCellNoEdit:
     "Cette cellule fait partie d'un tableau croisé dynamique — sa modification n'est pas encore prise en charge.",
@@ -392,16 +364,8 @@ export const fr = {
   appDvListOptions: 'Liste : {items}',
   appDvListFromRange: 'Liste (depuis la plage {range})',
   appRuleBrokenRef: 'Référence rompue (#REF!) — cette règle ne peut jamais s’appliquer',
-  appCellStreaming:
-    'Cette cellule est encore en cours de chargement en flux — réessayez dans un instant.',
-  appPreviewCreated: "Aperçu créé — rien ne change tant que vous n'appliquez pas.",
-  appPreviewCreatedDemo: "Aperçu créé. L'état du classeur n'a pas changé.",
-  appPreviewFailed: 'Impossible de créer un aperçu.',
   appApplyTxFailed: "Impossible d'appliquer la transaction.",
   appTxCommitted: 'Transaction validée (révision {revision}).',
-  appPreviewOtherWorkbook: "L'aperçu appartenait à un autre classeur — créez-en un nouveau.",
-  appPreviewSheetGone: "La feuille de l'aperçu n'existe plus — créez un nouvel aperçu.",
-  appWorkbookChangedSincePreview: "Le classeur a changé depuis l'aperçu — créez un nouvel aperçu.",
   appAppliedJournaled: 'Appliqué — les modifications sont journalisées ; enregistrez avec ⌘S.',
   appUndoCommitted: 'Annulation validée (révision {revision}).',
   appUndoFailed: "Impossible d'annuler.",
@@ -683,8 +647,6 @@ export const fr = {
   appShowCommentsTitle: 'Épingler/détacher la bulle de commentaire de la cellule sélectionnée',
   appStructuralShiftBlocked:
     "Un graphique ou un tableau de cette feuille est ancré aux lignes/colonnes concernées : impossible de les décaler, la modification structurelle n'a pas été enregistrée. Annulez-la (⌘Z) puis réenregistrez.",
-  appAiChangesNotSaved:
-    'Modifications IA appliquées (non enregistrées). Annulez avec ⌘Z ; enregistrez avec ⌘S.',
   appChartUpdated: 'Graphique mis à jour.',
   appChartNotEditable: "Ce graphique n'est pas modifiable.",
   appChartEditRecorded: 'Modification du graphique enregistrée — sauvegardez avec ⌘S.',
@@ -770,7 +732,6 @@ export const fr = {
   appRibbonExpand: 'Développer le ruban',
   appRibbonCompact: 'Ruban compact (icônes uniquement)',
   appTabView: 'Affichage',
-  appTabAi: 'IA',
   appTabChartDesign: 'Création de graphique',
   appAutoSave: 'Enregistrement automatique',
   appAutoSaveTitle:
@@ -780,7 +741,6 @@ export const fr = {
   appExportPdfTitle: 'Exporter en PDF',
   appSaveTitle: 'Enregistrer (⌘S)',
   appSaveAs: 'Enregistrer sous',
-  aiNameFile: "Nommer avec l'IA…",
   appUndo: 'Annuler',
   appRedo: 'Rétablir',
   appUnsavedEditOne: '● {count} modification non enregistrée',
@@ -790,8 +750,6 @@ export const fr = {
   appRevisionChip: 'Révision {revision}',
   appOpenWorkbookTitle: 'Ouvrir un classeur (⌘O)',
   appOpenXlsx: 'Ouvrir un XLSX',
-  appHideAi: "Masquer l'IA",
-  appShowAi: "Afficher l'IA",
   appCategoryAxisTitle: "Titre de l'axe des catégories",
   appValueAxisTitle: "Titre de l'axe des valeurs",
   appTitleText: 'Texte du titre',
@@ -860,10 +818,6 @@ export const fr = {
   appFormatPaneDetail: "Axes, largeur d'intervalle, éclatement",
   appGroupChartActions: 'Actions du graphique',
   appRemoveFromSheet: 'Supprimer de la feuille',
-  appGroupAiAssistant: 'Assistant IA',
-  appAiOpenPanelDetail: 'Volet de discussion',
-  appGroupAiStarters: 'Démarrage rapide',
-  appAiStarterDetail: 'Envoyer au volet IA',
   appGroupTables: 'Tableaux',
   appFromSelection: 'À partir de la sélection',
   appEditPivotTable: 'Modifier le tableau croisé dynamique',
@@ -1366,11 +1320,7 @@ export const fr = {
   appGroupProofing: 'Vérification',
   appWorkbookStatsLabel: 'Statistiques du classeur',
   appSheetsCellsFormulas: 'Feuilles, cellules, formules',
-  appTranslate: 'Traduire',
   appGroupLanguage: 'Langue',
-  appTranslateTitle: "Traduire la sélection avec l'IA",
-  appTranslatePrompt:
-    'Traduis le texte de la sélection en {language} et réécris les traductions dans les mêmes cellules.',
   appNewCommentDetail: 'Ajouter ou modifier',
   appDeleteLabel: 'Supprimer',
   appNoteAtSelection: 'Note à la sélection',

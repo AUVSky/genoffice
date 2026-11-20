@@ -42,7 +42,6 @@ function stubExporters(): { exporters: HeadlessExporters; calls: string[] } {
       sheets: make('sheets'),
       slides: make('slides'),
       markdown: make('markdown'),
-      html: make('html'),
     },
   }
 }
@@ -143,7 +142,6 @@ describe('runHeadlessExport', () => {
     ['/a.xlsx', 'sheets'],
     ['/a.pptx', 'slides'],
     ['/a.md', 'markdown'],
-    ['/a.html', 'html'],
   ])('routes %s to the %s exporter', async (input, module) => {
     const { exporters, calls } = stubExporters()
     await runHeadlessExport(request(input), exporters, fsWith([input, '/out', '/out/a.pdf']))

@@ -4,13 +4,12 @@ import { basename, join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 /**
- * The main-process half of model file naming: the name the renderer proposes
- * becomes the Save As dialog's default.
+ * The main-process half of the save-name default: the name the renderer
+ * proposes becomes the Save As dialog's default.
  *
- * The renderer half is covered in `file-naming.test.ts`; this is the seam
- * between them — the request field the renderer fills and the dialog the
- * reader sees. A name that never reached the dialog would leave the whole
- * feature a no-op, and nothing else would notice.
+ * This is the seam between the renderer and the dialog the reader sees. A name
+ * that never reached the dialog would leave the feature a no-op, and nothing
+ * else would notice.
  */
 
 type IpcHandler = (event: { sender: FakeWebContents }, ...args: unknown[]) => unknown

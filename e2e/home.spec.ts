@@ -7,15 +7,16 @@ test.describe('home screen', () => {
     const { page } = launched
     try {
       await expect(page.locator('.home-hero')).toBeVisible()
-      // six AI quick-create cards plus the "Open file" browse card
-      await expect(page.locator('.quick-card')).toHaveCount(7)
-      await expect(page.locator('.quick-card').first()).toContainText('AI Docs')
-      await expect(page.locator('.quick-card').nth(1)).toContainText('AI Sheets')
-      await expect(page.locator('.quick-card').nth(2)).toContainText('AI Slides')
-      await expect(page.locator('.quick-card').nth(3)).toContainText('AI Markdown')
-      await expect(page.locator('.quick-card').nth(4)).toContainText('AI HTML')
-      await expect(page.locator('.quick-card').nth(5)).toContainText('AI PDF')
-      await expect(page.locator('.tab-bar .tab-item.tab-home')).toBeVisible()
+      // five editor quick-create cards plus the "Open file" browse card
+      await expect(page.locator('.quick-card')).toHaveCount(6)
+      await expect(page.locator('.quick-card').first()).toContainText('Word')
+      await expect(page.locator('.quick-card').nth(1)).toContainText('Excel')
+      await expect(page.locator('.quick-card').nth(2)).toContainText('PPT')
+      await expect(page.locator('.quick-card').nth(3)).toContainText('Markdown')
+      await expect(page.locator('.quick-card').nth(4)).toContainText('PDF')
+      // the launcher is not a tab: the home surface shows and the strip is empty
+      await expect(page.locator('.home-hero')).toBeVisible()
+      await expect(page.locator('.tab-settings-btn')).toBeVisible()
       await page.screenshot({ path: screenshotPath('home-overview') })
     } finally {
       await closeAndSaveVideo(launched, 'home-basics')
@@ -30,7 +31,9 @@ test.describe('home screen', () => {
     })
     const { page } = launched
     try {
-      await expect(page.locator('.nav-item .nav-label').first()).toHaveText('最近')
+      await expect(
+        page.locator('.toolbar-filters .filter-pills').nth(1).locator('.filter-pill').first(),
+      ).toHaveText('全部')
       await page.screenshot({ path: screenshotPath('home-zh-cn') })
     } finally {
       await closeAndSaveVideo(launched, 'home-zh-cn')

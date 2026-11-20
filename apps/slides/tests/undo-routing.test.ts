@@ -1,34 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { isTextUndoTarget, shouldRouteHistoryToDeck } from '../src/renderer/undo-routing'
-
-function target(tagName: string, attributes: Record<string, string> = {}) {
-  return {
-    tagName,
-    isContentEditable: false,
-    getAttribute: (name: string) => attributes[name] ?? null,
-  }
-}
+import { isTextUndoTarget } from '../src/renderer/undo-routing'
 
 describe('Slides history shortcut routing', () => {
-  it('routes a cleared, untouched AI composer to deck undo and redo', () => {
-    const textarea = target('TEXTAREA', {
-      'data-slides-ai-input': 'true',
-      'data-deck-undo-ready': 'true',
-    })
-    expect(isTextUndoTarget(textarea)).toBe(true)
-    expect(shouldRouteHistoryToDeck(textarea)).toBe(true)
-  })
-
-  it('preserves native history after the user types in the AI composer', () => {
-    const textarea = target('TEXTAREA', {
-      'data-slides-ai-input': 'true',
-      'data-deck-undo-ready': 'false',
-    })
-    expect(shouldRouteHistoryToDeck(textarea)).toBe(false)
-  })
-
-  it('preserves native history in ordinary inputs and editable text', () => {
-    expect(shouldRouteHistoryToDeck(target('INPUT'))).toBe(false)
+  it('treats inputs, textareas and editable text as native-undo targets', () => {
+    expect(isTextUndoTarget({ tagName: 'INPUT' })).toBe(true)
+    expect(isTextUndoTarget({ tagName: 'TEXTAREA' })).toBe(true)
     expect(isTextUndoTarget({ isContentEditable: true })).toBe(true)
+    expect(isTextUndoTarget({ tagName: 'DIV' })).toBe(false)
+    expect(isTextUndoTarget(null)).toBe(false)
   })
 })

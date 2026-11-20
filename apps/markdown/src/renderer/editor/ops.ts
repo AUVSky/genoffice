@@ -1,18 +1,15 @@
 import type { Editor, ChainedCommands, SingleCommands } from '@tiptap/core'
 import type { Node as PmNode } from '@tiptap/pm/model'
 import { NodeSelection, TextSelection, type Transaction } from '@tiptap/pm/state'
-import { checkPlaceholders, collectPlaceholders, modelTextOf } from './redact'
 import type { Mapping } from '@tiptap/pm/transform'
 import { createTable } from '@tiptap/extension-table'
 import { stripLegacyFencedDivs } from '../markdown/docText'
-import type { StringKey } from '../i18n/locale'
 
 /**
- * The single edit entry shared by the AI (`apply_ops`) and the discrete UI
- * actions (ribbon, slash menu, table menu, block handle). Typing and paste
- * stay on the raw ProseMirror step layer; everything with a name goes
- * through here so both callers get the same validation, addressing and
- * result reporting.
+ * The single edit entry shared by the discrete UI actions (ribbon, slash menu,
+ * table menu, block handle). Typing and paste stay on the raw ProseMirror step
+ * layer; everything with a name goes through here so callers get the same
+ * validation, addressing and result reporting.
  */
 
 export type BlockTarget = 'selection' | { start: number; end?: number }
@@ -71,7 +68,6 @@ export interface FrontmatterAccess {
 }
 
 export interface OpsContext {
-  source: 'ai' | 'ui'
   frontmatter?: FrontmatterAccess
 }
 
@@ -82,11 +78,10 @@ interface Range {
 
 export type OpResult = { ok: true; message: string } | { ok: false; error: string }
 
-/** transaction meta every runOps dispatch carries; plugins (AI highlight, logs) key off it */
+/** transaction meta every runOps dispatch carries; logs and tests key off it */
 export const OP_META = 'mdOp'
 export interface OpMeta {
   op: OpName
-  source: OpsContext['source']
   /** one id per runOps call */
   batch: number
   /** undoes a failed op's partial changes; not an edit of its own */
@@ -97,265 +92,8 @@ export interface RunOpsResult {
   results: OpResult[]
   /** ops executed before the first failure (all of them on success) */
   applied: number
-  /** the top-level block list changed shape — indexes the model holds are stale */
+  /** the top-level block list changed shape — earlier block indexes are stale */
   blocksChanged: boolean
-}
-
-type FieldType =
-  | 'target'
-  | 'anchor'
-  | 'blockIndex'
-  | 'string'
-  | 'nullableString'
-  | 'int'
-  | 'bool'
-  | { enum: readonly string[] }
-
-interface FieldSpec {
-  type: FieldType
-  required?: boolean
-  doc: string
-}
-
-interface OpSpec {
-  labelKey: StringKey
-  doc: string
-  fields: Record<string, FieldSpec>
-}
-
-const TARGET: FieldSpec = { type: 'target', required: true, doc: 'blocks to act on' }
-const AFTER: FieldSpec = { type: 'anchor', required: true, doc: 'where to insert' }
-
-export const OP_SPECS: Record<OpName, OpSpec> = {
-  insertContent: {
-    labelKey: 'aiToolInsert',
-    doc: 'insert markdown blocks. On a blank document this replaces the empty paragraph.',
-    fields: { after: AFTER, markdown: { type: 'string', required: true, doc: 'GFM content' } },
-  },
-  replaceBlocks: {
-    labelKey: 'aiToolReplace',
-    doc: 'replace the target blocks with new markdown (full rewrites, structural changes).',
-    fields: {
-      target: TARGET,
-      markdown: { type: 'string', required: true, doc: 'replacement GFM; empty deletes' },
-    },
-  },
-  deleteBlocks: {
-    labelKey: 'blockDelete',
-    doc: 'delete the target blocks (the document always keeps at least one paragraph).',
-    fields: { target: TARGET },
-  },
-  replaceText: {
-    labelKey: 'aiToolReplaceText',
-    doc: 'replace every exact plain-text occurrence inside the target blocks, keeping structure and formatting. Prefer this for small in-place fixes. Matches never cross paragraph or table-cell boundaries.',
-    fields: {
-      target: TARGET,
-      find: { type: 'string', required: true, doc: 'exact plain text, case-sensitive' },
-      replace: { type: 'string', required: true, doc: 'plain text; empty deletes' },
-    },
-  },
-  setStyle: {
-    labelKey: 'aiToolStyleText',
-    doc: 'apply/remove an inline style. With `find`: on every occurrence of that text inside the target; without: on the whole target text.',
-    fields: {
-      target: TARGET,
-      style: { type: { enum: STYLABLE_MARKS }, required: true, doc: 'inline style' },
-      find: { type: 'string', doc: 'exact plain text to match' },
-      mode: { type: { enum: ['apply', 'remove', 'toggle'] }, doc: 'default apply' },
-    },
-  },
-  setLink: {
-    labelKey: 'aiOpSetLink',
-    doc: 'link text. With `find`: every occurrence inside the target; without: the whole target text. href null removes the link.',
-    fields: {
-      target: TARGET,
-      href: { type: 'nullableString', required: true, doc: 'URL or null' },
-      find: { type: 'string', doc: 'exact plain text to match' },
-    },
-  },
-  setBlockType: {
-    labelKey: 'aiOpSetBlockType',
-    doc: 'convert the target blocks to paragraph / heading / blockquote / codeBlock (list items are lifted out of their list first).',
-    fields: {
-      target: TARGET,
-      type: { type: { enum: BLOCK_TYPES }, required: true, doc: 'block type' },
-      level: { type: 'int', doc: '1-6, heading only' },
-      language: { type: 'string', doc: 'codeBlock only' },
-    },
-  },
-  toggleList: {
-    labelKey: 'aiOpToggleList',
-    doc: 'turn the target blocks into a bullet / ordered / task list, or back into paragraphs when they already are that list.',
-    fields: {
-      target: TARGET,
-      list: { type: { enum: LIST_KINDS }, required: true, doc: 'list kind' },
-    },
-  },
-  moveBlocks: {
-    labelKey: 'aiOpMoveBlocks',
-    doc: 'move the target blocks to sit after block `after` (-1 = document start).',
-    fields: {
-      target: TARGET,
-      after: { type: 'blockIndex', required: true, doc: 'destination block index' },
-    },
-  },
-  duplicateBlocks: {
-    labelKey: 'blockDuplicate',
-    doc: 'insert a copy of the target blocks right after them.',
-    fields: { target: TARGET },
-  },
-  insertTable: {
-    labelKey: 'insertTable',
-    doc: 'insert an empty table (fill cells afterwards with replaceText, or insert a whole pipe table with insertContent instead).',
-    fields: {
-      after: AFTER,
-      rows: { type: 'int', doc: 'default 3' },
-      cols: { type: 'int', doc: 'default 3' },
-      headerRow: { type: 'bool', doc: 'default true' },
-    },
-  },
-  insertHorizontalRule: {
-    labelKey: 'insertHr',
-    doc: 'insert a horizontal rule.',
-    fields: { after: AFTER },
-  },
-  insertImage: {
-    labelKey: 'aiToolInsertImage',
-    doc: 'insert an image block from a path already stored beside the document (insert_image / generate_image do the download and call this for you).',
-    fields: {
-      after: AFTER,
-      src: { type: 'string', required: true, doc: 'relative path or URL' },
-      alt: { type: 'string', doc: 'alt text' },
-    },
-  },
-  editTable: {
-    labelKey: 'aiOpEditTable',
-    doc: 'structural table edit at a cell of the target table block. row/col default 0.',
-    fields: {
-      target: TARGET,
-      action: { type: { enum: TABLE_ACTIONS }, required: true, doc: 'what to do' },
-      row: { type: 'int', doc: '0-based row of the cell to act at' },
-      col: { type: 'int', doc: '0-based column of the cell to act at' },
-    },
-  },
-  setFrontmatter: {
-    labelKey: 'aiToolSetFm',
-    doc: 'replace the whole YAML properties block (inner YAML only, no --- fences; empty removes it). Read it first and keep the keys you are not changing.',
-    fields: { yaml: { type: 'string', required: true, doc: 'inner YAML' } },
-  },
-}
-
-function fieldTypeName(type: FieldType): string {
-  if (typeof type === 'object') return type.enum.map((v) => `"${v}"`).join('|')
-  switch (type) {
-    case 'target':
-      return 'target'
-    case 'anchor':
-      return 'int|"selection"'
-    case 'blockIndex':
-      return 'int'
-    case 'nullableString':
-      return 'string|null'
-    default:
-      return type
-  }
-}
-
-/** model-facing catalogue; one line per op, generated from OP_SPECS so it cannot drift */
-export function buildOpsGuide(): string {
-  const lines = [
-    'Each op is a JSON object with an `op` name plus fields. Addressing: `target` is "selection" (the blocks covered by the user selection) or {start, end?} (0-based inclusive top-level block indexes, end defaults to start); `after` is a block index to insert after (-1 = document start) or "selection" (after the block at the caret). All indexes in one call refer to the document as it was before the call, so ops may be listed in any order.',
-    '',
-    ...(Object.keys(OP_SPECS) as OpName[]).map((name) => {
-      const spec = OP_SPECS[name]
-      const fields = Object.entries(spec.fields)
-        .map(([f, s]) => `${f}${s.required ? '' : '?'}: ${fieldTypeName(s.type)}`)
-        .join(', ')
-      return `- ${name} {${fields}} — ${spec.doc}`
-    }),
-  ]
-  return lines.join('\n')
-}
-
-function isInt(v: unknown): v is number {
-  return typeof v === 'number' && Number.isInteger(v)
-}
-
-function validateField(type: FieldType, v: unknown): string | null {
-  switch (type) {
-    case 'target':
-      if (v === 'selection') return null
-      if (typeof v !== 'object' || v === null) return 'must be "selection" or {start, end?}'
-      {
-        const { start, end, ...rest } = v as Record<string, unknown>
-        if (!isInt(start) || start < 0) return 'target.start must be a non-negative integer'
-        if (end !== undefined && (!isInt(end) || end < start))
-          return 'target.end must be an integer >= start'
-        if (Object.keys(rest).length)
-          return `unknown target field(s): ${Object.keys(rest).join(', ')}`
-      }
-      return null
-    case 'anchor':
-      return v === 'selection' || (isInt(v) && v >= -1)
-        ? null
-        : 'must be an integer >= -1 or "selection"'
-    case 'blockIndex':
-      return isInt(v) && v >= -1 ? null : 'must be an integer >= -1'
-    case 'string':
-      return typeof v === 'string' ? null : 'must be a string'
-    case 'nullableString':
-      return typeof v === 'string' || v === null ? null : 'must be a string or null'
-    case 'int':
-      return isInt(v) ? null : 'must be an integer'
-    case 'bool':
-      return typeof v === 'boolean' ? null : 'must be a boolean'
-    default:
-      return typeof v === 'string' && type.enum.includes(v)
-        ? null
-        : `must be one of ${type.enum.join(', ')}`
-  }
-}
-
-export function validateOps(raw: unknown): { ops: MdOp[] } | { error: string } {
-  if (!Array.isArray(raw) || raw.length === 0) return { error: 'ops must be a non-empty array' }
-  const ops: MdOp[] = []
-  for (let i = 0; i < raw.length; i++) {
-    const item = raw[i] as Record<string, unknown> | null
-    if (typeof item !== 'object' || item === null) return { error: `ops[${i}] must be an object` }
-    const name = item.op as OpName
-    const spec = OP_SPECS[name]
-    if (typeof name !== 'string' || !spec)
-      return { error: `ops[${i}]: unknown op "${String(item.op)}"` }
-    for (const [field, fs] of Object.entries(spec.fields)) {
-      const v = item[field]
-      if (v === undefined || v === null) {
-        if (fs.required && !(fs.type === 'nullableString' && v === null))
-          return { error: `ops[${i}] ${name}: missing required field "${field}"` }
-        continue
-      }
-      const err = validateField(fs.type, v)
-      if (err) return { error: `ops[${i}] ${name}: ${field} ${err}` }
-    }
-    for (const field of Object.keys(item)) {
-      if (field !== 'op' && !(field in spec.fields))
-        return { error: `ops[${i}] ${name}: unknown field "${field}"` }
-    }
-    if (name === 'setBlockType') {
-      if (item.type === 'heading' && !(isInt(item.level) && item.level >= 1 && item.level <= 6))
-        return { error: `ops[${i}] setBlockType: heading needs level 1-6` }
-    }
-    ops.push(item as unknown as MdOp)
-  }
-  return { ops }
-}
-
-/** true when any op addresses blocks by index (the AI staleness guard applies) */
-export function usesBlockIndexes(ops: MdOp[]): boolean {
-  return ops.some(
-    (op) =>
-      ('target' in op && op.target !== 'selection') ||
-      ('after' in op && typeof op.after === 'number'),
-  )
 }
 
 /** top-level block index range covered by [from, to] */
@@ -419,33 +157,12 @@ export function selectionBlockRange(editor: Editor): Range {
   return blockRange(editor.state.doc, startIndex, endIndex)
 }
 
-/**
- * Refuse model output that would damage a placeholder.
- *
- * A withheld span is several characters wide, so unlike an atom it *is*
- * splittable: a model writing prose can answer with the marker carrying an
- * extra space inside, or interleave two markers. Parsing that would put a mangled marker into a document that
- * is about to be saved, and the file would look fine. The write is refused
- * here, before anything reaches the document.
- */
-function assertPlaceholdersIntact(editor: Editor, markdown: string): void {
-  const markers = collectPlaceholders(modelTextOf(editor.getJSON() as never))
-  if (markers.length === 0) return
-  const issues = checkPlaceholders(markers.join(' '), markdown)
-  if (issues.length > 0) {
-    fail(
-      `this edit would damage ${issues.length} private placeholder(s) (dropped, renamed, split or duplicated) — the model must copy each {{...}} exactly; rephrase around them instead`,
-    )
-  }
-}
-
 export function parseMarkdownToNodes(editor: Editor, markdown: string): PmNode[] {
-  assertPlaceholdersIntact(editor, markdown)
-  // model output guard: `:::` fenced divs are not GFM and would land as
-  // literal text — strip the fences and keep the body (same as file open).
-  // Raw HTML needs no guard: parse runs it through the schema, so semantic
-  // tags degrade to their GFM equivalents (<b>→bold, <img>→image) and
-  // anything the schema cannot represent loses its styling, keeping text.
+  // `:::` fenced divs are not GFM and would land as literal text — strip the
+  // fences and keep the body (same as file open). Raw HTML needs no guard:
+  // parse runs it through the schema, so semantic tags degrade to their GFM
+  // equivalents (<b>→bold, <img>→image) and anything the schema cannot
+  // represent loses its styling, keeping text.
   const json = editor.markdown?.parse(stripLegacyFencedDivs(markdown))
   const content = json?.content ?? []
   return content.map((c) => editor.schema.nodeFromJSON(c))
@@ -568,23 +285,21 @@ function nodesSize(nodes: PmNode[]): number {
 
 function dispatch(exec: Exec, tr: Transaction): void {
   tr.setMeta(OP_META, exec.meta)
-  exec.editor.view.dispatch(exec.ctx.source === 'ui' ? tr.scrollIntoView() : tr)
+  exec.editor.view.dispatch(tr.scrollIntoView())
 }
 
 function insertNodes(exec: Exec, after: InsertAnchor, nodes: PmNode[]): void {
   const { pos, replace } = resolveAnchor(exec, after)
   let tr = exec.editor.state.tr
   tr = replace ? tr.replaceWith(replace.from, replace.to, nodes) : tr.insert(pos, nodes)
-  if (exec.ctx.source === 'ui') {
-    const end = pos + nodesSize(nodes)
-    // a trailing atom (rule/image) leaves nowhere to type — give the caret a paragraph
-    if (!nodes.at(-1)!.isTextblock && end >= tr.doc.content.size) {
-      tr = tr.insert(end, exec.editor.schema.nodes.paragraph!.create())
-    }
-    tr = tr.setSelection(
-      TextSelection.near(tr.doc.resolve(Math.min(pos + 1, tr.doc.content.size)), 1),
-    )
+  const end = pos + nodesSize(nodes)
+  // a trailing atom (rule/image) leaves nowhere to type — give the caret a paragraph
+  if (!nodes.at(-1)!.isTextblock && end >= tr.doc.content.size) {
+    tr = tr.insert(end, exec.editor.schema.nodes.paragraph!.create())
   }
+  tr = tr.setSelection(
+    TextSelection.near(tr.doc.resolve(Math.min(pos + 1, tr.doc.content.size)), 1),
+  )
   dispatch(exec, tr)
 }
 
@@ -612,7 +327,7 @@ function chain(exec: Exec): ChainedCommands {
     tr.setMeta(OP_META, exec.meta)
     return true
   })
-  return exec.ctx.source === 'ui' ? c.focus() : c
+  return c.focus()
 }
 
 /**
@@ -764,11 +479,9 @@ function execOp(exec: Exec, op: MdOp): OpResult {
           range.from === 0 && range.to === doc.content.size
             ? tr.replaceWith(range.from, range.to, editor.schema.nodes.paragraph!.create())
             : tr.delete(range.from, range.to)
-        if (exec.ctx.source === 'ui') {
-          tr = tr.setSelection(
-            TextSelection.near(tr.doc.resolve(Math.min(range.from, tr.doc.content.size))),
-          )
-        }
+        tr = tr.setSelection(
+          TextSelection.near(tr.doc.resolve(Math.min(range.from, tr.doc.content.size))),
+        )
         dispatch(exec, tr)
         return { ok: true, message: `Deleted ${label}.` }
       }
@@ -915,7 +628,7 @@ function execOp(exec: Exec, op: MdOp): OpResult {
       const caretOffset = editor.state.selection.head - range.from
       const insertAt = anchor > range.to ? anchor - content.size : anchor
       let tr = editor.state.tr.delete(range.from, range.to).insert(insertAt, content)
-      if (exec.ctx.source === 'ui' && caretOffset >= 0 && caretOffset <= content.size) {
+      if (caretOffset >= 0 && caretOffset <= content.size) {
         tr = tr.setSelection(TextSelection.near(tr.doc.resolve(insertAt + caretOffset)))
       }
       dispatch(exec, tr)
@@ -930,12 +643,8 @@ function execOp(exec: Exec, op: MdOp): OpResult {
       const label = describeBlocks(editor.state.doc, range)
       const content = editor.state.doc.slice(range.from, range.to).content
       let tr = editor.state.tr.insert(range.to, content)
-      if (exec.ctx.source === 'ui') {
-        const caretOffset = editor.state.selection.head - range.from
-        tr = tr.setSelection(
-          TextSelection.near(tr.doc.resolve(range.to + Math.max(0, caretOffset))),
-        )
-      }
+      const caretOffset = editor.state.selection.head - range.from
+      tr = tr.setSelection(TextSelection.near(tr.doc.resolve(range.to + Math.max(0, caretOffset))))
       dispatch(exec, tr)
       return { ok: true, message: `Duplicated ${label}.` }
     }
@@ -1014,7 +723,7 @@ export function runOps(editor: Editor, ops: MdOp[], ctx: OpsContext): RunOpsResu
     ctx,
     origDoc: editor.state.doc,
     mappings: [],
-    meta: { op: ops[0]!.op, source: ctx.source, batch },
+    meta: { op: ops[0]!.op, batch },
   }
   const onTransaction = ({ transaction }: { transaction: Transaction }) => {
     if (transaction.docChanged) exec.mappings.push(transaction.mapping)
@@ -1023,7 +732,7 @@ export function runOps(editor: Editor, ops: MdOp[], ctx: OpsContext): RunOpsResu
   const results: OpResult[] = []
   try {
     for (const op of ops) {
-      exec.meta = { op: op.op, source: ctx.source, batch }
+      exec.meta = { op: op.op, batch }
       let result: OpResult
       try {
         result = execOp(exec, op)
@@ -1047,7 +756,7 @@ export function runOps(editor: Editor, ops: MdOp[], ctx: OpsContext): RunOpsResu
 
 /** UI convenience: one op on the current selection, focus kept in the editor */
 export function uiOp(editor: Editor, op: MdOp): boolean {
-  return runOps(editor, [op], { source: 'ui' }).applied === 1
+  return runOps(editor, [op], {}).applied === 1
 }
 
 /** swap the selection's top-level blocks with the previous/next sibling; false at the edges */

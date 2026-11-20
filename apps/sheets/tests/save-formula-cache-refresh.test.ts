@@ -35,7 +35,7 @@ function state(parts: {
   } as unknown as LazyWorkbookState
 }
 
-/// A model answer for one address; `formula` omitted mimics a withheld cell,
+/// A cell answer for one address; `formula` omitted mimics an unreadable cell,
 /// which answers with a placeholder and no formula text.
 function cellOf(value: string | number | boolean | null, formula?: string): CellState {
   return formula === undefined ? { value } : { value, formula, rawValue: value }
@@ -111,7 +111,7 @@ describe('liveFormulaCacheValues', () => {
     ])
   })
 
-  it('skips a cell whose model answer carries no formula (withheld or mid-commit)', () => {
+  it('skips a cell whose answer carries no formula (unreadable or mid-commit)', () => {
     const journal = new Map([['sheet-1', new Map([['0:0', { formula: '=X', value: null }]])]])
     const read = reader(new Map([['sheet-1', { A1: { value: '•••' } }]]))
     expect(liveFormulaCacheValues(state({ journal }), read)).toEqual([])

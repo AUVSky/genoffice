@@ -107,7 +107,7 @@ export function crossHighlightRects(
   return rects
 }
 
-const STORAGE_KEY = 'ai-sheets-cross-highlight'
+const STORAGE_KEY = 'sheets-cross-highlight'
 
 /** The persisted View-tab toggle; defaults to off (also headless-safe). */
 export function loadCrossHighlightPreference(): boolean {

@@ -37,7 +37,7 @@ const drawings: DrawingInput[] = [
     color: [1, 1, 0],
     at: [80, 700],
     contents: 'theirs',
-    author: 'AI Assistant',
+    author: 'Guest Author',
   },
 ]
 
@@ -78,7 +78,7 @@ describe('the author of a saved annotation', () => {
       Caret: ['Ann'],
       Polygon: ['Ann'],
       Stamp: ['Ann'],
-      Text: ['Ann', 'AI Assistant'],
+      Text: ['Ann', 'Guest Author'],
     })
   })
 

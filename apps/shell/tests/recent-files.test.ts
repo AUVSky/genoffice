@@ -21,7 +21,6 @@ describe('matchesExtFamily', () => {
     expect(matchesExtFamily('txt', 'md')).toBe(true)
     expect(matchesExtFamily('json', 'md')).toBe(true)
     expect(matchesExtFamily('csv', 'xlsx')).toBe(true)
-    expect(matchesExtFamily('htm', 'html')).toBe(true)
   })
 
   it('still matches exact extensions and rejects outsiders', () => {

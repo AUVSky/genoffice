@@ -320,7 +320,7 @@ describe('blankXlsxBuffer', () => {
   })
 })
 
-describe('sheetCsvToXlsxBuffer (AI create_document)', () => {
+describe('sheetCsvToXlsxBuffer (standalone worksheet export)', () => {
   it('never sniffs the delimiter: semicolon-heavy cells stay one column', async () => {
     // csvField quotes neither ; nor \t — sniffing would split these cells
     const buffer = await sheetCsvToXlsxBuffer('a;b;c,x\r\nd;e;f,y\r\n', 'de')

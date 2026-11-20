@@ -7,7 +7,7 @@ import { setParaAttrs, activeParaAttrs } from './ribbon-tabs'
 import { setSelectionAlign } from '../editor/direction'
 import { effectiveSizeHalfPoints } from '../editor/text-style-resolve'
 import { textHasCjk } from '../line-metrics'
-import { runUiOps } from '../ai/ops'
+import { runUiOps } from '../doc-core/ops'
 import { useModalKeys } from './modal-keys'
 import { LengthInput } from './LengthInput'
 import {

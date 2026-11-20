@@ -1,7 +1,7 @@
 /**
  * Workbook operation appliers for the sheets renderer.
  *
- * AI DSL operations (pivot / table / table-column adds) and pivot dialog
+ * DSL operations (pivot / table / table-column adds) and pivot dialog
  * helpers applied against the live Univer runtime. Extracted from App.tsx;
  * every function receives its runtime and state explicitly.
  */
@@ -118,7 +118,7 @@ export function applyAiTableAdd(
   }
   // Rendering is best-effort (the facade call is async); the journal entry
   // is what the save writes, and the gateway re-checks conflicts.
-  const tableId = `ai-table-${state.editJournal.tableAdds.length + 1}-${Date.now().toString(36)}`
+  const tableId = `table-${state.editJournal.tableAdds.length + 1}-${Date.now().toString(36)}`
   void Promise.resolve(worksheet.addTable(name, entry.area, tableId))
     .then(() => applySessionTableTheme(worksheet, tableId, entry, state.file.themeColors))
     .catch(() => undefined)
@@ -143,7 +143,7 @@ export function applySessionTableTheme(
   void Promise.resolve(api.addTableTheme(tableId, theme)).catch(() => undefined)
 }
 
-/// AI add_table_row: inserts one or more rows into a session-added table.
+/// add_table_row: inserts one or more rows into a session-added table.
 /// The row index is 1-based within the data region (header = row 0).
 export function applyAiTableRowAdd(
   runtime: UniverRuntime,
@@ -170,7 +170,7 @@ export function applyAiTableRowAdd(
   })
 }
 
-/// AI delete_table_row: removes one or more rows from a session-added table.
+/// delete_table_row: removes one or more rows from a session-added table.
 export function applyAiTableRowDelete(
   runtime: UniverRuntime,
   state: LazyWorkbookState,
@@ -190,7 +190,7 @@ export function applyAiTableRowDelete(
   })
 }
 
-/// AI delete_table_column: removes one or more columns from a session-added table.
+/// delete_table_column: removes one or more columns from a session-added table.
 export function applyAiTableColumnDelete(
   runtime: UniverRuntime,
   state: LazyWorkbookState,

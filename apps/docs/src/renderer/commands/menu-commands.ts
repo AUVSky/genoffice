@@ -33,7 +33,7 @@ import type {
 } from '@genoffice/docx-engine'
 import { CITATION_STYLES, DEFAULT_LINE_PITCH_TWIPS } from '@genoffice/docx-engine'
 import { WORDART_PRESETS } from '@genoffice/ui'
-import { runUiOps } from '../ai/ops'
+import { runUiOps } from '../doc-core/ops'
 import {
   TEXTBOX_HEIGHT_EMU,
   TEXTBOX_WIDTH_EMU,
@@ -150,7 +150,6 @@ export interface CommandHost {
   newFromTemplate(): void
   /** a .dotx copy of the document */
   saveAsTemplate(): void
-  nameWithAi(): void
   exportPdf(): void
   exportHtml(): void
   exportMarkdown(): void
@@ -160,7 +159,6 @@ export interface CommandHost {
   /** clamps to the supported zoom range */
   setZoom(pct: number): void
   zoomFit(mode: 'width' | 'page' | 'multi'): void
-  toggleAi(): void
   toggleDark(): void
   toggleMarks(): void
   toggleStylesPane(): void
@@ -193,14 +191,6 @@ export interface CommandHost {
   applyStyle(styleId: string): void
   /** the document's own heading style of that level on the body paragraph; 0 is its default paragraph style */
   applyHeadingLevel(level: 0 | 1 | 2 | 3): void
-  /** opens the AI panel and runs the instruction at once */
-  aiPreset(instruction: string): void
-  /** walks the misspelled words of the document, Word's Spelling and Grammar dialog */
-  checkSpelling(): void
-  /** asks the AI for synonyms of the selected word or short phrase */
-  thesaurus(): void
-  /** has the AI translate the selection, or the whole document, into the translation language */
-  translate(scope: 'selection' | 'document'): void
   /** opens the file dialog for the mail merge recipient list */
   pickMergeDataSource(): void
   /** the merge fields show the current recipient's values, or their names again */
@@ -232,7 +222,6 @@ export interface CommandHost {
       | 'symbol'
       | 'pageNumbers'
       | 'bulletsNumbering'
-      | 'translationLanguage'
       | 'indexTables'
       | 'hyphenation'
       | 'equationOptions'
@@ -375,7 +364,6 @@ export interface CommandHost {
   insertBlankPage(): void
   newComment(): void
   wordCount(): void
-  aiProofread(): void
   toggleTableGridlines(): void
   tableSectionWidthPx: number
   /** tells the user the caret is not in a table */
@@ -384,9 +372,6 @@ export interface CommandHost {
 
 /** the comment and tracked-change actions App owns */
 export interface ReviewHost {
-  toggleSpellcheck(): void
-  /** forgets the words Ignore All set aside, so they are checked again */
-  resetIgnoredWords(): void
   /** the comment thread with this id; without one, the thread at the caret */
   deleteComment(id?: string): void
   resolveComment(id?: string): void
@@ -1055,7 +1040,6 @@ export const MENU_COMMAND_HANDLERS: Record<ActionCommandId, Handler> = {
   'file-save-as-template': (host) => {
     if (host.hasDoc) host.saveAsTemplate()
   },
-  'name-with-ai': (host) => host.nameWithAi(),
   undo: (host) => {
     host.editor?.chain().focus().undo().run()
   },
@@ -1157,7 +1141,6 @@ export const MENU_COMMAND_HANDLERS: Record<ActionCommandId, Handler> = {
   'design-set-default': (host) => {
     if (host.hasDoc) host.setDesignAsDefault()
   },
-  'toggle-ai': (host) => host.toggleAi(),
   'toggle-dark': (host) => host.toggleDark(),
   // Word semantics: the menu opens the Insert Table dialog (custom rows/cols)
   'insert-table': (host) => {
@@ -1601,9 +1584,6 @@ export const MENU_COMMAND_HANDLERS: Record<ActionCommandId, Handler> = {
   'apply-style': (host, payload) => {
     if (payload && formatTarget(host)) host.applyStyle(payload)
   },
-  'ai-preset': (host, payload) => {
-    if (payload && host.hasDoc) host.aiPreset(payload)
-  },
   'direction-ltr': direction('ltr'),
   'direction-rtl': direction('rtl'),
   'paste-as': (host, payload) => {
@@ -1632,9 +1612,6 @@ export const MENU_COMMAND_HANDLERS: Record<ActionCommandId, Handler> = {
   'align-right': align('right'),
   'align-justify': align('justify'),
   'align-distributed': align('distribute'),
-  'toggle-spellcheck': reviewing((review) => review.toggleSpellcheck()),
-  'tools-hide-spelling': reviewing((review) => review.toggleSpellcheck()),
-  'tools-reset-ignored': reviewing((review) => review.resetIgnoredWords()),
   'delete-comment': reviewing((review, id) => review.deleteComment(id)),
   'comment-resolve': reviewing((review, id) => review.resolveComment(id)),
   'comment-reply': reviewing((review, id) => {
@@ -1730,21 +1707,6 @@ export const MENU_COMMAND_HANDLERS: Record<ActionCommandId, Handler> = {
   // the merge panel on one document of every record, Word's Edit Individual Documents
   'mailings-finish-merge': (host) => {
     if (host.hasDoc) host.openMailMerge('single')
-  },
-  'tools-spelling': (host) => {
-    if (host.hasDoc) host.checkSpelling()
-  },
-  'tools-thesaurus': (host) => {
-    if (host.hasDoc) host.thesaurus()
-  },
-  'tools-translate-selection': (host) => {
-    if (host.hasDoc) host.translate('selection')
-  },
-  'tools-translate-document': (host) => {
-    if (host.hasDoc) host.translate('document')
-  },
-  'tools-translation-language': (host) => {
-    if (host.hasDoc) host.openDialog('translationLanguage')
   },
   // the shortcuts are listed there; they cannot be reassigned yet
   'tools-customize-keyboard': (host) => host.openDialog('customizeKeyboard'),
@@ -2138,9 +2100,6 @@ export const MENU_COMMAND_HANDLERS: Record<ActionCommandId, Handler> = {
   },
   'table-gridlines': (host) => host.toggleTableGridlines(),
   'table-properties': tableDialog('properties'),
-  'ai-proofread': (host) => {
-    if (host.hasDoc) host.aiProofread()
-  },
   shortcuts: (host) => host.openDialog('shortcuts'),
 }
 

@@ -26,9 +26,6 @@ export const hu = {
   ribbonLangVietnamese: 'Vietnámi',
   ribbonLangTurkish: 'Török',
   ribbonLangHungarian: 'Magyar',
-  ribbonAiCreditNote: 'AI-t használ, és kreditet fogyaszt',
-  ribbonAiRewriteConfirm:
-    'Ez a művelet meghívja az AI-asszisztenst: kreditet fogyaszt, és átírhatja a teljes tartalmat. Folytatod? (Többé nem kérdezünk rá.)',
   ribbonTabHome: 'Kezdőlap',
   ribbonTabDraw: 'Rajzolás',
   ribbonTabLayout: 'Elrendezés',
@@ -85,7 +82,6 @@ export const hu = {
   ribbonOpen: 'Megnyitás…',
   ribbonSave: 'Mentés',
   ribbonSaveAs: 'Mentés másként…',
-  ribbonNameWithAi: 'Elnevezés AI-val…',
   ribbonConvert: 'Átalakítás',
   ribbonConvertTip: 'Átalakítás PDF-, HTML-, Markdown-formátumba vagy képpé',
   ribbonConvertPdf: 'Átalakítás PDF-be…',
@@ -218,7 +214,6 @@ export const hu = {
   ribbonReplaceTip: 'Szöveg keresése és cseréje',
   ribbonSelectAll: 'Az összes kijelölése',
   ribbonSelectAllTip: 'A teljes dokumentum kijelölése',
-  ribbonAiAssistantTip: 'AI-asszisztens megnyitása',
   ribbonRemoveTableStyleTip: 'Táblázatstílus eltávolítása',
   ribbonNoStyle: 'Nincs stílus',
   ribbonApplyTableStyleTip: 'Táblázatstílus alkalmazása: {name}',
@@ -749,23 +744,10 @@ export const hu = {
   ribbonSourceJournalName: 'Folyóirat neve',
   ribbonSourceSiteName: 'Webhely neve',
   ribbonSourcePublisher: 'Kiadó',
-  ribbonEditorBtn: 'Szerkesztő',
-  ribbonEditorTip: 'Az AI ellenőrzi a helyesírást, a nyelvtant és a központozást',
-  ribbonEditorPrompt:
-    'Javítsd át a teljes dokumentumot: javítsd az elírásokat, a központozási és nyelvtani hibákat úgy, hogy az eredeti jelentés és a bekezdések szerkezete változatlan maradjon.',
   ribbonGroupProofing: 'Nyelvi ellenőrzés',
   ribbonSpellcheckBtn: 'Helyesírás',
   ribbonSpellcheckTip:
     'Helyesírás-ellenőrzés gépelés közben — a lehetséges helyesírási hibák piros aláhúzással jelennek meg',
-  ribbonTranslate: 'Fordítás',
-  ribbonTranslateTip: 'Az AI lefordítja a dokumentumot',
-  ribbonTranslatePrompt:
-    'Fordítsd le a teljes dokumentumot {lang} nyelvre, miközben a bekezdések szerkezete és a címsorok szintje változatlan marad.',
-  ribbonTranslateSelectionPrompt:
-    'Fordítsd le a kijelölt tartalmat {lang} nyelvre, miközben a bekezdések szerkezete változatlan marad.',
-  ribbonEditorSelectionPrompt:
-    'Javítsd át a kijelölt tartalmat: javítsd az elírásokat, a központozási és nyelvtani hibákat úgy, hogy az eredeti jelentés és a bekezdések szerkezete változatlan maradjon.',
-  ribbonTranslateTo: 'Fordítás {lang} nyelvre',
   ribbonGroupLanguage: 'Nyelv',
   ribbonNewComment: 'Új megjegyzés',
   ribbonNewCommentTip: 'Megjegyzés hozzáadása a kijelöléshez',
@@ -782,16 +764,6 @@ export const hu = {
   ribbonPrevCommentTip: 'Ugrás az előző megjegyzésre',
   ribbonNextComment: 'Következő',
   ribbonNextCommentTip: 'Ugrás a következő megjegyzésre',
-  ribbonAiComments: 'Megjegyzések megoldása AI-val',
-  ribbonAiRevisions: 'Módosítások AI-összefoglalása',
-  ribbonAiRevisionsTip:
-    'Az AI elolvassa a {count} függőben lévő módosítást, szakaszonként összefoglalja a változásokat, és jelzi a kockázatokat',
-  ribbonAiRevisionsPrompt:
-    'Foglald össze a dokumentum összes függőben lévő, követett módosítását: kezdd az általános statisztikákkal (beszúrások/törlések száma, szerzők, dátumtartomány), majd írd le a módosításokat szakaszonként (hivatkozz a blokkok sorszámára), és zárd a lehetséges aggályok felsorolásával (pl. törölt kötelezettségek vagy minősítések, megváltozott számok/dátumok/összegek). Csak összefoglaló készüljön — ne módosítsd a dokumentumot, és egyetlen módosítást se fogadj el vagy utasíts el.',
-  ribbonAiCommentsTip:
-    'Az AI végigmegy a {count} megoldatlan megjegyzésen: elvégzi a kért módosításokat, válaszban leírja, mi változott, majd megoldottnak jelöli azokat',
-  ribbonAiCommentsPrompt:
-    'Kezeld a dokumentum összes megoldatlan megjegyzését: mindegyiknél hajtsd végre a kért módosítást, válaszolj azzal, hogy leírod, mi változott, majd jelöld megoldottnak; ha egy megjegyzés kérdés vagy kétértelmű, válaszolj a dokumentum módosítása nélkül.',
   ribbonShowCommentsTip: 'Megjegyzések megjelenítése ({count})',
   ribbonShowCommentsContextual: 'Szövegkörnyezetben',
   ribbonShowCommentsList: 'Listában',
@@ -1192,7 +1164,6 @@ export const hu = {
   ribbonIcons: 'Ikonok',
   ribbonDateTime: 'Dátum és idő',
   ribbonNumber: 'Szám',
-  ribbonThesaurus: 'Szinonimaszótár',
   ribbonWordCount: 'Szavak száma',
   ribbonProofingLanguage: 'Nyelv',
   ribbonProofingNoCheck: 'Ne ellenőrizze a helyesírást és a nyelvhelyességet',
@@ -1310,8 +1281,6 @@ export const hu = {
   ribbonColWidthSpacing: 'Szélesség és térköz',
   ribbonColNo: 'Hasáb száma',
   ribbonColStartNew: 'Új hasáb kezdése',
-  ribbonTranslationLanguageTitle: 'A dokumentum fordítási nyelvének beállítása',
-  ribbonTranslationLanguageLabel: 'Fordítás erre a nyelvre',
   ribbonAddTextNone: 'Ne jelenjen meg a tartalomjegyzékben',
   ribbonLnRestartPage: 'Újrakezdés minden oldalon',
   ribbonLnRestartSection: 'Újrakezdés minden szakaszban',

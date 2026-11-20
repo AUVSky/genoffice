@@ -2,7 +2,8 @@
  * Applies a planned batch of workbook operations to the live Univer workbook:
  * prechecks, one undo item per batch, per-op facade calls and journal
  * records. Extracted from App.tsx so ribbon actions can run the same ops the
- * AI proposes; every function receives its App-scope context explicitly.
+ * Plans are built from UI operations; every function receives its App-scope
+ * context explicitly.
  */
 import { IUndoRedoService } from '@univerjs/core'
 import type { CellBounds } from '@genoffice/xlsx-gateway/domain/chart-visual'
@@ -56,7 +57,7 @@ import {
   structuralDeleteFormulaError,
   type StreamedRefSheet,
 } from './plan-operations'
-import { aiBulkUndoGate, journalSuppression } from './univer-state'
+import { bulkUndoGate, journalSuppression } from './univer-state'
 import { isVeryHiddenSheet } from './very-hidden-sheets'
 import { effectiveSheetProtection, mergeSheetProtectionAllow } from './sheet-protection'
 import {
@@ -87,7 +88,6 @@ import {
   pushVisualUndo,
   queueSparklineInstall,
   readCopySourceDirect,
-  sniffImageMime,
   workbookStructureLocked,
 } from './univer-sync'
 import {
@@ -193,17 +193,8 @@ export async function prefetchOpImages(
     if (op.op !== 'add_image' || imageData.has(op.path)) continue
     let dataUrl: string
     let mediaType: string
-    // file:// = a BYOK-generated image in the local store (fetchImage resolves it)
     if (/^(https?|file):\/\//i.test(op.path)) {
-      const fetched = await window.desktopApi.fetchImage(op.path)
-      if (!fetched) throw new Error(t('appCannotReadImage'))
-      // Trust the bytes, not the Content-Type header the handler echoed
-      const sniffed = sniffImageMime(fetched.base64)
-      if (!sniffed) {
-        throw new Error('The downloaded image is not PNG/JPEG/GIF — pick another image URL.')
-      }
-      dataUrl = `data:${sniffed};base64,${fetched.base64}`
-      mediaType = sniffed
+      throw new Error(t('appCannotReadImage'))
     } else {
       const image = await window.desktopApi.readLocalImage({ path: op.path })
       dataUrl = `data:${image.mediaType};base64,${image.base64}`
@@ -284,17 +275,17 @@ export async function precheckStructuralDeletes(
  * All commands of one batch merge into a single undo item (⌘Z / [Undo] rolls
  * back the whole batch in one step). Disposing pushes the batched item
  * through the undo gate, so the success path must settle before reading
- * `aiBulkUndoGate.dropped`.
+ * `bulkUndoGate.dropped`.
  */
 export function beginUndoBatch(runtime: UniverRuntime): { settle(): void } {
   const batchUnitId = runtime.univerAPI.getActiveWorkbook()?.getId()
   const undoBatching = batchUnitId
     ? runtime.univer.__getInjector().get(IUndoRedoService).__tempBatchingUndoRedo(batchUnitId)
     : null
-  aiBulkUndoGate.active = true
-  aiBulkUndoGate.dropped = false
-  aiBulkUndoGate.cells = 0
-  aiBulkUndoGate.pushed = 0
+  bulkUndoGate.active = true
+  bulkUndoGate.dropped = false
+  bulkUndoGate.cells = 0
+  bulkUndoGate.pushed = 0
   let settled = false
   return {
     settle() {
@@ -303,13 +294,13 @@ export function beginUndoBatch(runtime: UniverRuntime): { settle(): void } {
       try {
         undoBatching?.dispose()
       } finally {
-        aiBulkUndoGate.active = false
+        bulkUndoGate.active = false
       }
     },
   }
 }
 
-/** Wraps ops the UI built (ribbon, dialogs) into the plan shape the AI path applies. */
+/** Wraps ops the UI built (ribbon, dialogs) into the plan shape the applier expects. */
 export function planFromOps(
   ops: readonly WorkbookOperation[],
   workbook: ActiveWorkbook,
@@ -365,8 +356,8 @@ export function applyChangePlan(
   ctx: OpExecutorContext,
   options: ApplyPlanOptions = {},
 ): Promise<ApplyOutcome> {
-  // One apply at a time: the undo batch and aiBulkUndoGate are not reentrant,
-  // and the async prechecks yield — a ribbon click landing during an AI apply
+  // One apply at a time: the undo batch and bulkUndoGate are not reentrant,
+  // and the async prechecks yield — a ribbon click landing during another apply
   // (or a second click during a delete precheck) must wait its turn.
   const run = applyQueue.then(() => applyChangePlanNow(plan, ctx, options))
   applyQueue = run.then(
@@ -512,7 +503,7 @@ async function applyChangePlanNow(
       setMessage(options.successMessage ?? t('appAppliedJournaled'))
     }
     undoBatch.settle()
-    if (aiBulkUndoGate.dropped) {
+    if (bulkUndoGate.dropped) {
       notices.push(
         'this change is too large for the undo history — the [Undo] button and ⌘Z will not revert it',
       )
@@ -525,7 +516,7 @@ async function applyChangePlanNow(
     // and a budget-dropped batch must not advertise the ⌘Z rollback.
     undoBatch.settle()
     return anyApplied
-      ? { ok: false, reason, partiallyApplied: true, undoDropped: aiBulkUndoGate.dropped }
+      ? { ok: false, reason, partiallyApplied: true, undoDropped: bulkUndoGate.dropped }
       : { ok: false, reason }
   } finally {
     undoBatch.settle()

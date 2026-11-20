@@ -1,21 +1,6 @@
 import type { zh } from './zh'
 
 export const ja = {
-  // ── Withholding cells from the model ──
-  redactMenuLabel: '選択範囲をAIから隠す',
-  redactDialogDesc:
-    '選択した内容はドキュメントとファイルに残り、AI には下のマーカーしか見えません。名前をつけると、何を表すかAIが理解できます。',
-  redactDialogScope:
-    'これはこのアプリの AI に限られます。CLI、MCP ツール、GUI なしのエクスポートはファイルを直接読み込むため、これらの文字はまだ見えています。',
-  redactDialogPlaceholder: 'プレースホルダー名（例：顧客電話）',
-  redactCancel: 'キャンセル',
-  redactInsert: '隠す',
-  redactEnable: '選択範囲を右クリックしてAIから隠します。',
-  redactNeedsSavedRow:
-    'この行はまだファイルに保存されていません。保存してからセルを非表示にしてください。',
-  redactRecoveredFromNames:
-    '別のアプリがこのファイルを書き換え、非表示にする情報を記録した部品が失われました。非表示のセルはワークブックの名前から復元されました。保存すれば完全な記録が書き戻されます。',
-
   appMergeWorkbooks: 'ブックの結合',
   appMergeWorkbooksTip: '他の Excel ファイルのシートをこのブックに追加します',
   appMergeWorkbooksPicking: '結合するファイルを選択…',
@@ -164,15 +149,11 @@ export const ja = {
   appRefreshHintIn: '現在のピボットテーブルを再計算',
   appRefreshHintOut: 'ピボット範囲を選択してから更新してください',
   // App status bar / toast messages
-  appAttachmentReadFailed: '{name}: 読み取りに失敗しました',
   appTooManyImages: '1 つのメッセージで送信できる画像は最大 {max} 枚です。超過分は無視されました',
-  appAppliedRevision:
-    '適用しました（リビジョン {revision}）— ⌘Z で元に戻せます。⌘S でファイルに保存します。',
   appCannotReadImage: '画像ファイルを読み取れません。',
   appTableNotDeletable:
     'テーブル "{name}" は存在しないか、このセッションで作成されたものではありません。ファイルに元からあるテーブルは今のところ削除できません。',
   appImageNotLoaded: '画像を読み込めませんでした: {path}',
-  appApplyFailed: '⚠️ 適用に失敗しました：{reason}',
   appPivotChartNeedsFile:
     '先に XLSX ファイルを開いてください。ピボットグラフはファイルに書き込まれます。',
   appCursorNotInPivot:
@@ -316,16 +297,7 @@ export const ja = {
   appSavedTwoPhase: '保存しました。',
   appSaveSecondFailed:
     '構造は保存されましたが、2 段階目（ピボットテーブル/テーブル/名前付き範囲）に失敗しました：{reason}',
-  // AI session / status bar
-  appReadyInitial: '準備完了 — ローカルの決定論的 AI コマンドを使用できます。',
-  appAiThinking: 'AI が考えています…',
-  appAiDone: 'AI が完了しました',
-  appAiTurnLimit:
-    '（1 回のリクエストのツール呼び出し上限に達したため、ここまでに読み取った情報に基づく回答です。不完全な場合があります。）',
-  appAiTruncatedNote: '（返信は長さ制限により途中で打ち切られ、不完全な可能性があります。）',
-  appAiStopped: '（停止しました）',
-  appAiNoSummary: 'AI は完了しましたが、要約は生成されませんでした。',
-  appAiNoAction: 'AI は操作も返信も行いませんでした。もう一度試すか、言い換えてください。',
+  appReadyInitial: '準備完了。',
   appNewConversation: '新しい会話を開始しました。',
   // Streaming load / edit gating
   appPivotCellNoEdit: 'このセルはピボットテーブルの一部です — 編集には未対応です。',
@@ -374,16 +346,8 @@ export const ja = {
   appDvListOptions: 'リスト：{items}',
   appDvListFromRange: 'リスト（範囲 {range} から）',
   appRuleBrokenRef: '参照が無効です（#REF!）。このルールは適用されません',
-  appCellStreaming: 'このセルはまだストリーミング読み込み中です — しばらくしてからお試しください。',
-  appPreviewCreated: 'プレビューを作成しました — 適用するまで何も変更されません。',
-  appPreviewCreatedDemo: 'プレビューを作成しました。ブックの状態は変更されていません。',
-  appPreviewFailed: 'プレビューを作成できません。',
   appApplyTxFailed: 'このトランザクションを適用できません。',
   appTxCommitted: 'トランザクションをコミットしました（リビジョン {revision}）。',
-  appPreviewOtherWorkbook: 'このプレビューは別のブックのものです — 作成し直してください。',
-  appPreviewSheetGone: 'プレビューしたシートが存在しません — プレビューを作成し直してください。',
-  appWorkbookChangedSincePreview:
-    'プレビュー後にブックが変更されました — プレビューを作成し直してください。',
   appAppliedJournaled: '適用しました — 変更は記録済みです。⌘S でファイルに保存します。',
   appUndoCommitted: '元に戻す操作をコミットしました（リビジョン {revision}）。',
   appUndoFailed: '元に戻せません。',
@@ -657,9 +621,6 @@ export const ja = {
   appShowCommentsTitle: '選択セルのコメント吹き出しを固定/固定解除',
   appStructuralShiftBlocked:
     'このシートのグラフやテーブルが対象の行/列に固定されているため移動できず、構造変更は保存されませんでした。元に戻して(⌘Z)から再度保存してください。',
-  appAiChangesNotSaved:
-    'AI の変更を適用しました(未保存)。⌘Z で元に戻せます。⌘S でファイルに保存します。',
-  // Floating objects / chart editing
   appChartUpdated: 'グラフを更新しました。',
   appChartNotEditable: 'このグラフは編集できません。',
   appChartEditRecorded: 'グラフの編集を記録しました — ⌘S で保存します。',
@@ -743,7 +704,6 @@ export const ja = {
   appRibbonExpand: 'リボンを展開する',
   appRibbonCompact: 'コンパクトリボン（アイコンのみ）',
   appTabView: '表示',
-  appTabAi: 'AI',
   appTabChartDesign: 'グラフのデザイン',
   // Title bar / status
   appAutoSave: '自動保存',
@@ -752,7 +712,6 @@ export const ja = {
   appExportPdfTitle: 'PDF としてエクスポート',
   appSaveTitle: '保存（⌘S）',
   appSaveAs: '名前を付けて保存',
-  aiNameFile: 'AI で名前を変更…',
   appUndo: '元に戻す',
   appRedo: 'やり直し',
   appUnsavedEditOne: '● 未保存の編集 {count} 件',
@@ -762,9 +721,6 @@ export const ja = {
   appRevisionChip: 'リビジョン {revision}',
   appOpenWorkbookTitle: 'ブックを開く（⌘O）',
   appOpenXlsx: 'XLSX を開く',
-  appHideAi: 'AI を非表示',
-  appShowAi: 'AI を表示',
-  // Chart text dialog
   appCategoryAxisTitle: '項目軸のタイトル',
   appValueAxisTitle: '数値軸のタイトル',
   appTitleText: 'タイトルのテキスト',
@@ -838,12 +794,6 @@ export const ja = {
   appFormatPaneDetail: '軸、要素の間隔、切り出し',
   appGroupChartActions: 'グラフの操作',
   appRemoveFromSheet: 'シートから削除',
-  // AI Tab
-  appGroupAiAssistant: 'AI アシスタント',
-  appAiOpenPanelDetail: 'サイドバーで会話',
-  appGroupAiStarters: 'クイック スタート',
-  appAiStarterDetail: 'AI パネルに送信',
-  // Insert tab
   appGroupTables: 'テーブル',
   appFromSelection: '現在の選択範囲から',
   appEditPivotTable: 'ピボットテーブルの編集',
@@ -1350,11 +1300,7 @@ export const ja = {
   appGroupProofing: '文章校正',
   appWorkbookStatsLabel: 'ブックの統計情報',
   appSheetsCellsFormulas: 'シート、セル、数式',
-  appTranslate: '翻訳',
   appGroupLanguage: '言語',
-  appTranslateTitle: 'AI で選択範囲を翻訳',
-  appTranslatePrompt:
-    '選択範囲のテキストを{language}に翻訳し、訳文を元のセルに書き戻してください。',
   appNewCommentDetail: '追加または編集',
   appDeleteLabel: '削除',
   appNoteAtSelection: '選択位置のメモ',

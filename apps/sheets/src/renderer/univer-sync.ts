@@ -3208,7 +3208,7 @@ export function groupRowRuns(rows: readonly number[], maxGap: number): Array<[nu
   return runs
 }
 
-/// How many consecutive no-progress polls (250ms apart) a blocking AI load
+/// How many consecutive no-progress polls (250ms apart) a blocking range load
 /// tolerates before giving up. Progress resets the counter: a load keeps
 /// waiting as long as background indexing is still advancing toward the
 /// requested rows, however long that takes — only a stalled stream fails.
@@ -3388,7 +3388,7 @@ async function loadRange(
       applyRowProperties(runtime, worksheet, state, sheetId, mapped.screen.rows),
     )
     // After merges (merged-only rows never auto-fit) and stored heights.
-    // Bulk AI reads skip it: the measure is a real canvas text layout over
+    // Bulk reads skip it: the measure is a real canvas text layout over
     // every wrap row × the full sheet width, and only non-final chunks load
     // as bulk — their windows are evicted by the next chunk anyway.
     // The stale-height reset must not hide behind the patch gate: the
@@ -3574,8 +3574,8 @@ async function loadRange(
   }
 }
 
-/// Loads an AI-requested range before its cells are read from Univer. Normal
-/// viewport loading is intentionally fire-and-retry; AI reads instead wait
+/// Loads a requested range before its cells are read from Univer. Normal
+/// viewport loading is intentionally fire-and-retry; explicit reads instead wait
 /// until the requested rows are indexed so unloaded cells cannot masquerade
 /// as empty data.
 export async function ensureLazyRangeLoaded(
@@ -6599,9 +6599,9 @@ export function collectNoteStates(
   return noteStates
 }
 
-/// Shared landing path for column filter criteria: the AI op
+/// Shared landing path for column filter criteria: the batch op
 /// `set_filter_criteria` and the Advanced Filter dialog both come through
-/// here, so manual and AI edits hit the same facade command (and journal
+/// here, so manual and batch edits hit the same facade command (and journal
 /// through the same filter mutations). null clears the column's criteria.
 export function applyFilterCriteria(
   worksheet: UniverWorksheet,
@@ -7908,7 +7908,7 @@ export function columnLetter(index: number): string {
   return label
 }
 
-/// Magic-byte check for downloaded images: the ai:fetch-image handler labels
+/// Magic-byte check for downloaded images: the fetch-image handler labels
 /// bytes from the Content-Type header (JPEG fallback), so a WebP or other
 /// unsupported payload could otherwise land in the xlsx as a mislabeled media
 /// part that Excel cannot display.
@@ -8156,7 +8156,7 @@ export function clearLazyState(state: LazyWorkbookState | null): void {
  * A cell's stored value, as opposed to the text its number format renders.
  *
  * `lazyCellReader` reports both: `value` is the view model's display text and
- * `rawValue` the model value behind it. Display text is right for the AI's
+ * `rawValue` the model value behind it. Display text is right for the reader's
  * reading tools (a date shows as a date) but wrong for anything that reports or
  * re-saves the data: General re-renders a number to fit the column width
  * (numfmt-fix.ts formatGeneral), so `=1/3` in a narrow column reads back as
@@ -8189,7 +8189,7 @@ export function modelCellValue(cell: {
   return raw
 }
 
-/// Reads a cell's current content for AI previews and drift checks.
+/// Reads a cell's current content for previews and drift checks.
 export function lazyCellReader(worksheet: UniverWorksheet): (address: string) => CellState {
   return (address) => {
     const range = worksheet.getRange(address)
@@ -8207,7 +8207,7 @@ export function lazyCellReader(worksheet: UniverWorksheet): (address: string) =>
     const richText =
       typeof richStream === 'string' ? richStream.replace(/\r\n$/, '').replace(/\r/g, '\n') : null
     const rawValue = (plainCellValue(rawCell?.v, rawCell?.t) ?? richText) as CellState['rawValue']
-    // Formula cells also carry their computed value (the AI needs to see results
+    // Formula cells also carry their computed value (readers need to see results
     // and error values like #REF!/#DIV/0!; drift checks compare only formula
     // text for formula cells, see planStillMatches)
     if (formula) return { value, formula, rawValue }
@@ -8282,7 +8282,7 @@ export function lazyRangeEditable(
   )
 }
 
-/// Mirrors the BeforeSheetEditStart streaming guard for AI-planned cells.
+/// Mirrors the BeforeSheetEditStart streaming guard for planned cells.
 export function lazyCellEditable(
   state: LazyWorkbookState,
   sheetId: string,

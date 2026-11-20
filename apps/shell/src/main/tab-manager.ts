@@ -7,25 +7,17 @@ import {
   createDocsView,
   docsQueryDirty,
   markDocsNewBlank,
-  queueDocsAiContent,
   queueDocsResultDoc,
   type ResultDoc,
   requestDocsClose,
   setActiveDocsResolver,
   teardownDocsRenderer,
 } from '../../../docs/src/main/docs-main'
-import type { AiDocContent } from '../../../docs/src/shared/ipc'
 import {
   createMarkdownView,
   markdownIsDirty,
   requestMarkdownClose,
 } from '../../../markdown/src/main/markdown-main'
-import {
-  createHtmlPresentView,
-  createHtmlView,
-  htmlIsDirty,
-  requestHtmlClose,
-} from '../../../html/src/main/html-main'
 import {
   createPdfView,
   clearPdfDirty,
@@ -319,8 +311,6 @@ export class TabManager {
         return pdfIsDirty(wc.id)
       case 'markdown':
         return markdownIsDirty(wc.id)
-      case 'html':
-        return htmlIsDirty(wc.id)
       case 'slides':
         return slidesIsDirty(wc.id)
       case 'docs':
@@ -361,14 +351,10 @@ export class TabManager {
     return id
   }
 
-  openDocsTab(
-    openPath?: string,
-    options?: { newBlank?: boolean; aiContent?: AiDocContent; resultDoc?: ResultDoc },
-  ): string {
+  openDocsTab(openPath?: string, options?: { newBlank?: boolean; resultDoc?: ResultDoc }): string {
     const view = createDocsView(openPath)
     const id = `t${this.nextId++}`
     if (options?.newBlank) markDocsNewBlank(view.webContents.id)
-    if (options?.aiContent) queueDocsAiContent(view.webContents.id, options.aiContent)
     if (options?.resultDoc) queueDocsResultDoc(view.webContents.id, options.resultDoc)
     this.shellWindow.contentView.addChildView(view)
     view.setVisible(false)
@@ -473,43 +459,6 @@ export class TabManager {
       view,
       title: openPath ? basename(openPath) : this.untitled('markdown', 'AI Markdown'),
       filePath: openPath,
-    })
-    this.activateTab(id)
-    return id
-  }
-
-  openHtmlTab(openPath?: string): string {
-    const view = createHtmlView(openPath)
-    const id = `t${this.nextId++}`
-    this.shellWindow.contentView.addChildView(view)
-    view.setVisible(false)
-    this.trackHtmlFullScreen(view)
-    this.tabs.push({
-      id,
-      lastActiveAt: Date.now(),
-      kind: 'html',
-      view,
-      title: openPath ? basename(openPath) : this.untitled('html', 'AI HTML'),
-      filePath: openPath,
-    })
-    this.activateTab(id)
-    return id
-  }
-
-  /** Present → New tab: a chrome-free html tab showing the owner tab's live preview */
-  openHtmlPresentTab(owner: WebContents, title: string): string {
-    const view = createHtmlPresentView(owner, title)
-    const id = `t${this.nextId++}`
-    this.shellWindow.contentView.addChildView(view)
-    view.setVisible(false)
-    this.trackHtmlFullScreen(view)
-    this.tabs.push({
-      id,
-      lastActiveAt: Date.now(),
-      kind: 'html',
-      view,
-      title: title || this.untitled('html', 'AI HTML'),
-      present: true,
     })
     this.activateTab(id)
     return id
@@ -649,13 +598,6 @@ export class TabManager {
       .map((t) => ({ id: t.id, webContents: t.view!.webContents }))
   }
 
-  /** html tabs whose renderer reports unsaved edits (shell-close guard) */
-  dirtyHtmlTabs(): Array<{ id: string; webContents: WebContents }> {
-    return this.tabs
-      .filter((t) => t.kind === 'html' && t.view && htmlIsDirty(t.view.webContents.id))
-      .map((t) => ({ id: t.id, webContents: t.view!.webContents }))
-  }
-
   /** slides tabs whose main-process session has unsaved edits (shell-close guard) */
   dirtySlidesTabs(): Array<{ id: string; webContents: WebContents }> {
     return this.tabs
@@ -701,11 +643,9 @@ export class TabManager {
           ? requestPdfClose
           : tab.kind === 'markdown' && markdownIsDirty(tab.view.webContents.id)
             ? requestMarkdownClose
-            : tab.kind === 'html' && htmlIsDirty(tab.view.webContents.id)
-              ? requestHtmlClose
-              : tab.kind === 'slides' && slidesIsDirty(tab.view.webContents.id)
-                ? requestSlidesClose
-                : null)
+            : tab.kind === 'slides' && slidesIsDirty(tab.view.webContents.id)
+              ? requestSlidesClose
+              : null)
     // docs dirty state lives in the renderer and needs an async query; skip the guard when clean (avoids a flash activation)
     if (!closeGuard && tab.kind === 'docs' && tab.view) {
       this.closingIds.add(id)
@@ -1004,18 +944,6 @@ export class TabManager {
     return this.findTabOfKindByPath('markdown', path)
   }
 
-  findHtmlTabByPath(path?: string): string | undefined {
-    return this.findTabOfKindByPath('html', path)
-  }
-
-  /** the active tab's html view, if the active tab is html (html menu target) */
-  activeHtmlTab(): { id: string; webContents: WebContents; filePath?: string } | undefined {
-    const tab = this.tabs.find((t) => t.id === this.activeId)
-    return tab?.kind === 'html' && tab.view && !tab.present
-      ? { id: tab.id, webContents: tab.view.webContents, filePath: tab.filePath }
-      : undefined
-  }
-
   /** the active tab's markdown view, if the active tab is markdown (markdown menu target) */
   activeMarkdownTab(): { id: string; webContents: WebContents; filePath?: string } | undefined {
     const tab = this.tabs.find((t) => t.id === this.activeId)
@@ -1050,8 +978,6 @@ function createViewFor(kind: TabKind, filePath: string | undefined): WebContents
       return createPdfView(filePath)
     case 'markdown':
       return createMarkdownView(filePath)
-    case 'html':
-      return createHtmlView(filePath)
     default:
       return null
   }

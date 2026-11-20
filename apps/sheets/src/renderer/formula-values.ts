@@ -8,7 +8,7 @@
  * silent failure — an agent can conclude the edit did not take.
  *
  * In-app callers never meet this: the user watches the cell fill in. So the
- * MCP path closes the gap here, polling the addressed cells until the engine has
+ * batch apply path closes the gap here, polling the addressed cells until the engine has
  * written their values and reporting them alongside the apply result. Polling
  * (rather than waiting on the engine's calculationEnd event) keeps it precise:
  * a batch of plain values triggers no recalculation at all, and must not hold
@@ -121,7 +121,7 @@ export async function awaitFormulaValues(
  * The save path refuses to cache a formula it has not seen a value for (the
  * overlay it used to read deliberately skips journaled cells, and trusting it
  * could cache the *previous* formula's result right after a replacement). That
- * protection left every MCP-written formula without a cached `<v>` on disk:
+ * protection left every batch-written formula without a cached `<v>` on disk:
  * Excel recalculated on open so nothing looked broken, but read-only consumers
  * — the CLI, a preview, a diff — showed those cells as empty.
  *
@@ -215,11 +215,8 @@ export function verifiedFormulaValues(
 
 /**
  * `A1` -> zero-based row/column, matching the save path's coordinates.
- *
- * Exported because a reader that has to ask the redaction index about a cell
- * only has its address, and a second parser would be a second set of edges.
  */
-export function parseAddressParts(address: string): { row: number; column: number } | null {
+function parseAddressParts(address: string): { row: number; column: number } | null {
   const match = /^([A-Z]+)(\d+)$/.exec(address.toUpperCase())
   if (!match) return null
   const letters = match[1]!

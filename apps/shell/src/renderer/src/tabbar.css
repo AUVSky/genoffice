@@ -305,6 +305,26 @@ body.overlay-title-bar .tab-bar-drag-spacer {
   margin: 0 8px 0 2px;
 }
 
+/* the home/launcher is not a tab: it only shows when no document is active */
+.tab-item.tab-home {
+  display: none;
+}
+
+.tab-settings-btn {
+  width: auto;
+  padding: 0 12px;
+  margin: 0 10px 0 2px;
+  border-radius: 14px;
+  flex-direction: row;
+  white-space: nowrap;
+}
+
+.tab-settings-label {
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
 /* divider between the tab strip and the tab-overview button */
 .tab-overflow-btn::before {
   content: '';
@@ -319,6 +339,7 @@ body.overlay-title-bar .tab-bar-drag-spacer {
 
 .tab-new-btn,
 .tab-overflow-btn,
+.tab-settings-btn,
 .tab-app-menu-btn {
   -webkit-app-region: no-drag;
   position: relative;
@@ -338,6 +359,7 @@ body.overlay-title-bar .tab-bar-drag-spacer {
 
 .tab-new-btn:hover,
 .tab-overflow-btn:hover,
+.tab-settings-btn:hover,
 .tab-app-menu-btn:hover {
   background: rgba(0, 0, 0, 0.08);
 }
@@ -419,4 +441,12 @@ body.overlay-title-bar .tab-bar-drag-spacer {
   border-radius: 4px;
   padding: 1px 4px;
   outline: none;
+}
+
+/* text button: the shared round-button width must not clip its label */
+.tab-bar .tab-settings-btn {
+  width: auto;
+  padding: 0 12px;
+  margin: 0 10px 0 2px;
+  border-radius: 14px;
 }

@@ -1,7 +1,6 @@
 /** The download/install half of the font store, wired to Electron. */
 import { join } from 'node:path'
-import { readFileSync } from 'node:fs'
-import { app, net } from 'electron'
+import { app } from 'electron'
 import type { OpenedPptx } from '@genoffice/pptx-engine'
 import {
   downloadCatalogEntry as downloadEntry,
@@ -32,13 +31,8 @@ export function extractFontCdnBaseUrl(pkg: unknown): string | null {
  * all downloadable-font UI stays disabled while local font installation works.
  */
 export function fontCdnBaseUrl(): string | null {
-  if (!app.isPackaged) return normalizeCdnBaseUrl(process.env.GENOFFICE_FONT_CDN_URL)
-  try {
-    const pkg = JSON.parse(readFileSync(join(app.getAppPath(), 'package.json'), 'utf8')) as unknown
-    return extractFontCdnBaseUrl(pkg)
-  } catch {
-    return null
-  }
+  // Offline build: the downloadable-font catalog is never enabled.
+  return null
 }
 
 export function fontStoreDir(): string {
@@ -55,14 +49,8 @@ function storeEnv(): FontStoreEnv {
   return {
     dir: fontStoreDir(),
     cdnBaseUrl: fontCdnBaseUrl(),
-    fetchBytes: async (url) => {
-      const response = await net.fetch(url)
-      if (!response.ok) return { ok: false, status: response.status, bytes: new Uint8Array() }
-      return {
-        ok: true,
-        status: response.status,
-        bytes: new Uint8Array(await response.arrayBuffer()),
-      }
+    fetchBytes: async () => {
+      throw new Error('font downloads are disabled')
     },
     isFamilyAvailable: familyAvailable,
     fontFileFamilies,

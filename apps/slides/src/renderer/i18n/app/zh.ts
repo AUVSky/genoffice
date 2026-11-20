@@ -1,15 +1,5 @@
 /** app strings, zh: defines the key set every other locale shard must match. */
 export const zh = {
-  redactMenuLabel: '把选中的内容对 AI 隐藏',
-  redactDialogDesc:
-    '选中的内容会留在文档和文件里，AI 读到的却是下面的标记。给它起个名字，AI 才知道它是什么。',
-  redactDialogScope:
-    '这只针对本应用的 AI。命令行、MCP 工具和无界面导出会直接读取文件，仍然看得到这些文字。',
-  redactDialogPlaceholder: '占位名称，例如：客户电话',
-  redactCancel: '取消',
-  redactInsert: '隐藏',
-  redactEnable: '选中文字后右键，即可对 AI 隐藏。',
-
   appPhPromptTitle: '单击此处添加标题',
   appPhPromptSubtitle: '单击此处添加副标题',
   appPhPromptBody: '单击此处添加文本',
@@ -250,8 +240,6 @@ export const zh = {
   appNotesPlaceholder: '单击此处添加演讲者备注（随文档保存进 pptx）',
   appNotesShow: '显示备注',
   appNotesHide: '隐藏备注',
-  appAiRailExpand: '展开 AI 助手',
-  appAiRailText: 'AI',
   appStatusBarSlide: '幻灯片 {current} / {total}',
   appStatusBarReady: '就绪',
   appMediaCloseTitle: '关闭 (Esc)',
@@ -266,14 +254,7 @@ export const zh = {
   appStatusRecordSaved: '已为 {count} 页保存旁白（PowerPoint 中同样可以播放）',
   appStatusRecordFailed: '无法保存录制内容',
   appStatusNarrationCleared: '已清除旁白',
-  appSettingsTitle: 'AI 设置',
-  appSettingsAccount: 'Genspark 账号',
   appSettingsChecking: '检测中…',
-  appSettingsLoggedIn: '已登录',
-  appSettingsLoggedInEmail: '已登录：{email}',
-  appSettingsLoggedOut: '未登录（AI 功能需要登录 Genspark 账号）',
-  appSettingsLoginPending: '等待浏览器登录…',
-  appSettingsLogin: '登录 Genspark',
   appSettingsModel: '模型',
   appSettingsCancel: '取消',
   appSettingsSave: '保存',

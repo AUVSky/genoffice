@@ -453,7 +453,7 @@ function renameTable(ctx: TableDesignContext, rawName: string): string | void {
   }
 }
 
-/// File table entries are replaced in place so the lazy loader, the AI
+/// File table entries are replaced in place so the lazy loader, the
 /// readers and the structured-reference registry all see the change.
 function replaceFileTable(
   ref: Extract<TableRef, { kind: 'file' }>,
@@ -626,7 +626,7 @@ function toggleHeaderRow(
     const next: TableRegion = { ...area, startRow: row }
     const hasTotals = refOptions(ref).totalsRow
     if (ref.kind === 'session') {
-      const id = `ai-table-${Date.now().toString(36)}`
+      const id = `table-${Date.now().toString(36)}`
       const updated = state.editJournal.tableAdds.find((add) => add.name === ref.add.name)
       void Promise.resolve(
         tableApi(worksheet).addTable(ref.add.name, dataRange(next, hasTotals), id),

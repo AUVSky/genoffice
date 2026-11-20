@@ -15,10 +15,10 @@ export interface CropFractions {
   b: number
 }
 
-/** Remove-background tolerance (0..100) shared by the dialog slider and the AI tool */
+/** Remove-background tolerance (0..100) shared by the dialog slider and the bake path */
 export const DEFAULT_CUTOUT_TOLERANCE = 30
 
-/** Pixel edits the AI can apply to an existing page image (same bakes as the floating bar) */
+/** Pixel edits applied to an existing page image (same bakes as the floating bar) */
 export type ImageBakeOp =
   | { kind: 'flip'; axis: 'h' | 'v' }
   | { kind: 'opacity'; alpha: number }

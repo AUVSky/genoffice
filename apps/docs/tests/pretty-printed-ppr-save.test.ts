@@ -4,7 +4,7 @@ import JSZip from 'jszip'
 import { parseDocx, saveDocx } from '@genoffice/docx-engine'
 import { buildDocx } from '../../../packages/docx-engine/tests/helpers/build-docx'
 import { blocksToPmDoc, pmDocToSavePlan, type PmNode } from '../src/renderer/editor/convert'
-import { executeTool } from '../src/renderer/ai/tools'
+import { executeOps } from '../src/renderer/doc-core/ops'
 
 /**
  * Third-party generators (PHPWord, docx4j...) pretty-print document.xml, so
@@ -13,8 +13,6 @@ import { executeTool } from '../src/renderer/ai/tools'
  * from the format model and drops keepNext/keepLines/widowControl and a
  * mid-document w:sectPr (a continuous multicolumn section break).
  */
-
-const NUM_IDS = { bullet: null, ordered: null }
 
 const HEADING_P =
   '<w:p>\n\t\t\t<w:pPr>\n\t\t\t\t<w:keepNext/>\n\t\t\t\t<w:keepLines/>\n\t\t\t\t<w:widowControl w:val="0"/>' +
@@ -42,8 +40,8 @@ async function roundTrip(ops: unknown[]) {
     extensions: editorExtensions,
   })
   editor.commands.setContent(blocksToPmDoc(parsed.blocks) as never)
-  const exec = await executeTool(editor, { id: 't', name: 'apply_ops', input: { ops } }, NUM_IDS)
-  expect(exec.isError).toBeFalsy()
+  const exec = executeOps(editor, ops)
+  expect(exec.ok).toBe(true)
   const plan = pmDocToSavePlan(editor.getJSON() as PmNode, parsed.blocks)
   const saved = await saveDocx(parsed, plan.saveBlocks)
   editor.destroy()

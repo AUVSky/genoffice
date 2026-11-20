@@ -56,11 +56,11 @@ export function CommentsPane({
 
   return (
     <aside className="comments-pane">
-      <div className="ai-panel-header">
-        <span className="ai-panel-title">{t('paneCommentsTitle', { n: slideIndex + 1 })}</span>
-        <div className="ai-panel-header-actions">
+      <div className="pane-header">
+        <span className="pane-title">{t('paneCommentsTitle', { n: slideIndex + 1 })}</span>
+        <div className="pane-header-actions">
           <button
-            className="ai-header-btn"
+            className="pane-header-btn"
             onClick={onCollapse}
             data-tip={t('paneCommentsCollapse')}
             aria-label={t('paneCommentsCollapse')}

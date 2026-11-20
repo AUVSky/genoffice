@@ -26,9 +26,6 @@ export const pl = {
   ribbonLangVietnamese: 'wietnamski',
   ribbonLangTurkish: 'turecki',
   ribbonLangHungarian: 'węgierski',
-  ribbonAiCreditNote: 'Używa AI i zużywa kredyty',
-  ribbonAiRewriteConfirm:
-    'Ta akcja wywołuje AI: zużywa kredyty i może przepisać całą treść. Kontynuować? (Nie zapytamy ponownie.)',
   ribbonTabHome: 'Narzędzia główne',
   ribbonTabDraw: 'Rysowanie',
   ribbonTabLayout: 'Układ',
@@ -86,7 +83,6 @@ export const pl = {
   ribbonOpen: 'Otwórz…',
   ribbonSave: 'Zapisz',
   ribbonSaveAs: 'Zapisz jako…',
-  ribbonNameWithAi: 'Nadaj nazwę za pomocą AI…',
   ribbonConvert: 'Konwertuj',
   ribbonConvertTip: 'Konwertuj do PDF, HTML, Markdown lub obrazów',
   ribbonConvertPdf: 'Konwertuj do PDF…',
@@ -161,7 +157,6 @@ export const pl = {
   ribbonIcons: 'Ikony',
   ribbonDateTime: 'Data i godzina',
   ribbonNumber: 'Numer',
-  ribbonThesaurus: 'Tezaurus',
   ribbonWordCount: 'Statystyka wyrazów',
   ribbonProofingLanguage: 'Język',
   ribbonProofingNoCheck: 'Nie sprawdzaj pisowni ani gramatyki',
@@ -306,7 +301,6 @@ export const pl = {
   ribbonReplaceTip: 'Znajdź i zamień tekst',
   ribbonSelectAll: 'Zaznacz wszystko',
   ribbonSelectAllTip: 'Zaznacz cały dokument',
-  ribbonAiAssistantTip: 'Otwórz asystenta AI',
   ribbonRemoveTableStyleTip: 'Usuń styl tabeli',
   ribbonNoStyle: 'Brak stylu',
   ribbonApplyTableStyleTip: 'Zastosuj styl tabeli {name}',
@@ -839,22 +833,9 @@ export const pl = {
   ribbonSourceJournalName: 'Nazwa czasopisma',
   ribbonSourceSiteName: 'Nazwa witryny',
   ribbonSourcePublisher: 'Wydawca',
-  ribbonEditorBtn: 'Edytor',
-  ribbonEditorTip: 'AI sprawdzi pisownię, gramatykę i interpunkcję',
-  ribbonEditorPrompt:
-    'Zrób korektę całego dokumentu: popraw literówki, interpunkcję i błędy gramatyczne, zachowując pierwotny sens i strukturę akapitów.',
   ribbonGroupProofing: 'Sprawdzanie',
   ribbonSpellcheckBtn: 'Pisownia',
   ribbonSpellcheckTip: 'Sprawdzaj pisownię podczas pisania — podkreśla na czerwono możliwe błędy',
-  ribbonTranslate: 'Przetłumacz',
-  ribbonTranslateTip: 'AI przetłumaczy dokument',
-  ribbonTranslatePrompt:
-    'Przetłumacz cały dokument na {lang}, zachowując strukturę akapitów i poziomy nagłówków.',
-  ribbonTranslateSelectionPrompt:
-    'Przetłumacz zaznaczoną treść na {lang}, zachowując strukturę akapitów.',
-  ribbonEditorSelectionPrompt:
-    'Zrób korektę zaznaczonej treści: popraw literówki, interpunkcję i błędy gramatyczne, zachowując pierwotny sens i strukturę akapitów.',
-  ribbonTranslateTo: 'Przetłumacz na {lang}',
   ribbonGroupLanguage: 'Język',
   ribbonNewComment: 'Nowy komentarz',
   ribbonNewCommentTip: 'Dodaj komentarz do zaznaczenia',
@@ -871,16 +852,6 @@ export const pl = {
   ribbonPrevCommentTip: 'Przejdź do poprzedniego komentarza',
   ribbonNextComment: 'Następny',
   ribbonNextCommentTip: 'Przejdź do następnego komentarza',
-  ribbonAiComments: 'Komentarze z AI',
-  ribbonAiRevisions: 'Podsumowanie zmian AI',
-  ribbonAiRevisionsTip:
-    'AI czyta oczekujące zmiany ({count}), podsumowuje je według sekcji i wskazuje ryzyka',
-  ribbonAiRevisionsPrompt:
-    'Podsumuj wszystkie oczekujące zmiany w dokumencie: zacznij od ogólnych statystyk (liczba wstawień/usunięć, autorzy, zakres dat), następnie opisz zmiany sekcja po sekcji (podaj indeksy bloków), a na końcu wypisz punkty wymagające uwagi (usunięte zobowiązania lub zastrzeżenia, zmienione liczby/daty/kwoty). Tylko podsumuj — nie modyfikuj dokumentu ani nie akceptuj/odrzucaj żadnych zmian.',
-  ribbonAiCommentsTip:
-    'AI przetwarza nierozwiązane komentarze ({count}): zmiana, odpowiedź, rozwiązanie',
-  ribbonAiCommentsPrompt:
-    'Obsłuż wszystkie nierozwiązane komentarze w dokumencie: dla każdego wprowadź żądaną zmianę, odpowiedz z opisem zmiany i oznacz jako rozwiązany; jeśli komentarz jest pytaniem lub jest niejednoznaczny, tylko odpowiedz, nie zmieniając dokumentu.',
   ribbonShowCommentsTip: 'Pokaż komentarze ({count})',
   ribbonShowCommentsContextual: 'Kontekstowo',
   ribbonShowCommentsList: 'Lista',
@@ -1267,8 +1238,6 @@ export const pl = {
   ribbonColWidthSpacing: 'Szerokość i odstępy',
   ribbonColNo: 'Nr kol.',
   ribbonColStartNew: 'Rozpocznij nową kolumnę',
-  ribbonTranslationLanguageTitle: 'Ustaw język tłumaczenia dokumentu',
-  ribbonTranslationLanguageLabel: 'Przetłumacz na',
   ribbonAddTextNone: 'Nie pokazuj w spisie treści',
   ribbonLnRestartPage: 'Rozpocznij od nowa na każdej stronie',
   ribbonLnRestartSection: 'Rozpocznij od nowa w każdej sekcji',

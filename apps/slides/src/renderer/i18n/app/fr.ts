@@ -1,16 +1,6 @@
 import type { zh } from './zh'
 
 export const fr = {
-  redactMenuLabel: 'Masquer la sélection à l’IA',
-  redactDialogDesc:
-    'La sélection reste dans le document et dans le fichier ; le modèle ne voit que le marqueur ci-dessous. Donnez-lui un nom pour qu’il sache ce qu’il désigne.',
-  redactDialogScope:
-    'Le masquage ne concerne que l’IA de cette application. La CLI, les outils MCP et l’exportation sans interface lisent le fichier directement et voient toujours ces mots.',
-  redactDialogPlaceholder: 'Nom du placeholder, ex. : téléphone du client',
-  redactCancel: 'Annuler',
-  redactInsert: 'Masquer',
-  redactEnable: 'Clic droit sur une sélection pour la masquer au modèle.',
-
   appPhPromptTitle: 'Cliquez pour ajouter un titre',
   appPhPromptSubtitle: 'Cliquez pour ajouter un sous-titre',
   appPhPromptBody: 'Cliquez pour ajouter du texte',
@@ -276,8 +266,6 @@ export const fr = {
     'Cliquez pour ajouter des notes du présentateur (enregistrées dans le .pptx)',
   appNotesShow: 'Afficher les notes',
   appNotesHide: 'Masquer les notes',
-  appAiRailExpand: 'Développer l’assistant IA',
-  appAiRailText: 'IA',
   appStatusBarSlide: 'Diapositive {current} sur {total}',
   appStatusBarReady: 'Prêt',
   appMediaCloseTitle: 'Fermer (Échap)',
@@ -294,14 +282,7 @@ export const fr = {
   appStatusRecordSaved: 'Narration enregistrée sur {count} diapositives (PowerPoint la lit aussi)',
   appStatusRecordFailed: 'L’enregistrement n’a pas pu être sauvegardé',
   appStatusNarrationCleared: 'Narration effacée',
-  appSettingsTitle: 'Paramètres IA',
-  appSettingsAccount: 'Compte Genspark',
   appSettingsChecking: 'Vérification…',
-  appSettingsLoggedIn: 'Connecté',
-  appSettingsLoggedInEmail: 'Connecté : {email}',
-  appSettingsLoggedOut: 'Non connecté (les fonctionnalités IA nécessitent un compte Genspark)',
-  appSettingsLoginPending: 'En attente de la connexion dans le navigateur…',
-  appSettingsLogin: 'Se connecter à Genspark',
   appSettingsModel: 'Modèle',
   appSettingsCancel: 'Annuler',
   appSettingsSave: 'Enregistrer',

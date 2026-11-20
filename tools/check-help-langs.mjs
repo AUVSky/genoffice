@@ -10,6 +10,11 @@
  * quietly a copy of another, or an article that lost a section, or a `help://`
  * link whose target got translated and now resolves to nothing.
  *
+ * This fork ships the manual in English and Simplified Chinese only. The
+ * other UI languages fall back to English at read time (`helpBody`), so they
+ * are not required here — checking 23 languages would only assert that 21
+ * untranslated files exist.
+ *
  * The checks are all mechanical on purpose. Judging prose is a reviewer's job;
  * this only asserts that every file exists and that its *structure* is identical
  * to the English source, which is exactly the class of mistake that survives a
@@ -22,7 +27,6 @@ import { fileURLToPath } from 'node:url'
 const ROOT = resolve(fileURLToPath(new URL('.', import.meta.url)), '..')
 const TOPICS = join(ROOT, 'apps/shell/src/renderer/src/i18n/help/topics')
 const REGISTRY = join(TOPICS, '..', 'help-registry.ts')
-const I18N = join(ROOT, 'packages/i18n/src/index.ts')
 
 /**
  * The topic ids, read out of the registry source.
@@ -41,33 +45,17 @@ function topicIdsFrom(source) {
 }
 
 /**
- * The languages the manual has to ship, read from the i18n package rather than
- * listed here: a hand-kept copy of the 21 codes is a 21-code list that goes
- * stale the day a language is added, and the failure is silent.
+ * The languages the manual has to ship.
  *
- * `@genoffice/i18n` exports its TypeScript source, so node cannot import it
- * either — same reason as the ids above. Read as text, and fail loudly rather
- * than quietly checking fewer languages than the app ships.
+ * A fork decision, not an accident: the upstream manual was translated into
+ * every UI language, but keeping 23 copies of content that describes a
+ * different product does more harm than good. Readers of the other UI
+ * languages get the English body; their titles still come from help-titles.
  */
-function langsFrom(source) {
-  const decl = source.indexOf('export const LANGS')
-  if (decl < 0) throw new Error('LANGS not found in the i18n package')
-  // start after the `= [`, not after the declaration: the type annotation is
-  // `readonly Lang[]`, whose own `]` would otherwise bound the slice to nothing
-  const open = source.indexOf('[', source.indexOf('=', decl))
-  const end = source.indexOf(']', open)
-  if (open < 0 || end < 0) throw new Error('unterminated LANGS array in the i18n package')
-  // everything after it is other tables (HTML_LANGS, MAC_KEY_NAMES, …) full of
-  // quoted strings, and an unbounded match would check hundreds of "languages"
-  // that do not exist
-  const langs = [...source.slice(open, end).matchAll(/'([a-zA-Z-]+)'/g)].map((m) => m[1])
-  if (langs.length === 0) throw new Error('no languages parsed out of LANGS')
-  return langs
-}
+const LANGS = ['en', 'zh']
 
 const SOURCE = 'en'
 const IDS = topicIdsFrom(readFileSync(REGISTRY, 'utf-8'))
-const LANGS = langsFrom(readFileSync(I18N, 'utf-8'))
 
 /** Latin- or Cyrillic-script languages: any Han character in one of these is a
  *  worker that pasted the CJK source instead of translating it. */

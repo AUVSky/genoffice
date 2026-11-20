@@ -7,7 +7,6 @@ import {
 
 /** the app state the menu bar's check marks and greyed-out items are derived from */
 export interface MenuStateInput {
-  aiSidebar: boolean
   darkPage: boolean
   hasDoc: boolean
   editable: boolean
@@ -43,8 +42,6 @@ export interface MenuStateInput {
   canRedo: boolean
   /** the last command can run again on the selection (see repeat.ts) */
   canRepeat: boolean
-  /** check-as-you-type spelling is on */
-  spellcheck: boolean
   /** the document has a file of its own */
   onDisk: boolean
   /** the document asks to be opened read-only */
@@ -78,7 +75,6 @@ const WITHOUT_DOC: ReadonlySet<CommandId> = new Set([
   'open',
   'open-path',
   'file-new-from-template',
-  'toggle-ai',
   'toggle-dark',
   'new-window',
   'ink-tool',
@@ -167,8 +163,6 @@ const EDITS: ReadonlySet<CommandId> = new Set([
   'file-always-read-only',
   'mailings-finish-merge',
   'toc-add-text',
-  'tools-translate-selection',
-  'tools-translate-document',
   'tools-envelopes',
   'tools-labels',
   'insert-bookmark',
@@ -285,7 +279,6 @@ const EDITS: ReadonlySet<CommandId> = new Set([
   'arrange-align',
   'arrange-group',
   'insert-comment',
-  'ai-proofread',
   'table-formula',
   ...ALL.filter((id) => IN_TABLE.has(id) && !id.startsWith('table-select-')),
 ])
@@ -346,8 +339,6 @@ const NOT_ON_CELLS: ReadonlySet<CommandId> = new Set([
   'format-horizontal-in-vertical',
   'format-combine-characters',
   'format-two-lines-in-one',
-  'tools-thesaurus',
-  'tools-translate-selection',
 ])
 
 /** work on text or put some at the caret, which a selected picture has none of */
@@ -362,8 +353,6 @@ const NOT_ON_PICTURE: ReadonlySet<CommandId> = new Set([
   'format-horizontal-in-vertical',
   'format-combine-characters',
   'format-two-lines-in-one',
-  'tools-thesaurus',
-  'tools-translate-selection',
 ])
 
 /** act on what is selected, so a bare caret gives them nothing */
@@ -450,7 +439,6 @@ export function offByDocument(id: CommandId, input: DocumentStateInput): boolean
 
 export function menuCommandState(input: MenuStateInput): CommandMenuState {
   const checked: CommandId[] = []
-  if (input.aiSidebar) checked.push('toggle-ai')
   if (input.darkPage) checked.push('toggle-dark')
   const { view } = input
   // Read Mode is its own view: no layout is the current one while it is on
@@ -469,7 +457,6 @@ export function menuCommandState(input: MenuStateInput): CommandMenuState {
   if (view.focus) checked.push('view-focus')
   if (input.readOnlyRecommended) checked.push('file-always-read-only')
   if (view.reviewPane) checked.push('review-pane')
-  if (!input.spellcheck) checked.push('tools-hide-spelling')
   const disabled = ALL.filter(
     (id) =>
       editCommandOff(id, input) ?? (offByDocument(id, input) || (!input.onDisk && ON_DISK.has(id))),

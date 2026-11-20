@@ -39,8 +39,6 @@
   },
   "dependencies": {
     "@genoffice/i18n": "*",
-    "@genoffice/pptx-render": "*",
-    "@genoffice/agent-core": "*",
-    "@genoffice/ai-provider": "*"
+    "@genoffice/pptx-render": "*"
   }
 }

@@ -1,20 +1,6 @@
 import type { zh } from './zh'
 
 export const vi = {
-  // ── Withholding cells from the model ──
-  redactMenuLabel: 'Ẩn phần đã chọn khỏi AI',
-  redactDialogDesc:
-    'Nội dung đã chọn vẫn còn trong tài liệu và tệp; mô hình chỉ thấy placeholder bên dưới. Đặt tên để mô hình biết nó đại diện cho điều gì.',
-  redactDialogScope:
-    'Điều này chỉ áp dụng cho AI trong ứng dụng này. CLI, các công cụ MCP và bản xuất không có cửa sổ đều đọc thẳng tệp, nên chúng vẫn thấy những từ này.',
-  redactDialogPlaceholder: 'Tên placeholder, ví dụ: số điện thoại khách hàng',
-  redactCancel: 'Hủy',
-  redactInsert: 'Ẩn',
-  redactEnable: 'Nhấp chuột phải vào phần đã chọn để ẩn khỏi mô hình.',
-  redactNeedsSavedRow: 'Hàng này chưa có trong tệp. Hãy lưu trước, rồi ẩn ô.',
-  redactRecoveredFromNames:
-    'Ứng dụng khác đã ghi lại tệp này và làm mất bản ghi về những ô đang ẩn. Các ô bị ẩn đã được khôi phục từ các tên trong sổ làm việc; lưu sẽ khôi phục lại toàn bộ bản ghi.',
-
   appMergeWorkbooks: 'Hợp nhất sổ làm việc',
   appMergeWorkbooksTip: 'Thêm các trang tính từ tệp Excel khác vào sổ làm việc này',
   appMergeWorkbooksPicking: 'Chọn các tệp để hợp nhất…',
@@ -158,14 +144,11 @@ export const vi = {
   appRefresh: 'Làm mới',
   appRefreshHintIn: 'Tính toán lại PivotTable hiện tại',
   appRefreshHintOut: 'Trước tiên hãy chọn vùng PivotTable, sau đó làm mới',
-  appAttachmentReadFailed: '{name}: đọc thất bại',
   appTooManyImages: 'Tối đa {max} hình ảnh cho mỗi tin nhắn; các ảnh thừa đã bị bỏ qua',
-  appAppliedRevision: 'Đã áp dụng (phiên bản {revision}) — hoàn tác bằng ⌘Z, lưu vào tệp bằng ⌘S.',
   appCannotReadImage: 'Không thể đọc tệp hình ảnh.',
   appTableNotDeletable:
     'Bảng "{name}" không tồn tại hoặc không được tạo trong phiên này — chưa thể xóa các bảng đã có sẵn trong tệp.',
   appImageNotLoaded: 'Tải hình ảnh thất bại: {path}',
-  appApplyFailed: '⚠️ Áp dụng thất bại: {reason}',
   appPivotChartNeedsFile: 'Trước tiên hãy mở tệp XLSX — PivotChart sẽ được ghi vào tệp.',
   appCursorNotInPivot:
     'Con trỏ không nằm trong PivotTable — trước tiên hãy chọn một ô trong đầu ra của PivotTable.',
@@ -299,16 +282,7 @@ export const vi = {
   appSavedTwoPhase: 'Đã lưu.',
   appSaveSecondFailed:
     'Cấu trúc đã được lưu, nhưng giai đoạn thứ hai (PivotTable/bảng/tên đã xác định) thất bại: {reason}',
-  appReadyInitial: 'Sẵn sàng cho lệnh AI cục bộ, xác định.',
-  appAiThinking: 'AI đang suy nghĩ…',
-  appAiDone: 'AI đã hoàn thành',
-  appAiTurnLimit:
-    '(Đã đạt giới hạn lượt gọi công cụ cho yêu cầu này; câu trả lời ở trên dựa trên thông tin đã đọc được và có thể chưa đầy đủ.)',
-  appAiTruncatedNote: '(Câu trả lời bị cắt ngắn do giới hạn độ dài và có thể chưa đầy đủ.)',
-  appAiStopped: '(đã dừng)',
-  appAiNoSummary: 'AI đã hoàn thành mà không có tóm tắt.',
-  appAiNoAction:
-    'AI không thực hiện thay đổi nào và không đưa ra câu trả lời. Hãy thử lại hoặc diễn đạt lại.',
+  appReadyInitial: 'Sẵn sàng.',
   appNewConversation: 'Đã bắt đầu cuộc trò chuyện mới.',
   appPivotCellNoEdit: 'Ô này là một phần của PivotTable — chưa hỗ trợ chỉnh sửa.',
   appAreaStreaming: 'Khu vực đó vẫn đang tải theo luồng — vui lòng thử chỉnh sửa lại sau giây lát.',
@@ -351,16 +325,8 @@ export const vi = {
   appDvListOptions: 'Danh sách: {items}',
   appDvListFromRange: 'Danh sách (từ vùng {range})',
   appRuleBrokenRef: 'Tham chiếu bị hỏng (#REF!) — quy tắc này không bao giờ có thể áp dụng',
-  appCellStreaming: 'Ô đó vẫn đang tải theo luồng — vui lòng thử lại sau giây lát.',
-  appPreviewCreated: 'Đã tạo bản xem trước — không có gì thay đổi cho đến khi bạn áp dụng.',
-  appPreviewCreatedDemo: 'Đã tạo bản xem trước. Trạng thái sổ làm việc chưa thay đổi.',
-  appPreviewFailed: 'Không thể tạo bản xem trước.',
   appApplyTxFailed: 'Không thể áp dụng giao dịch.',
   appTxCommitted: 'Giao dịch đã được cam kết ở phiên bản {revision}.',
-  appPreviewOtherWorkbook: 'Bản xem trước thuộc về một sổ làm việc khác — hãy tạo bản mới.',
-  appPreviewSheetGone: 'Trang tính được xem trước không còn tồn tại — hãy tạo bản xem trước mới.',
-  appWorkbookChangedSincePreview:
-    'Sổ làm việc đã thay đổi kể từ bản xem trước — hãy tạo bản xem trước mới.',
   appAppliedJournaled: 'Đã áp dụng — các thay đổi đã được ghi nhật ký; lưu bằng ⌘S.',
   appUndoCommitted: 'Đã hoàn tác cam kết dưới dạng phiên bản {revision}.',
   appUndoFailed: 'Không thể hoàn tác.',
@@ -613,8 +579,6 @@ export const vi = {
   appShowCommentsTitle: 'Ghim/bỏ ghim bong bóng nhận xét của ô đã chọn',
   appStructuralShiftBlocked:
     'Một biểu đồ hoặc bảng trên trang tính này được neo vào các hàng/cột bị ảnh hưởng, nên chúng không thể dịch chuyển; thay đổi cấu trúc chưa được lưu. Hãy hoàn tác (Cmd+Z) và lưu lại.',
-  appAiChangesNotSaved:
-    'Các thay đổi của AI đã được áp dụng (chưa lưu). Hoàn tác bằng Cmd+Z; lưu vào tệp bằng Cmd+S.',
   appChartUpdated: 'Đã cập nhật biểu đồ.',
   appChartNotEditable: 'Biểu đồ này không thể chỉnh sửa.',
   appChartEditRecorded: 'Đã ghi lại chỉnh sửa biểu đồ — lưu bằng ⌘S.',
@@ -697,7 +661,6 @@ export const vi = {
   appRibbonExpand: 'Mở rộng Ribbon',
   appRibbonCompact: 'Dải băng thu gọn (chỉ biểu tượng)',
   appTabView: 'Xem',
-  appTabAi: 'AI',
   appTabChartDesign: 'Thiết kế Biểu đồ',
   appAutoSave: 'Tự động Lưu',
   appAutoSaveTitle: 'Tự động lưu chỉ khả dụng cho các tệp trên đám mây',
@@ -705,7 +668,6 @@ export const vi = {
   appExportPdfTitle: 'Xuất dưới dạng PDF',
   appSaveTitle: 'Lưu (⌘S)',
   appSaveAs: 'Lưu dưới dạng',
-  aiNameFile: 'Đặt tên bằng AI…',
   appUndo: 'Hoàn tác',
   appRedo: 'Làm lại',
   appUnsavedEditOne: '● {count} chỉnh sửa chưa lưu',
@@ -715,8 +677,6 @@ export const vi = {
   appRevisionChip: 'Phiên bản {revision}',
   appOpenWorkbookTitle: 'Mở sổ làm việc (⌘O)',
   appOpenXlsx: 'Mở XLSX',
-  appHideAi: 'Ẩn AI',
-  appShowAi: 'Hiện AI',
   appCategoryAxisTitle: 'Tiêu đề trục danh mục',
   appValueAxisTitle: 'Tiêu đề trục giá trị',
   appTitleText: 'Văn bản tiêu đề',
@@ -785,10 +745,6 @@ export const vi = {
   appFormatPaneDetail: 'Trục, độ rộng khoảng cách, tách điểm',
   appGroupChartActions: 'Hành động biểu đồ',
   appRemoveFromSheet: 'Xóa khỏi trang tính',
-  appGroupAiAssistant: 'Trợ lý AI',
-  appAiOpenPanelDetail: 'Thanh trò chuyện bên lề',
-  appGroupAiStarters: 'Bắt đầu nhanh',
-  appAiStarterDetail: 'Gửi tới bảng AI',
   appGroupTables: 'Bảng',
   appFromSelection: 'Từ vùng chọn',
   appEditPivotTable: 'Chỉnh sửa PivotTable',
@@ -1290,11 +1246,7 @@ export const vi = {
   appGroupProofing: 'Soát lỗi',
   appWorkbookStatsLabel: 'Thống kê sổ làm việc',
   appSheetsCellsFormulas: 'Trang tính, ô, công thức',
-  appTranslate: 'Dịch',
   appGroupLanguage: 'Ngôn ngữ',
-  appTranslateTitle: 'Dịch vùng chọn bằng AI',
-  appTranslatePrompt:
-    'Dịch văn bản trong vùng đã chọn sang {language} và ghi lại bản dịch vào chính các ô đó.',
   appNewCommentDetail: 'Thêm hoặc sửa',
   appDeleteLabel: 'Xóa',
   appNoteAtSelection: 'Ghi chú tại vùng chọn',

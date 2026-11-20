@@ -26,9 +26,6 @@ export const de = {
   ribbonLangVietnamese: 'Vietnamesisch',
   ribbonLangTurkish: 'Türkisch',
   ribbonLangHungarian: 'Ungarisch',
-  ribbonAiCreditNote: 'Ruft KI auf und verbraucht Guthaben',
-  ribbonAiRewriteConfirm:
-    'Diese Aktion ruft die KI auf: Sie verbraucht Guthaben und kann den gesamten Inhalt umschreiben. Fortfahren? (Sie werden nicht erneut gefragt.)',
   ribbonTabHome: 'Start',
   ribbonTabDraw: 'Zeichnen',
   ribbonTabLayout: 'Layout',
@@ -86,7 +83,6 @@ export const de = {
   ribbonOpen: 'Öffnen…',
   ribbonSave: 'Speichern',
   ribbonSaveAs: 'Speichern unter…',
-  ribbonNameWithAi: 'Mit KI benennen…',
   ribbonConvert: 'Konvertieren',
   ribbonConvertTip: 'In PDF, HTML, Markdown oder Bilder konvertieren',
   ribbonConvertPdf: 'In PDF konvertieren…',
@@ -162,7 +158,6 @@ export const de = {
   ribbonIcons: 'Symbole',
   ribbonDateTime: 'Datum und Uhrzeit',
   ribbonNumber: 'Nummer',
-  ribbonThesaurus: 'Thesaurus',
   ribbonWordCount: 'Wörter zählen',
   ribbonProofingLanguage: 'Sprache',
   ribbonProofingNoCheck: 'Rechtschreibung und Grammatik nicht prüfen',
@@ -307,7 +302,6 @@ export const de = {
   ribbonReplaceTip: 'Text suchen und ersetzen',
   ribbonSelectAll: 'Alles markieren',
   ribbonSelectAllTip: 'Das gesamte Dokument markieren',
-  ribbonAiAssistantTip: 'KI-Assistenten öffnen',
   ribbonRemoveTableStyleTip: 'Tabellenformatvorlage entfernen',
   ribbonNoStyle: 'Keine Formatvorlage',
   ribbonApplyTableStyleTip: 'Tabellenformatvorlage {name} anwenden',
@@ -844,23 +838,10 @@ export const de = {
   ribbonSourceJournalName: 'Name der Zeitschrift',
   ribbonSourceSiteName: 'Name der Website',
   ribbonSourcePublisher: 'Verlag',
-  ribbonEditorBtn: 'Editor',
-  ribbonEditorTip: 'KI prüft Rechtschreibung, Grammatik und Zeichensetzung',
-  ribbonEditorPrompt:
-    'Korrigiere das gesamte Dokument: Behebe Tippfehler, Zeichensetzungs- und Grammatikfehler, ohne Sinn und Absatzstruktur zu verändern.',
   ribbonGroupProofing: 'Dokumentprüfung',
   ribbonSpellcheckBtn: 'Rechtschreibung',
   ribbonSpellcheckTip:
     'Rechtschreibung während der Eingabe prüfen — unterstreicht mögliche Fehler rot',
-  ribbonTranslate: 'Übersetzen',
-  ribbonTranslateTip: 'KI übersetzt das Dokument',
-  ribbonTranslatePrompt:
-    'Übersetze das gesamte Dokument in {lang} und behalte Absatzstruktur und Überschriftenebenen bei.',
-  ribbonTranslateSelectionPrompt:
-    'Übersetze den ausgewählten Inhalt in {lang} und behalte die Absatzstruktur bei.',
-  ribbonEditorSelectionPrompt:
-    'Korrigiere den ausgewählten Inhalt: Behebe Tippfehler, Zeichensetzungs- und Grammatikfehler, ohne Sinn und Absatzstruktur zu verändern.',
-  ribbonTranslateTo: 'Ins {lang} übersetzen',
   ribbonGroupLanguage: 'Sprache',
   ribbonNewComment: 'Neuer Kommentar',
   ribbonNewCommentTip: 'Kommentar zur Auswahl hinzufügen',
@@ -877,16 +858,6 @@ export const de = {
   ribbonPrevCommentTip: 'Zum vorherigen Kommentar wechseln',
   ribbonNextComment: 'Nächster',
   ribbonNextCommentTip: 'Zum nächsten Kommentar wechseln',
-  ribbonAiComments: 'KI-Kommentare',
-  ribbonAiRevisions: 'KI-Änderungsübersicht',
-  ribbonAiRevisionsTip:
-    'Die KI liest die {count} offenen Änderungen, fasst sie abschnittsweise zusammen und markiert Risiken',
-  ribbonAiRevisionsPrompt:
-    'Fasse alle offenen nachverfolgten Änderungen des Dokuments zusammen: zuerst Gesamtstatistik (Anzahl Einfügungen/Löschungen, Autoren, Zeitraum), dann die Änderungen Abschnitt für Abschnitt (mit Blockindizes), zum Schluss eine Liste möglicher Risiken (gelöschte Pflichten oder Einschränkungen, geänderte Zahlen/Daten/Beträge). Nur zusammenfassen — das Dokument nicht ändern und keine Änderung annehmen oder ablehnen.',
-  ribbonAiCommentsTip:
-    'Die KI arbeitet die {count} offenen Kommentare ab: ändern, antworten, erledigen',
-  ribbonAiCommentsPrompt:
-    'Bearbeite alle offenen Kommentare im Dokument: Wende je Kommentar die gewünschte Änderung an, antworte mit einer kurzen Beschreibung der Änderung und markiere ihn dann als erledigt; bei Fragen oder unklaren Kommentaren nur antworten, nichts ändern.',
   ribbonShowCommentsTip: 'Kommentare anzeigen ({count})',
   ribbonShowCommentsContextual: 'Kontextbezogen',
   ribbonShowCommentsList: 'Liste',
@@ -1276,8 +1247,6 @@ export const de = {
   ribbonColWidthSpacing: 'Breite und Abstand',
   ribbonColNo: 'Spalte Nr.',
   ribbonColStartNew: 'Neue Spalte beginnen',
-  ribbonTranslationLanguageTitle: 'Sprache für die Dokumentübersetzung festlegen',
-  ribbonTranslationLanguageLabel: 'Übersetzen in',
   ribbonAddTextNone: 'Nicht im Inhaltsverzeichnis anzeigen',
   ribbonLnRestartPage: 'Jede Seite neu beginnen',
   ribbonLnRestartSection: 'Jeden Abschnitt neu beginnen',

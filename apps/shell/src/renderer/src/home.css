@@ -104,6 +104,7 @@ body.vib .home {
 .home {
   display: flex;
   height: calc(100vh - 40px);
+  background: var(--bg-content);
 }
 
 .sidebar {
@@ -389,6 +390,7 @@ body.vib .home {
 
 .home-hero {
   margin: 28px 0 20px;
+  text-align: center;
 }
 
 .hero-title {
@@ -408,10 +410,11 @@ body.vib .home {
 }
 
 .quick-cards {
-  /* auto-fill grid: the tiles wrap into rows instead of shrinking until the
-     labels are crushed when the window is narrow or more formats are added */
+  /* auto-fit grid: the tiles keep a readable width and the whole row is
+     centered; they wrap into further rows only when the window is narrow */
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(148px, 200px));
+  justify-content: center;
   gap: 10px;
 }
 

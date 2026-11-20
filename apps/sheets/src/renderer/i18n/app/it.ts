@@ -1,20 +1,6 @@
 import type { zh } from './zh'
 
 export const it = {
-  // ── Withholding cells from the model ──
-  redactMenuLabel: 'Nascondi la selezione all’IA',
-  redactDialogDesc:
-    'Il contenuto selezionato resta nel documento e nel file; il modello vede solo il segnaposto. Dai un nome perché sappia cosa rappresenta.',
-  redactDialogScope:
-    'Nascondere vale solo per l’IA di questa app. La CLI, gli strumenti MCP e l’esportazione senza interfaccia leggono direttamente il file e vedono comunque queste parole.',
-  redactDialogPlaceholder: 'Nome del segnaposto, es. telefono del cliente',
-  redactCancel: 'Annulla',
-  redactInsert: 'Nascondi',
-  redactEnable: 'Clic destro su una selezione per nasconderla al modello.',
-  redactNeedsSavedRow: 'Questa riga non è ancora nel file. Salva prima, poi nascondi la cella.',
-  redactRecoveredFromNames:
-    "Un'altra app ha riscritto questo file e ha perso il registro di ciò che è nascosto. Le celle nascoste sono state recuperate dai nomi del foglio di lavoro; salvando il file viene ripristinato il registro completo.",
-
   appMergeWorkbooks: 'Unisci cartelle di lavoro',
   appMergeWorkbooksTip: 'Aggiungi i fogli di altri file Excel a questa cartella di lavoro',
   appMergeWorkbooksPicking: 'Scegli i file da unire…',
@@ -163,15 +149,12 @@ export const it = {
   appRefresh: 'Aggiorna',
   appRefreshHintIn: 'Ricalcola la tabella pivot corrente',
   appRefreshHintOut: "Seleziona prima l'area della tabella pivot, poi aggiorna",
-  appAttachmentReadFailed: '{name}: lettura non riuscita',
   appTooManyImages:
     'Al massimo {max} immagini per messaggio; quelle in eccesso sono state ignorate',
-  appAppliedRevision: 'Applicato (revisione {revision}) — annulla con ⌘Z, salva nel file con ⌘S.',
   appCannotReadImage: 'Impossibile leggere il file immagine.',
   appTableNotDeletable:
     'La tabella "{name}" non esiste o non è stata creata in questa sessione — le tabelle già presenti nel file non possono ancora essere eliminate.',
   appImageNotLoaded: "Caricamento dell'immagine non riuscito: {path}",
-  appApplyFailed: '⚠️ Applicazione non riuscita: {reason}',
   appPivotChartNeedsFile: 'Apri prima un file XLSX — il grafico pivot viene scritto nel file.',
   appCursorNotInPivot:
     "Il cursore non è all'interno di una tabella pivot — seleziona prima una cella nell'output della tabella pivot.",
@@ -323,16 +306,7 @@ export const it = {
   appSavedTwoPhase: 'Salvato.',
   appSaveSecondFailed:
     'La struttura è salvata, ma la seconda fase (tabelle pivot/tabelle/nomi definiti) non è riuscita: {reason}',
-  appReadyInitial: 'Pronto per un comando IA locale e deterministico.',
-  appAiThinking: "L'IA sta pensando…",
-  appAiDone: "L'IA ha terminato",
-  appAiTurnLimit:
-    '(Raggiunto il limite di chiamate agli strumenti per questa richiesta; la risposta sopra si basa su quanto letto finora e potrebbe essere incompleta.)',
-  appAiTruncatedNote:
-    '(La risposta è stata troncata dal limite di lunghezza e potrebbe essere incompleta.)',
-  appAiStopped: '(interrotto)',
-  appAiNoSummary: "L'IA ha terminato senza generare un riepilogo.",
-  appAiNoAction: "L'IA non ha eseguito alcuna azione né dato risposta. Riprova o riformula.",
+  appReadyInitial: 'Pronto.',
   appNewConversation: 'Nuova conversazione avviata.',
   appPivotCellNoEdit:
     'Questa cella fa parte di una tabella pivot — la modifica non è ancora supportata.',
@@ -383,17 +357,8 @@ export const it = {
   appDvListOptions: 'Elenco: {items}',
   appDvListFromRange: 'Elenco (dall’intervallo {range})',
   appRuleBrokenRef: 'Riferimento non valido (#REF!) — questa regola non si applicherà mai',
-  appCellStreaming: 'Quella cella è ancora in caricamento streaming — riprova tra poco.',
-  appPreviewCreated: 'Anteprima creata — nulla cambia finché non applichi.',
-  appPreviewCreatedDemo: 'Anteprima creata. Lo stato della cartella di lavoro non è cambiato.',
-  appPreviewFailed: "Impossibile creare l'anteprima.",
   appApplyTxFailed: 'Impossibile applicare la transazione.',
   appTxCommitted: 'Transazione confermata alla revisione {revision}.',
-  appPreviewOtherWorkbook:
-    "L'anteprima apparteneva a un'altra cartella di lavoro — creane una nuova.",
-  appPreviewSheetGone: "Il foglio dell'anteprima non esiste più — crea una nuova anteprima.",
-  appWorkbookChangedSincePreview:
-    "La cartella di lavoro è cambiata dopo l'anteprima — crea una nuova anteprima.",
   appAppliedJournaled: 'Applicato — le modifiche sono registrate; salva con ⌘S.',
   appUndoCommitted: 'Annullamento confermato come revisione {revision}.',
   appUndoFailed: 'Impossibile annullare.',
@@ -658,7 +623,6 @@ export const it = {
   appShowCommentsTitle: 'Fissa/sblocca il fumetto del commento della cella selezionata',
   appStructuralShiftBlocked:
     'Un grafico o una tabella in questo foglio è ancorato alle righe/colonne interessate; non possono spostarsi e la modifica strutturale non è stata salvata. Annullala (⌘Z) e salva di nuovo.',
-  appAiChangesNotSaved: 'Modifiche IA applicate (non salvate). Annulla con ⌘Z; salva con ⌘S.',
   appChartUpdated: 'Grafico aggiornato.',
   appChartNotEditable: 'Questo grafico non è modificabile.',
   appChartEditRecorded: 'Modifica del grafico registrata — salva con ⌘S.',
@@ -744,7 +708,6 @@ export const it = {
   appRibbonExpand: 'Espandi la barra multifunzione',
   appRibbonCompact: 'Barra multifunzione compatta (solo icone)',
   appTabView: 'Visualizza',
-  appTabAi: 'IA',
   appTabChartDesign: 'Struttura grafico',
   appAutoSave: 'Salvataggio automatico',
   appAutoSaveTitle: 'Il salvataggio automatico è disponibile solo per i file nel cloud',
@@ -752,7 +715,6 @@ export const it = {
   appExportPdfTitle: 'Esporta come PDF',
   appSaveTitle: 'Salva (⌘S)',
   appSaveAs: 'Salva con nome',
-  aiNameFile: 'Assegna un nome con IA…',
   appUndo: 'Annulla',
   appRedo: 'Ripeti',
   appUnsavedEditOne: '● {count} modifica non salvata',
@@ -762,8 +724,6 @@ export const it = {
   appRevisionChip: 'Revisione {revision}',
   appOpenWorkbookTitle: 'Apri cartella di lavoro (⌘O)',
   appOpenXlsx: 'Apri XLSX',
-  appHideAi: 'Nascondi IA',
-  appShowAi: 'Mostra IA',
   appCategoryAxisTitle: 'Titolo asse delle categorie',
   appValueAxisTitle: 'Titolo asse dei valori',
   appTitleText: 'Testo del titolo',
@@ -833,10 +793,6 @@ export const it = {
   appFormatPaneDetail: 'Assi, distanza tra le barre, esplosione',
   appGroupChartActions: 'Azioni grafico',
   appRemoveFromSheet: 'Rimuovi dal foglio',
-  appGroupAiAssistant: 'Assistente IA',
-  appAiOpenPanelDetail: 'Barra laterale chat',
-  appGroupAiStarters: 'Avvio rapido',
-  appAiStarterDetail: 'Invia al pannello IA',
   appGroupTables: 'Tabelle',
   appFromSelection: 'Dalla selezione',
   appEditPivotTable: 'Modifica tabella pivot',
@@ -1340,11 +1296,7 @@ export const it = {
   appGroupProofing: 'Strumenti di correzione',
   appWorkbookStatsLabel: 'Statistiche cartella di lavoro',
   appSheetsCellsFormulas: 'Fogli, celle, formule',
-  appTranslate: 'Traduci',
   appGroupLanguage: 'Lingua',
-  appTranslateTitle: "Traduci la selezione con l'IA",
-  appTranslatePrompt:
-    "Traduci il testo dell'intervallo selezionato in {language} e riscrivi le traduzioni nelle stesse celle.",
   appNewCommentDetail: 'Aggiungi o modifica',
   appDeleteLabel: 'Elimina',
   appNoteAtSelection: 'Nota in corrispondenza della selezione',

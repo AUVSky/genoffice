@@ -83,10 +83,10 @@ describe('loadCrossHighlightPreference', () => {
   afterEach(() => vi.unstubAllGlobals())
 
   it('reads the stored flag', () => {
-    const store = new Map<string, string>([['ai-sheets-cross-highlight', '1']])
+    const store = new Map<string, string>([['sheets-cross-highlight', '1']])
     vi.stubGlobal('window', { localStorage: { getItem: (key: string) => store.get(key) ?? null } })
     expect(loadCrossHighlightPreference()).toBe(true)
-    store.set('ai-sheets-cross-highlight', '0')
+    store.set('sheets-cross-highlight', '0')
     expect(loadCrossHighlightPreference()).toBe(false)
   })
 

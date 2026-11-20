@@ -1,6 +1,4 @@
-import type { AiPanelPrefs } from '@genoffice/ui'
 import type { Lang } from '@genoffice/i18n'
-import type { AiSettings, AiStreamChunk, AiStreamRequest } from '@genoffice/ai-provider'
 import type { PrintDuplex, PrintJobOptions, PrinterInfo } from '@genoffice/electron-utils/print-job'
 import type { PrinterOption } from '@genoffice/electron-utils/printer-options'
 export type { PrintDuplex, PrintJobOptions, PrinterInfo }
@@ -21,7 +19,6 @@ export const PDF_CHANNELS = {
   exportAttachment: 'pdf:export-attachment',
   requestRedactionCopy: 'pdf:request-redaction-copy',
   autoRename: 'pdf:auto-rename',
-  isUntitled: 'pdf:is-untitled',
   validateTextEdits: 'pdf:validate-text-edits',
   listEditFonts: 'pdf:list-edit-fonts',
   canDrawText: 'pdf:can-draw-text',
@@ -46,8 +43,6 @@ export const PDF_CHANNELS = {
   restoreFile: 'pdf:restore-file',
   exportImages: 'pdf:export-images',
   convertOffice: 'pdf:convert-office',
-  createDocument: 'pdf:create-document',
-  generateImage: 'pdf:generate-image',
   listDigitalSignatures: 'pdf:list-digital-signatures',
   pickCertificate: 'pdf:pick-certificate',
   listSystemCertificates: 'pdf:list-system-certificates',
@@ -75,8 +70,6 @@ export const PDF_CHANNELS = {
   languageChanged: 'app:language-changed',
   getTheme: 'app:get-theme',
   themeChanged: 'app:theme-changed',
-  getAiPanelPrefs: 'app:get-ai-panel-prefs',
-  aiPanelPrefsChanged: 'app:ai-panel-prefs-changed',
   authorNameChanged: 'app:author-name-changed',
 } as const
 
@@ -243,24 +236,6 @@ export interface SavedSignature {
 }
 
 export type PdfConvertFormat = 'docx' | 'xlsx' | 'pptx' | 'md' | 'html'
-
-/** target file type of the AI create_document tool (mirrors the docs app's contract) */
-export type CreateDocumentType = 'docx' | 'pdf' | 'md' | 'html'
-
-export interface CreateDocumentRequest {
-  type: CreateDocumentType
-  /** file name stem (sanitized main-side) */
-  title: string
-  /** docx/pdf: restricted HTML; md: Markdown source */
-  content: string
-}
-
-export interface CreateDocumentResult {
-  ok: boolean
-  /** the created file, when it is written directly (pdf/md); docx opens as a new tab that saves itself */
-  path?: string
-  error?: string
-}
 
 export type UiTheme = 'light' | 'dark' | 'system'
 
@@ -1015,49 +990,10 @@ export type ExportImagesResult =
   | { ok: true; canceled: true }
   | { ok: false; error: string }
 
-/** AI channels are app-wide shared ipcMain handlers (shell registers via docs-main registerAiIpc); pass-through only */
-export interface UserSkillEntry {
-  name: string
-  description: string
-  relevant: boolean
-}
-
-export const AI_CHANNELS = {
-  getSettings: 'ai:get-settings',
-  setSettings: 'ai:set-settings',
-  settingsChanged: 'ai:settings-changed',
-  openModelSettings: 'ai:open-model-settings',
-  openSkillsSettings: 'ai:open-skills-settings',
-  skillsList: 'ai:skills-list',
-  skillText: 'ai:skill-text',
-  gskStatus: 'ai:gsk-status',
-  stream: 'ai:stream',
-  streamChunk: 'ai:stream-chunk',
-  streamCancel: 'ai:stream-cancel',
-  imageSearch: 'ai:image-search',
-  fetchImage: 'ai:fetch-image',
-} as const
-
-export interface ImageSearchResponse {
-  images: Array<{
-    title: string
-    imageUrl: string
-    sourceUrl: string
-    source: string
-    width?: number
-    height?: number
-  }>
-  method: string
-  /** failure reason when method === 'error' */
-  error?: string
-}
-
 /** API exposed by preload to the renderer (window.pdfApi) */
 export interface PdfApi {
   /** Take the pdf path pending for this view (queued at tab creation); null if none */
   consumePending(): Promise<string | null>
-  /** open any shell-routed document path (an AI answer's filenav citation) */
-  openSourcePath(path: string): Promise<void>
   /** Read pdf bytes. Only paths granted to this view are allowed */
   readFile(path: string): Promise<ArrayBuffer>
   /** one slice of a granted file, with the file's size so the reader loop
@@ -1139,9 +1075,6 @@ export interface PdfApi {
       The main process renames only while the file still carries the shell's auto-created
       untitled name, so user-chosen names are never touched. */
   autoRename(path: string, baseName: string): Promise<PdfAutoRenameResult>
-  /** Whether the file is a shell-created blank still carrying its untitled name
-      (gates the after-AI-run silent save; a PDF the user merely opened must never auto-write) */
-  isUntitled(path: string): Promise<boolean>
   /** Dry-run match of pending text edits against the file: reason null = would apply */
   validateTextEdits(request: ValidateTextEditsRequest): Promise<TextEditValidation[]>
   /** EDIT_FONTS ids whose font file exists on this machine */
@@ -1182,17 +1115,6 @@ export interface PdfApi {
   exportImages(request: ExportImagesRequest): Promise<ExportImagesResult>
   /** Convert the current PDF to Word / Excel / PowerPoint via the shell's local conversion flows */
   convertOffice(format: PdfConvertFormat): Promise<void>
-  /** AI create_document: build a new standalone file in the default folder and open it in a new tab */
-  createDocument(request: CreateDocumentRequest): Promise<CreateDocumentResult>
-  /** Web image search for AI tools (app-wide ai:image-search handler) */
-  imageSearch(query: string, maxResults?: number): Promise<ImageSearchResponse>
-  /** Download an image URL in the main process (SSRF-guarded, avoids CORS); null on failure */
-  fetchImage(url: string): Promise<{ base64: string; mime: string } | null>
-  /** AI image generation via Genspark (gsk); returns a downloadable URL or an error message */
-  generateImage(op: { prompt: string; aspectRatio?: string }): Promise<{
-    url?: string
-    error?: string
-  }>
   /** Read and verify the digital (certificate) signatures embedded in a granted PDF */
   listDigitalSignatures(path: string): Promise<PdfSignatureInfo[]>
   /** Open the OS file picker for a PKCS#12 certificate (.p12/.pfx); the file is referenced by the returned opaque id */
@@ -1254,28 +1176,7 @@ export interface PdfApi {
   onLanguageChanged(handler: (lang: Lang) => void): () => void
   getTheme(): Promise<UiTheme>
   onThemeChanged(handler: (theme: UiTheme) => void): () => void
-  /** AI panel text size + chat-input spellcheck (Settings → General in the shell) */
-  getAiPanelPrefs(): Promise<AiPanelPrefs>
-  setAiPanelPrefs(patch: Partial<AiPanelPrefs>): Promise<AiPanelPrefs>
-  onAiPanelPrefsChanged(handler: (prefs: AiPanelPrefs) => void): () => void
   /** press on the shell chrome (tab strip is a sibling WebContentsView whose
    *  clicks produce no DOM event here) — dismiss open popovers */
   onChromePressed(handler: () => void): () => void
-  getAiSettings(): Promise<AiSettings>
-  setAiSettings(settings: AiSettings): Promise<void>
-  /** ai-settings.json was rewritten by any renderer; re-read it */
-  onAiSettingsChanged(handler: () => void): () => void
-  /** shell only: switch to Home and open Settings › AI Model (rejects in standalone) */
-  openAiModelSettings(): Promise<void>
-  /** shell only: switch to Home and open Settings › Integrations (the skills list) */
-  openSkillsSettings(): Promise<void>
-  /** the skills the user installed into GenOffice */
-  skillsList(): Promise<UserSkillEntry[]>
-  /** one installed skill's body, by name */
-  skillText(name: string): Promise<string>
-  /** Genspark login state (gsk); gates the cloud-only generate_image tool */
-  gskStatus(): Promise<{ loggedIn: boolean }>
-  aiStream(request: AiStreamRequest): Promise<void>
-  aiStreamCancel(requestId: string): Promise<void>
-  onAiStream(handler: (chunk: AiStreamChunk) => void): () => void
 }

@@ -35,7 +35,6 @@ import {
 } from './csv-export'
 import { settleFormulas } from './formula-settle'
 import type { CellScalar, CellState } from '@genoffice/xlsx-gateway/domain/workbook.types'
-import type { SheetRedactionState } from '@genoffice/xlsx-gateway/gateway/xlsx-redaction'
 /// The slicerState member of a save request (zod: non-strict object shape).
 type WorkbookSlicerSaveState = NonNullable<WorkbookSaveRequest['slicerState']>
 import type { ExternalLinkOps } from '../shared/desktop-api'
@@ -63,28 +62,18 @@ export interface SaveContext {
   univerRef: { readonly current: UniverRuntime | null }
   lazyWorkbookRef: { readonly current: LazyWorkbookState | null }
   setMessage: (message: string) => void
-  /** `continueChat`: the reopen is a session swap over the same document, so
-      the AI conversation carries on rather than rehydrating from the store. */
   openLazyWorkbook: (
     opened: WorkbookFile,
-    opts?: { continueChat?: boolean; onInitialRangeLoaded?: () => void },
+    opts?: { onInitialRangeLoaded?: () => void },
   ) => void | Promise<boolean>
   /** pending-edit badge; the reopen resets it to 0 before late edits are carried over */
   setPendingEdits?: (count: number) => void
-  /** live cell readout, for the cached values of formulas an MCP batch wrote (optional in tests) */
+  /** live cell readout, for the cached values of formulas a batch wrote (optional in tests) */
   readCells?: (addresses: string[], sheetId: string) => Record<string, CellState>
-  /**
-   * The cells the reader withheld from the model, keyed by sheet name as the
-   * package part is. A save carries them even when nothing else is pending: a
-   * workbook whose only change is a newly withheld cell is still one that has
-   * to be written, and a save that dropped the marks would leave the file
-   * claiming nothing is hidden.
-   */
-  redactionStates?: () => readonly SheetRedactionState[] | null
   /**
    * Slicer panels to persist as OOXML parts on this save, null when the
    * session changed nothing slicer-related (any file parts stay
-   * byte-identical). Like redactionStates it can be the only change pending.
+   * byte-identical). It can be the only change pending.
    * Timelines are session-only and never ride a save.
    */
   slicerState?: (() => WorkbookSlicerSaveState | null) | undefined
@@ -287,7 +276,7 @@ function formulaTextOf(
  *   dependents included, since the comparison replaces a dependency graph.
  *
  * Guards keep the comparison from writing anything dubious: the model must
- * still carry the cell's formula (a withheld or mid-commit cell answers
+ * still carry the cell's formula (a mid-commit cell answers
  * without one), the file cache must be known (unknown means the session never
  * saw the cell's saved form — streaming gap or the cache cap), cells the
  * recalc or external-link overlays already contribute are skipped, and the
@@ -379,7 +368,7 @@ export function liveFormulaCacheValues(
     }
     for (const entry of pending) {
       const cell = cells[entry.address]
-      // no formula in the model: a withheld cell (redactions answer without
+      // no formula in the model: a mid-commit cell answers without
       // one), a cell mid-commit, or a formula already replaced
       if (!cell || cell.formula === undefined) continue
       const live = modelCellValue(cell)
@@ -405,7 +394,7 @@ export function liveFormulaCacheValues(
   return values
 }
 
-/** What a save actually did — the MCP bridge needs the outcome, fire-and-forget callers ignore it. */
+/** What a save actually did — callers that wait need the outcome, fire-and-forget callers ignore it. */
 export interface SaveOutcome {
   ok: boolean
   /** absolute path of the written file when ok */
@@ -426,7 +415,7 @@ export interface SaveOutcome {
  * crash-recovery writer instead of the save pipeline — no dialogs, no status
  * messages, no session swap, the opened file untouched.
  *
- * explicitTarget: MCP save_sheet — a dialog-free Save As to an exact path
+ * explicitTarget: a dialog-free Save As to an exact path
  * (main enforces the overwrite policy; the request carries it). Callers pass
  * mode 'save-as' with it.
  */
@@ -435,7 +424,6 @@ export async function handleSave(
   mode: 'save' | 'save-as' | 'recovery',
   quiet = false,
   explicitTarget?: { path: string; overwrite: boolean },
-  defaultName?: string,
 ): Promise<SaveOutcome> {
   const state = ctx.lazyWorkbookRef.current
   // Captured at save start (the Ctrl+S moment): the post-save session swap
@@ -546,7 +534,7 @@ export async function handleSave(
             ? {}
             : { fonts: state.editJournal.theme.fonts }),
         }
-  // Journaled formulas an MCP batch saw settle (see formula-values.ts) were left
+  // Journaled formulas a batch saw settle (see formula-values.ts) were left
   // out of the overlay above because it could be stale; their values are read
   // live here.
   const journaledValues = ctx.readCells ? verifiedFormulaValues(ctx.readCells) : []
@@ -563,14 +551,6 @@ export async function handleSave(
     ...refreshedValues,
     ...journaledValues,
   ])
-  // Withheld cells travel in a package part of their own, so they ride with
-  // this save rather than in the journal. Copied into the request's own shape
-  // so the renderer never hands main a readonly view of its state.
-  const redactionStates =
-    (ctx.redactionStates?.() ?? null)?.map((state) => ({
-      sheetName: state.sheetName,
-      marks: state.marks.map((mark) => ({ ...mark })),
-    })) ?? null
   // Slicer panels only ride the save when the session changed something
   // slicer-related (create/edit/delete); null keeps every file part raw.
   const slicerState = ctx.slicerState?.() ?? null
@@ -642,9 +622,8 @@ export async function handleSave(
     tableEdits.length +
     pivotAdditions.length +
     sparklineAdditions.length +
-    // A save with nothing else pending but newly withheld cells or a slicer
-    // change is still a save: skipping it would drop the change.
-    (redactionStates?.length ?? 0) +
+    // A save with nothing else pending but a slicer change is still a save:
+    // skipping it would drop the change.
     (slicerState === null ? 0 : 1) +
     // A link break/retarget is a file change on its own: the journal can be
     // clean (every referencing cell carries an error cache, so the literal
@@ -749,7 +728,7 @@ export async function handleSave(
   const payload = {
     sessionId: state.file.sessionId,
     mode: mode === 'recovery' ? ('save' as const) : mode,
-    // MCP explicit-path save: main skips the Save-As dialog and enforces the
+    // Explicit-path save: main skips the Save-As dialog and enforces the
     // overwrite policy from these two fields
     ...(explicitTarget
       ? { targetPath: explicitTarget.path, overwrite: explicitTarget.overwrite }
@@ -782,7 +761,6 @@ export async function handleSave(
     themeState,
     workbookProtectionState,
     protectedRangeStates,
-    redactionStates,
     slicerState,
     externalLinkOps,
   }
@@ -807,9 +785,7 @@ export async function handleSave(
       ...(restoreWriteBack ? { restoreWriteBack: true } : {}),
       ...(quiet ? { quiet: true } : {}),
       ...(csvContent === undefined ? {} : { csvContent }),
-      // a name the reader (or the model, via the ribbon) chose for the dialog
-      ...(defaultName === undefined ? {} : { defaultName }),
-      // MCP explicit-path save: main skips the Save-As dialog for these
+      // Explicit-path save: main skips the Save-As dialog for these
       ...(explicitTarget
         ? { targetPath: explicitTarget.path, overwrite: explicitTarget.overwrite }
         : {}),
@@ -841,7 +817,6 @@ export async function handleSave(
       themeState,
       workbookProtectionState,
       protectedRangeStates,
-      redactionStates,
       // Held slicers ride phase two (heldSlicerState carries them there).
       slicerState: hasShifts ? null : slicerState,
       externalLinkOps,
@@ -926,10 +901,6 @@ export async function handleSave(
         themeState: null,
         workbookProtectionState: null,
         protectedRangeStates: [],
-        // Phase one already wrote the marks, re-keyed for the renames it
-        // performed. Sending them again would rewrite the part under the names
-        // this session loaded — the pre-rename ones — and orphan it.
-        redactionStates: null,
         // link ops rode with the first phase; a second phase carries none
         externalLinkOps: null,
       })
@@ -984,7 +955,7 @@ async function reopenCarryingLateEdits(
   cellsAtSave: JournalCellSnapshot,
   file: WorkbookFile,
 ): Promise<boolean> {
-  if ((await ctx.openLazyWorkbook(file, { continueChat: true })) === false) return false
+  if ((await ctx.openLazyWorkbook(file)) === false) return false
   const next = ctx.lazyWorkbookRef.current
   if (!next || next === state) return true
   if (carryLateJournalCells(state.editJournal, cellsAtSave, next.editJournal) > 0) {

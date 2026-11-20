@@ -2,13 +2,12 @@
  * The file name a never-saved markdown document takes from its own content:
  * the first heading, else the first few words.
  *
- * Lives outside `App.tsx` so the file-naming module can use it as its fallback
- * without importing the component, which would be a cycle: App imports the
- * naming module. Re-exported from `App` so existing importers keep working.
+ * Lives outside `App.tsx` so the save path can use it without importing the
+ * component.
  */
 import type { Editor } from '@tiptap/core'
 
-/** File name for an AI-generated untitled document: first heading, else first words */
+/** File name for an untitled document: first heading, else first words */
 export function deriveAutoFileName(editor: Editor): string {
   const doc = editor.state.doc
   for (let i = 0; i < doc.childCount; i++) {

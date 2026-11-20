@@ -121,7 +121,7 @@ describe('creating a table over a table loaded from the file', () => {
     expect(h.messages).toEqual([t('appTableAlreadyInTable', { name: 'Table1' })])
   })
 
-  it('AI add_table over Table1 throws', () => {
+  it('add_table over Table1 throws', () => {
     const h = harness()
     expect(() =>
       applyAiTableAdd(h.runtime, h.state, {

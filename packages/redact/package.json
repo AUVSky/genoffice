@@ -1,0 +1,17 @@
+{
+  "name": "@genoffice/redact",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "description": "OOXML redaction marker constants shared by the docx and pptx engines (no UI, no network)",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

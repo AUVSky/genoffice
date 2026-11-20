@@ -11,12 +11,9 @@ test.describe('tab bar', () => {
       await expect(editorTab).toHaveCount(1)
       await waitForPageWithUrl(app, '://docs/')
 
-      await page.locator('.tab-bar .tab-item.tab-home').click({ button: 'middle' })
-      await expect(editorTab).toHaveCount(1)
-
       await editorTab.click({ button: 'middle' })
       await expect(editorTab).toHaveCount(0)
-      await expect(page.locator('.tab-bar .tab-item.tab-home')).toHaveClass(/active/)
+      await expect(page.locator('.home-hero')).toBeVisible()
     } finally {
       await closeAndSaveVideo(launched, 'tab-middle-click-close')
     }

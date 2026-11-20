@@ -1,10 +1,7 @@
-import type { AiPanelPrefs } from '@genoffice/ui'
 import { contextBridge, ipcRenderer } from 'electron'
 import type { Lang } from '@genoffice/i18n'
-import type { AiStreamChunk } from '@genoffice/ai-provider'
-import type { ProjectApi } from '@genoffice/project-store'
 import { installDropOpenBridge } from '@genoffice/electron-utils/drop-open'
-import { AI_CHANNELS, MARKDOWN_CHANNELS } from '../shared/ipc'
+import { MARKDOWN_CHANNELS } from '../shared/ipc'
 import { normalizeMarkdownTheme, type MarkdownTheme } from '../shared/markdown-theme'
 import type {
   AutoSaveDefault,
@@ -75,9 +72,6 @@ const api: MarkdownApi = {
     const result: unknown = await ipcRenderer.invoke(MARKDOWN_CHANNELS.setMarkdownTheme, theme)
     return normalizeMarkdownTheme(result)
   },
-  getImageHost: () => ipcRenderer.invoke(MARKDOWN_CHANNELS.getImageHost),
-  setImageHost: (config) => ipcRenderer.invoke(MARKDOWN_CHANNELS.setImageHost, config),
-  uploadImage: (data) => ipcRenderer.invoke(MARKDOWN_CHANNELS.uploadImage, data),
   onViewImage: (handler) => {
     const listener = (_e: Electron.IpcRendererEvent, src: string) => handler(src)
     ipcRenderer.on(MARKDOWN_CHANNELS.viewImage, listener)
@@ -128,75 +122,14 @@ const api: MarkdownApi = {
     ipcRenderer.on(MARKDOWN_CHANNELS.autoSaveDefaultChanged, listener)
     return () => ipcRenderer.removeListener(MARKDOWN_CHANNELS.autoSaveDefaultChanged, listener)
   },
-  getAiPanelPrefs: () => ipcRenderer.invoke(MARKDOWN_CHANNELS.getAiPanelPrefs),
-  setAiPanelPrefs: (patch) => ipcRenderer.invoke('app:set-ai-panel-prefs', patch),
-  onAiPanelPrefsChanged: (handler) => {
-    const listener = (_event: Electron.IpcRendererEvent, prefs: AiPanelPrefs) => handler(prefs)
-    ipcRenderer.on(MARKDOWN_CHANNELS.aiPanelPrefsChanged, listener)
-    return () => ipcRenderer.removeListener(MARKDOWN_CHANNELS.aiPanelPrefsChanged, listener)
-  },
   onChromePressed: (handler) => {
     const listener = () => handler()
     ipcRenderer.on('app:chrome-pressed', listener)
     return () => ipcRenderer.removeListener('app:chrome-pressed', listener)
   },
-  getAiSettings: () => ipcRenderer.invoke(AI_CHANNELS.getSettings),
-  setAiSettings: (settings) => ipcRenderer.invoke(AI_CHANNELS.setSettings, settings),
-  onAiSettingsChanged: (handler) => {
-    const listener = () => handler()
-    ipcRenderer.on(AI_CHANNELS.settingsChanged, listener)
-    return () => ipcRenderer.removeListener(AI_CHANNELS.settingsChanged, listener)
-  },
-  openAiModelSettings: () => ipcRenderer.invoke(AI_CHANNELS.openModelSettings),
-  openSkillsSettings: () => ipcRenderer.invoke('ai:open-skills-settings'),
-  skillsList: () => ipcRenderer.invoke('ai:skills-list'),
-  skillText: (name: string) => ipcRenderer.invoke('ai:skill-text', name),
-  aiGskStatus: () => ipcRenderer.invoke(AI_CHANNELS.gskStatus),
-  aiStream: (request) => ipcRenderer.invoke(AI_CHANNELS.stream, request),
-  aiStreamCancel: (requestId) => ipcRenderer.invoke(AI_CHANNELS.streamCancel, requestId),
-  onAiStream: (handler) => {
-    const listener = (_e: Electron.IpcRendererEvent, chunk: AiStreamChunk) => handler(chunk)
-    ipcRenderer.on(AI_CHANNELS.streamChunk, listener)
-    return () => ipcRenderer.removeListener(AI_CHANNELS.streamChunk, listener)
-  },
-  webSearch: (query, maxResults) => ipcRenderer.invoke(AI_CHANNELS.webSearch, query, maxResults),
-  imageSearch: (query, maxResults) =>
-    ipcRenderer.invoke(AI_CHANNELS.imageSearch, query, maxResults),
-  fetchImage: (url) => ipcRenderer.invoke(AI_CHANNELS.fetchImage, url),
-  aiGenerateImage: (op) => ipcRenderer.invoke(MARKDOWN_CHANNELS.aiGenerateImage, op),
-}
-
-/** Chat persistence: the shared project:* handlers are registered once by the shell (docs-main registerProjectIpc) */
-const projectApi: Pick<ProjectApi, 'resolveChat' | 'appendChat' | 'loadChat' | 'rebindChat'> = {
-  resolveChat: (args) => ipcRenderer.invoke('project:resolveChat', args),
-  appendChat: (args) => ipcRenderer.invoke('project:appendChat', args),
-  loadChat: (args) => ipcRenderer.invoke('project:loadChat', args),
-  rebindChat: (args) => ipcRenderer.invoke('project:rebindChat', args),
-}
-
-/**
- * Model file naming: the transport half of `suggestFileName`.
- *
- * Inlined rather than imported — a preload entry must stay a single-file bundle,
- * or the sandbox drops every global it exposed. The one `ai:` channel is
- * registered app-wide by the shell rather than by this app, the same arrangement
- * the `project:*` bridge below already depends on.
- *
- * `content` crosses this bridge verbatim and the main process cannot see what
- * this editor withheld, so what the caller hands over is exactly what the model
- * sees. A caller that passed raw document text would undo its own redactions.
- *
- * The global is `aiNamingApi`, not `aiOffice`: `aiOffice` is the shell's home
- * API, and a partial one in an editor window would shadow it there.
- */
-const aiNamingApi = {
-  suggestFileName: (input: { content: string }) =>
-    ipcRenderer.invoke('ai:suggest-file-name', input),
 }
 
 contextBridge.exposeInMainWorld('markdownApi', api)
-contextBridge.exposeInMainWorld('aiNamingApi', aiNamingApi)
-contextBridge.exposeInMainWorld('projectApi', projectApi)
 
 // open documents dragged from the OS onto this tab as a new shell tab
 installDropOpenBridge()

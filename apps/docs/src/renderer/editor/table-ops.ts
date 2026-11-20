@@ -22,7 +22,7 @@ import {
   insertRowAt,
   pctOf,
   reflowColumns,
-} from '../ai/table-ops'
+} from '../doc-core/table-ops'
 import { TRACK_IGNORE, activeTracking, revisionDateNow, withTrackMarker } from './revisions'
 
 /** cells (by position in the table) covering grid columns [left, right) */

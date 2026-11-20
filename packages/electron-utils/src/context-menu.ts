@@ -240,14 +240,10 @@ export function contextMenuLabels(lang: string): ContextMenuLabels {
 
 export type ContextMenuItem =
   | { type: 'separator' }
-  | { action: 'replaceMisspelling'; label: string }
   | { action: 'cut' | 'copy' | 'paste' | 'selectAll'; label: string; enabled: boolean }
   | { action: 'viewImage' | 'copyImage' | 'saveImageAs'; label: string }
 
-type BuildParams = Pick<
-  ContextMenuParams,
-  'isEditable' | 'selectionText' | 'misspelledWord' | 'dictionarySuggestions' | 'editFlags'
-> &
+type BuildParams = Pick<ContextMenuParams, 'isEditable' | 'selectionText' | 'editFlags'> &
   Partial<Pick<ContextMenuParams, 'mediaType' | 'srcURL'>>
 
 /** Empty result means: don't show a menu. */
@@ -269,11 +265,6 @@ function buildEditItems(params: BuildParams, labels: ContextMenuLabels): Context
   const flags = params.editFlags
   if (params.isEditable) {
     const items: ContextMenuItem[] = []
-    if (params.misspelledWord && params.dictionarySuggestions.length) {
-      for (const word of params.dictionarySuggestions)
-        items.push({ action: 'replaceMisspelling', label: word })
-      items.push({ type: 'separator' })
-    }
     items.push(
       { action: 'cut', label: labels.cut, enabled: flags.canCut },
       { action: 'copy', label: labels.copy, enabled: flags.canCopy },
@@ -348,8 +339,6 @@ async function popupMenu(
   const { Menu } = await import('electron')
   const template = items.map((item): MenuItemConstructorOptions => {
     if ('type' in item) return { type: 'separator' }
-    if (item.action === 'replaceMisspelling')
-      return { label: item.label, click: () => contents.replaceMisspelling(item.label) }
     if (!('enabled' in item)) {
       if (item.action === 'viewImage')
         return { label: item.label, click: () => contents.send(VIEW_IMAGE_CHANNEL, params.srcURL) }

@@ -1,16 +1,6 @@
 import type { zh } from './zh'
 
 export const de = {
-  redactMenuLabel: 'Auswahl vor der KI verbergen',
-  redactDialogDesc:
-    'Das Ausgewählte bleibt im Dokument und in der Datei; das Modell sieht nur den Platzhalter. Geben Sie ihm einen Namen.',
-  redactDialogScope:
-    'Das Verbergen gilt nur für die KI dieser App. CLI, MCP-Tools und der Headless-Export lesen die Datei direkt und sehen diese Wörter weiterhin.',
-  redactDialogPlaceholder: 'Name des Platzhalters, z. B. Telefonnummer des Kunden',
-  redactCancel: 'Abbrechen',
-  redactInsert: 'Verbergen',
-  redactEnable: 'Rechtsklick auf eine Auswahl, um sie vor dem Modell zu verbergen.',
-
   appPhPromptTitle: 'Titel durch Klicken hinzufügen',
   appPhPromptSubtitle: 'Untertitel durch Klicken hinzufügen',
   appPhPromptBody: 'Text durch Klicken hinzufügen',
@@ -281,8 +271,6 @@ export const de = {
     'Klicken, um Sprechernotizen hinzuzufügen (werden in der .pptx-Datei gespeichert)',
   appNotesShow: 'Notizen anzeigen',
   appNotesHide: 'Notizen ausblenden',
-  appAiRailExpand: 'KI-Assistenten erweitern',
-  appAiRailText: 'KI',
   appStatusBarSlide: 'Folie {current} von {total}',
   appStatusBarReady: 'Bereit',
   appMediaCloseTitle: 'Schließen (Esc)',
@@ -299,14 +287,7 @@ export const de = {
     'Kommentar auf {count} Folien gespeichert (PowerPoint spielt ihn ebenfalls ab)',
   appStatusRecordFailed: 'Die Aufnahme konnte nicht gespeichert werden',
   appStatusNarrationCleared: 'Kommentar gelöscht',
-  appSettingsTitle: 'KI-Einstellungen',
-  appSettingsAccount: 'Genspark-Konto',
   appSettingsChecking: 'Wird überprüft…',
-  appSettingsLoggedIn: 'Angemeldet',
-  appSettingsLoggedInEmail: 'Angemeldet: {email}',
-  appSettingsLoggedOut: 'Nicht angemeldet (KI-Funktionen erfordern ein Genspark-Konto)',
-  appSettingsLoginPending: 'Warten auf Anmeldung im Browser…',
-  appSettingsLogin: 'Bei Genspark anmelden',
   appSettingsModel: 'Modell',
   appSettingsCancel: 'Abbrechen',
   appSettingsSave: 'Speichern',

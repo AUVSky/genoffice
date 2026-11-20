@@ -1,29 +1,9 @@
 /**
- * electron-builder configuration (moved out of package.json "build" so the
- * auto-update feed URL can be injected at build time instead of living in
- * the repo).
+ * electron-builder configuration (moved out of package.json "build").
  *
- * GENOFFICE_UPDATE_URL — public base URL of the update channel (the generic
- * provider prefix that serves latest.yml / latest-mac.yml). Required for
- * release builds; CI provides it as a repository secret. For local release
- * builds put it in apps/shell/electron-builder.env (gitignored) — the
- * electron-builder CLI loads that file automatically.
- *
- * When the variable is unset (forks, PR smoke builds, plain local packaging)
- * the publish config is omitted: electron-builder then bakes no
- * app-update.yml into the app and in-app auto-update stays disabled.
- *
- * GENOFFICE_GA4_MEASUREMENT_ID / GENOFFICE_GA4_API_SECRET — GA4 Measurement
- * Protocol credentials for anonymous usage analytics, injected the same way
- * (CI secrets, or apps/shell/electron-builder.env locally). They are written
- * into the packaged app's package.json via extraMetadata and read back by
- * src/main/analytics.ts. When either is unset — every source/fork build —
- * nothing is injected and the app runs with analytics fully disabled.
- *
- * GENOFFICE_FONT_CDN_URL — base URL for the curated downloadable-font catalog.
- * Official release jobs inject it through extraMetadata so the endpoint stays
- * out of source. Without it, font download prompts/catalog entries are hidden;
- * users can still install local font files.
+ * This is the offline fork: no auto-update feed, no analytics, no font CDN.
+ * The config packages the local editors only, with an ad-hoc signature
+ * (`build/adhoc-sign.cjs`); nothing here reads a network endpoint.
  */
 
 // Buffer comes from node:buffer, not the global: this file is evaluated
@@ -33,27 +13,6 @@ const { execFileSync } = require('node:child_process')
 const { closeSync, existsSync, openSync, readFileSync, readSync, rmSync } = require('node:fs')
 const { join } = require('node:path')
 
-function normalizeHttpsBaseUrl(name, value) {
-  if (!value || !value.trim()) return null
-  try {
-    const url = new URL(value.trim())
-    if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash) {
-      throw new Error('invalid')
-    }
-    return `${url.origin}${url.pathname.replace(/\/+$/, '')}`
-  } catch {
-    throw new Error(`${name} must be an HTTPS base URL without credentials, query, or fragment`)
-  }
-}
-
-const updateUrl = process.env.GENOFFICE_UPDATE_URL
-const ga4MeasurementId = process.env.GENOFFICE_GA4_MEASUREMENT_ID
-const ga4ApiSecret = process.env.GENOFFICE_GA4_API_SECRET
-const fontCdnUrl = normalizeHttpsBaseUrl(
-  'GENOFFICE_FONT_CDN_URL',
-  process.env.GENOFFICE_FONT_CDN_URL,
-)
-
 // GENOFFICE_MAC_X64=1 — opt into packaging the Intel (x64) dmg/zip alongside
 // arm64. Off by default: Intel packages must only ever ship signed with the
 // company certificate (planned dual-track pipeline), so the current release
@@ -61,7 +20,7 @@ const fontCdnUrl = normalizeHttpsBaseUrl(
 // artifact. The downstream layout (feed archive name, GenOffice-intel.dmg
 // alias) keys off which dmgs exist, so flipping this flag is the single
 // switch.
-const includeMacX64 = process.env.GENOFFICE_MAC_X64 === '1'
+const includeMacX64 = false
 
 // GENOFFICE_WIN_ARM64=1 — package the Windows ARM64 installer instead of x64.
 // CI runs it as a second electron-builder pass (own BUILD_DIR) after the
@@ -138,9 +97,6 @@ const LINUX_SIDECAR =
 
 function assertExtraResourceSources() {
   for (const rel of [
-    '../../node_modules/@genspark/cli',
-    '../../node_modules/@genspark/cli/node_modules/commander',
-    '../../node_modules/ws',
     '../../node_modules/electron/dist/LICENSES.chromium.html',
     '../../node_modules/@embedpdf/pdfium/dist/pdfium.wasm',
     '../pdf/node_modules/harfbuzzjs/hb-subset.wasm',
@@ -299,63 +255,12 @@ function assertModuleTreesPresent() {
     '../slides/out',
     '../pdf/out',
     '../markdown/out',
-    '../html/out',
-    '../../packages/cli/dist/genoffice.cjs',
-    '../../packages/cli/dist/node_modules/jsdom',
   ]) {
     if (!existsSync(join(__dirname, rel))) {
       throw new Error(
         `electron-builder extraResources source missing: ${rel} (run npm run build:all first)`,
       )
     }
-  }
-}
-
-const CLI_BUNDLE_REL = '../../packages/cli/dist/genoffice.cjs'
-const CLI_BUILD_REL = '../../packages/cli/build.mjs'
-const CLI_VERSION_ENV = 'GENOFFICE_APP_VERSION'
-const CLI_VERSION_BANNER = /^const __cliAppVersion = ("(?:[^"\\]|\\.)*");$/m
-
-/**
- * The version the packaged app reports: CI's -c.extraMetadata.version deep-merges
- * into the block below, and without it electron-builder ships apps/shell/package.json.
- */
-function packagedAppVersion() {
-  const injected = config.extraMetadata && config.extraMetadata.version
-  if (typeof injected === 'string' && injected.trim()) return injected.trim()
-  return require('./package.json').version
-}
-
-function bundledCliVersion(bundlePath) {
-  const baked = CLI_VERSION_BANNER.exec(readFileSync(bundlePath, 'utf-8'))
-  if (!baked) return null
-  try {
-    return JSON.parse(baked[1])
-  } catch {
-    return null
-  }
-}
-
-/**
- * `genoffice --version` is baked into the CLI bundle, which is built before
- * electron-builder runs and therefore before a release version is known. Rebuild
- * it here with the app version whenever the two disagree, so the packaged
- * command line can never answer with the workspace CLI version.
- */
-function ensureCliBundleCarriesAppVersion() {
-  const bundlePath = join(__dirname, CLI_BUNDLE_REL)
-  const appVersion = packagedAppVersion()
-  if (bundledCliVersion(bundlePath) === appVersion) return
-  execFileSync(process.execPath, [join(__dirname, CLI_BUILD_REL)], {
-    stdio: 'inherit',
-    env: { ...process.env, [CLI_VERSION_ENV]: appVersion },
-  })
-  const baked = bundledCliVersion(bundlePath)
-  if (baked !== appVersion) {
-    throw new Error(
-      `packaged genoffice CLI reports ${baked ?? 'no version'} but the app ships ${appVersion} ` +
-        `(rebuild it with ${CLI_VERSION_ENV}=${appVersion})`,
-    )
   }
 }
 
@@ -566,20 +471,6 @@ const FILE_ASSOCIATIONS = [
     icon: 'json',
     mimeType: 'application/json',
   },
-  {
-    ext: 'html',
-    name: 'HTML Document',
-    role: 'Editor',
-    icon: 'html',
-    mimeType: 'text/html',
-  },
-  {
-    ext: 'htm',
-    name: 'HTML Document',
-    role: 'Editor',
-    icon: 'html',
-    mimeType: 'text/html',
-  },
 ]
 
 const config = {
@@ -622,10 +513,6 @@ const config = {
       from: '../markdown/out',
       to: 'modules/markdown',
     },
-    {
-      from: '../html/out',
-      to: 'modules/html',
-    },
     // PDF text editing engines: the bundled main resolves these under
     // Resources/wasm when node_modules is absent (apps/pdf/src/main/wasm-path.ts)
     {
@@ -651,54 +538,6 @@ const config = {
     {
       from: '../../packages/pdf2docx/ocr-helper/win-ocr.exe',
       to: 'ocr/win-ocr.exe',
-    },
-    {
-      from: '../../node_modules/@genspark/cli',
-      to: 'gsk/node_modules/@genspark/cli',
-    },
-    // genoffice command line: runs on the app binary with ELECTRON_RUN_AS_NODE (as
-    // the gsk CLI above already does), so the RunAsNode fuse must stay enabled.
-    // Layout (Resources/cli next to wasm/, native/, ocr/) is what
-    // packages/cli/src/resources.ts expects.
-    {
-      from: '../../packages/cli/dist/genoffice.cjs',
-      to: 'cli/genoffice.cjs',
-    },
-    {
-      from: '../../packages/cli/bin/genoffice',
-      to: 'cli/genoffice',
-    },
-    {
-      from: '../../packages/cli/bin/genoffice.cmd',
-      to: 'cli/genoffice.cmd',
-    },
-    // the CLI's version (Settings → Integrations shows it) and the agent skill
-    // the same pane installs into Claude Code / Codex / …; bytes identical to the repo file
-    {
-      from: '../../packages/cli/package.json',
-      to: 'cli/package.json',
-    },
-    {
-      from: '../../skills/genoffice/SKILL.md',
-      to: 'cli/skills/genoffice/SKILL.md',
-    },
-    {
-      from: '../../skills/recommended',
-      to: 'cli/skills/recommended',
-    },
-    // runtime deps the genoffice bundle leaves external (jsdom for the Word/Markdown
-    // paths); collected by packages/cli/collect-deps.mjs during its build
-    {
-      from: '../../packages/cli/dist/node_modules',
-      to: 'cli/node_modules',
-    },
-    {
-      from: '../../node_modules/@genspark/cli/node_modules/commander',
-      to: 'gsk/node_modules/commander',
-    },
-    {
-      from: '../../node_modules/ws',
-      to: 'gsk/node_modules/ws',
     },
   ],
   // `mimeType` is read only by the Linux target, where it becomes the
@@ -727,7 +566,7 @@ const config = {
       { target: 'zip', arch: includeMacX64 ? ['arm64', 'x64'] : ['arm64'] },
     ],
     category: 'public.app-category.productivity',
-    hardenedRuntime: true,
+    hardenedRuntime: false,
     gatekeeperAssess: false,
     entitlements: 'build/entitlements.mac.plist',
     entitlementsInherit: 'build/entitlements.mac.plist',
@@ -737,7 +576,8 @@ const config = {
       NSMicrophoneUsageDescription:
         'GenOffice records your narration when you record a slide show.',
     },
-    notarize: true,
+    notarize: false,
+    identity: null,
     extraResources: [
       {
         from: '../sheets/native/xlsx-engine/target/release/xlsx-sidecar',
@@ -879,12 +719,12 @@ const config = {
     oneClick: false,
     allowToChangeInstallationDirectory: true,
   },
+  afterPack: 'build/adhoc-sign.cjs',
   beforePack: async (context) => {
     ensurePlatformHelpers()
     assertExtraResourceSources()
     ensureThirdPartyNotices()
     assertModuleTreesPresent()
-    ensureCliBundleCarriesAppVersion()
     if (context.electronPlatformName === 'darwin' && includeMacX64) {
       assertUniversalSidecar()
       assertUniversalVisionOcr()
@@ -915,7 +755,6 @@ const config = {
   dmg: {
     sign: true,
   },
-  afterAllArtifactBuild: 'build/notarize-dmg.js',
 }
 
 // Windows in-package code signing. Security features that judge every PE
@@ -950,27 +789,5 @@ if (winSignMode) {
     },
   }
 }
-
-if (updateUrl) {
-  config.publish = [
-    {
-      provider: 'generic',
-      url: updateUrl.replace(/\/+$/, ''),
-      channel: 'latest',
-    },
-  ]
-}
-
-// CI's "-c.extraMetadata.version=..." CLI override deep-merges with this block,
-// so the version and all injected feature settings survive together.
-const extraMetadata = {}
-if (ga4MeasurementId && ga4ApiSecret) {
-  extraMetadata.genofficeAnalytics = {
-    measurementId: ga4MeasurementId,
-    apiSecret: ga4ApiSecret,
-  }
-}
-if (fontCdnUrl) extraMetadata.genofficeFontCdn = { baseUrl: fontCdnUrl }
-if (Object.keys(extraMetadata).length) config.extraMetadata = extraMetadata
 
 module.exports = config

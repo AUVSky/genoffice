@@ -26,9 +26,6 @@ export const hi = {
   ribbonLangVietnamese: 'वियतनामी',
   ribbonLangTurkish: 'तुर्की',
   ribbonLangHungarian: 'हंगेरियन',
-  ribbonAiCreditNote: 'AI का उपयोग करता है और क्रेडिट खर्च होते हैं',
-  ribbonAiRewriteConfirm:
-    'यह क्रिया AI को कॉल करती है: इसमें क्रेडिट खर्च होते हैं और पूरी सामग्री फिर से लिखी जा सकती है। जारी रखें? (दोबारा नहीं पूछा जाएगा।)',
   ribbonTabHome: 'होम',
   ribbonTabDraw: 'आरेखण',
   ribbonTabLayout: 'लेआउट',
@@ -86,7 +83,6 @@ export const hi = {
   ribbonOpen: 'खोलें…',
   ribbonSave: 'सहेजें',
   ribbonSaveAs: 'इस रूप में सहेजें…',
-  ribbonNameWithAi: 'AI से नाम दें…',
   ribbonConvert: 'बदलें',
   ribbonConvertTip: 'PDF, HTML, Markdown या छवियों में बदलें',
   ribbonConvertPdf: 'PDF में बदलें…',
@@ -162,7 +158,6 @@ export const hi = {
   ribbonIcons: 'चिह्न',
   ribbonDateTime: 'दिनांक और समय',
   ribbonNumber: 'संख्या',
-  ribbonThesaurus: 'समानार्थी शब्दकोश',
   ribbonWordCount: 'शब्द गणना',
   ribbonProofingLanguage: 'भाषा',
   ribbonProofingNoCheck: 'वर्तनी या व्याकरण की जाँच न करें',
@@ -307,7 +302,6 @@ export const hi = {
   ribbonReplaceTip: 'पाठ ढूँढें और बदलें',
   ribbonSelectAll: 'सभी चुनें',
   ribbonSelectAllTip: 'पूरा दस्तावेज़ चुनें',
-  ribbonAiAssistantTip: 'AI सहायक खोलें',
   ribbonRemoveTableStyleTip: 'तालिका शैली हटाएँ',
   ribbonNoStyle: 'कोई शैली नहीं',
   ribbonApplyTableStyleTip: 'तालिका शैली {name} लागू करें',
@@ -839,23 +833,10 @@ export const hi = {
   ribbonSourceJournalName: 'पत्रिका का नाम',
   ribbonSourceSiteName: 'साइट का नाम',
   ribbonSourcePublisher: 'प्रकाशक',
-  ribbonEditorBtn: 'संपादक',
-  ribbonEditorTip: 'AI वर्तनी, व्याकरण और विराम चिह्न जाँचता है',
-  ribbonEditorPrompt:
-    'पूरे दस्तावेज़ को प्रूफ़रीड करें: वर्तनी, विराम चिह्न और व्याकरण की गलतियाँ सुधारें, मूल अर्थ और अनुच्छेद संरचना को अपरिवर्तित रखें।',
   ribbonGroupProofing: 'प्रूफ़िंग',
   ribbonSpellcheckBtn: 'वर्तनी जाँच',
   ribbonSpellcheckTip:
     'टाइप करते समय वर्तनी जाँचें — संभावित गलत वर्तनी वाले शब्दों को लाल रेखा से रेखांकित करता है',
-  ribbonTranslate: 'अनुवाद करें',
-  ribbonTranslateTip: 'AI दस्तावेज़ का अनुवाद करता है',
-  ribbonTranslatePrompt:
-    'पूरे दस्तावेज़ का {lang} में अनुवाद करें, अनुच्छेद संरचना और शीर्षक स्तर अपरिवर्तित रखें।',
-  ribbonTranslateSelectionPrompt:
-    'चयनित सामग्री का {lang} में अनुवाद करें, अनुच्छेद संरचना अपरिवर्तित रखें।',
-  ribbonEditorSelectionPrompt:
-    'चयनित सामग्री को प्रूफ़रीड करें: वर्तनी, विराम चिह्न और व्याकरण की गलतियाँ सुधारें, मूल अर्थ और अनुच्छेद संरचना को अपरिवर्तित रखें।',
-  ribbonTranslateTo: '{lang} में अनुवाद करें',
   ribbonGroupLanguage: 'भाषा',
   ribbonNewComment: 'नई टिप्पणी',
   ribbonNewCommentTip: 'चयन पर टिप्पणी जोड़ें',
@@ -872,15 +853,6 @@ export const hi = {
   ribbonPrevCommentTip: 'पिछली टिप्पणी पर जाएँ',
   ribbonNextComment: 'अगली',
   ribbonNextCommentTip: 'अगली टिप्पणी पर जाएँ',
-  ribbonAiComments: 'AI से टिप्पणियाँ निपटाएँ',
-  ribbonAiRevisions: 'AI से परिवर्तन सारांश',
-  ribbonAiRevisionsTip:
-    'AI {count} लंबित परिवर्तनों को पढ़ता है, अनुभाग के अनुसार सारांश देता है और जोखिम बताता है',
-  ribbonAiRevisionsPrompt:
-    'दस्तावेज़ के सभी लंबित ट्रैक किए गए परिवर्तनों का सारांश दें: पहले समग्र आँकड़े (सम्मिलन/विलोपन की संख्या, लेखक, दिनांक सीमा), फिर अनुभाग-दर-अनुभाग बताएं कि क्या बदला (block सूचकांक बताएं), और अंत में ध्यान देने योग्य बिंदु सूचीबद्ध करें (हटाए गए दायित्व या शर्तें, बदले गए अंक/तिथियाँ/राशियाँ)। केवल सारांश दें — दस्तावेज़ न बदलें और कोई परिवर्तन स्वीकार/अस्वीकार न करें।',
-  ribbonAiCommentsTip: 'AI {count} अनसुलझी टिप्पणियों को क्रमशः निपटाता है (संशोधन, उत्तर, समाधान)',
-  ribbonAiCommentsPrompt:
-    'दस्तावेज़ की सभी अनसुलझी टिप्पणियाँ निपटाएँ: हर टिप्पणी के अनुरोध के अनुसार संशोधन करें, बदलाव का विवरण देते हुए उत्तर दें, फिर उसे हल के रूप में चिह्नित करें; यदि टिप्पणी कोई प्रश्न है या अस्पष्ट है, तो दस्तावेज़ बदले बिना केवल उत्तर दें।',
   ribbonShowCommentsTip: 'टिप्पणियाँ दिखाएँ ({count})',
   ribbonShowCommentsContextual: 'संदर्भ में',
   ribbonShowCommentsList: 'सूची',
@@ -1265,8 +1237,6 @@ export const hi = {
   ribbonColWidthSpacing: 'चौड़ाई और रिक्ति',
   ribbonColNo: 'कॉलम सं.',
   ribbonColStartNew: 'नया कॉलम शुरू करें',
-  ribbonTranslationLanguageTitle: 'दस्तावेज़ अनुवाद भाषा सेट करें',
-  ribbonTranslationLanguageLabel: 'इसमें अनुवाद करें',
   ribbonAddTextNone: 'विषय-सूची में न दिखाएँ',
   ribbonLnRestartPage: 'प्रत्येक पृष्ठ पर पुनः आरंभ करें',
   ribbonLnRestartSection: 'प्रत्येक अनुभाग पर पुनः आरंभ करें',

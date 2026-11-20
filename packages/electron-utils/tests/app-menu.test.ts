@@ -207,10 +207,10 @@ describe('viewMenuTemplate', () => {
 })
 
 describe('checkUpdatesMenuItem / manual update check wiring', () => {
-  it('sits directly above About in the help menu', () => {
+  it('leaves the update check out of the help menu and ends with About', () => {
     const items = submenuOf(helpMenuTemplate(en))
-    expect(items.at(-2)!.label).toBe(en.checkUpdates)
     expect(items.at(-1)!.label).toBe(en.about)
+    expect(items.map((item) => item.label)).not.toContain(en.checkUpdates)
   })
 
   it('invokes the shell-registered check on click, and no-ops unregistered', () => {

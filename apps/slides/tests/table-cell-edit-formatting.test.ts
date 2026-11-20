@@ -1,7 +1,7 @@
 /**
  * setTableCell (the op behind edit_table_cell, the cell editor and script
  * setTableCell) used to write the caller's paragraphs into the cell verbatim.
- * The AI tool sends plain text, so a rewritten cell fell back to the
+ * A plain-text edit sends no run formatting, so a rewritten cell fell back to the
  * table-style defaults — size, color, font and bold gone. The op now rebuilds
  * the paragraphs onto the cell's current ones like setText does for shapes.
  */
@@ -53,7 +53,7 @@ beforeEach(async () => {
 })
 
 describe('setTableCell keeps the cell formatting the caller cannot express', () => {
-  it('a plain-text rewrite (AI edit_table_cell) keeps size, color, font, bold and alignment', async () => {
+  it('a plain-text rewrite (edit_table_cell) keeps size, color, font, bold and alignment', async () => {
     const r = runTxn(opened, {
       ops: [
         {

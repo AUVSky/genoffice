@@ -48,7 +48,7 @@ export function fileSheetProtection(
   }
 }
 
-/// Dialog/AI partial → full flag set (unlisted = not allowed, as in Excel).
+/// Dialog partial → full flag set (unlisted = not allowed, as in Excel).
 export function mergeSheetProtectionAllow(
   partial: Partial<Record<SheetProtectionPermission, boolean | undefined>> | undefined,
 ): SheetProtectionAllow {

@@ -26,9 +26,6 @@ export const vi = {
   ribbonLangVietnamese: 'Tiếng Việt',
   ribbonLangTurkish: 'Tiếng Thổ Nhĩ Kỳ',
   ribbonLangHungarian: 'Tiếng Hungary',
-  ribbonAiCreditNote: 'Sử dụng AI và tiêu tốn tín dụng',
-  ribbonAiRewriteConfirm:
-    'Thao tác này sẽ gọi trợ lý AI: tiêu tốn tín dụng và có thể viết lại toàn bộ nội dung. Tiếp tục? (Bạn sẽ không được hỏi lại nữa.)',
   ribbonTabHome: 'Trang đầu',
   ribbonTabDraw: 'Vẽ',
   ribbonTabLayout: 'Bố trí',
@@ -85,7 +82,6 @@ export const vi = {
   ribbonOpen: 'Mở…',
   ribbonSave: 'Lưu',
   ribbonSaveAs: 'Lưu dưới dạng…',
-  ribbonNameWithAi: 'Đặt tên bằng AI…',
   ribbonConvert: 'Chuyển đổi',
   ribbonConvertTip: 'Chuyển đổi sang PDF, HTML, Markdown hoặc hình ảnh',
   ribbonConvertPdf: 'Chuyển đổi sang PDF…',
@@ -159,7 +155,6 @@ export const vi = {
   ribbonIcons: 'Biểu tượng',
   ribbonDateTime: 'Ngày & Giờ',
   ribbonNumber: 'Số',
-  ribbonThesaurus: 'Từ điển đồng nghĩa',
   ribbonWordCount: 'Đếm Từ',
   ribbonProofingLanguage: 'Ngôn ngữ',
   ribbonProofingNoCheck: 'Không kiểm tra chính tả hoặc ngữ pháp',
@@ -303,7 +298,6 @@ export const vi = {
   ribbonReplaceTip: 'Tìm và thay thế văn bản',
   ribbonSelectAll: 'Chọn tất cả',
   ribbonSelectAllTip: 'Chọn toàn bộ tài liệu',
-  ribbonAiAssistantTip: 'Mở trợ lý AI',
   ribbonRemoveTableStyleTip: 'Xóa kiểu bảng',
   ribbonNoStyle: 'Không có kiểu',
   ribbonApplyTableStyleTip: 'Áp dụng kiểu bảng {name}',
@@ -834,23 +828,10 @@ export const vi = {
   ribbonSourceJournalName: 'Tên tạp chí',
   ribbonSourceSiteName: 'Tên trang web',
   ribbonSourcePublisher: 'Nhà xuất bản',
-  ribbonEditorBtn: 'Trình biên tập',
-  ribbonEditorTip: 'AI kiểm tra chính tả, ngữ pháp và dấu câu',
-  ribbonEditorPrompt:
-    'Hiệu đính toàn bộ tài liệu: sửa lỗi chính tả, dấu câu và ngữ pháp trong khi vẫn giữ nguyên ý nghĩa ban đầu và cấu trúc đoạn văn.',
   ribbonGroupProofing: 'Soát lại',
   ribbonSpellcheckBtn: 'Chính tả',
   ribbonSpellcheckTip:
     'Kiểm tra chính tả khi nhập — gạch chân màu đỏ các từ có thể bị sai chính tả',
-  ribbonTranslate: 'Dịch',
-  ribbonTranslateTip: 'AI dịch tài liệu',
-  ribbonTranslatePrompt:
-    'Dịch toàn bộ tài liệu sang {lang}, giữ nguyên cấu trúc đoạn văn và cấp độ tiêu đề.',
-  ribbonTranslateSelectionPrompt:
-    'Dịch nội dung đã chọn sang {lang}, giữ nguyên cấu trúc đoạn văn.',
-  ribbonEditorSelectionPrompt:
-    'Hiệu đính nội dung đã chọn: sửa lỗi chính tả, dấu câu và ngữ pháp trong khi vẫn giữ nguyên ý nghĩa ban đầu và cấu trúc đoạn văn.',
-  ribbonTranslateTo: 'Dịch sang {lang}',
   ribbonGroupLanguage: 'Ngôn ngữ',
   ribbonNewComment: 'Nhận xét mới',
   ribbonNewCommentTip: 'Thêm nhận xét vào vùng chọn',
@@ -867,16 +848,6 @@ export const vi = {
   ribbonPrevCommentTip: 'Đi tới nhận xét trước',
   ribbonNextComment: 'Tiếp',
   ribbonNextCommentTip: 'Đi tới nhận xét tiếp theo',
-  ribbonAiComments: 'AI giải quyết nhận xét',
-  ribbonAiRevisions: 'Tóm tắt sửa đổi bằng AI',
-  ribbonAiRevisionsTip:
-    'AI đọc {count} bản sửa đổi đang chờ xử lý, tóm tắt các thay đổi theo từng phần và gắn cờ các rủi ro',
-  ribbonAiRevisionsPrompt:
-    'Tóm tắt tất cả các bản sửa đổi đang theo dõi đang chờ xử lý trong tài liệu: bắt đầu bằng số liệu thống kê tổng thể (số lượng chèn/xóa, tác giả, phạm vi ngày), sau đó mô tả các thay đổi theo từng phần (trích dẫn chỉ số khối), và kết thúc bằng danh sách các mối quan ngại tiềm ẩn (ví dụ: các nghĩa vụ hoặc điều kiện bổ nghĩa bị xóa, các con số/ngày tháng/số tiền bị thay đổi). Chỉ tóm tắt — không sửa đổi tài liệu hoặc chấp nhận/từ chối bất kỳ sửa đổi nào.',
-  ribbonAiCommentsTip:
-    'AI xử lý {count} nhận xét chưa giải quyết: chỉnh sửa theo từng nhận xét, trả lời nội dung đã thay đổi, sau đó giải quyết',
-  ribbonAiCommentsPrompt:
-    'Xử lý mọi nhận xét chưa được giải quyết trong tài liệu: với mỗi nhận xét, áp dụng thay đổi được yêu cầu, phản hồi mô tả những gì đã thay đổi, sau đó giải quyết; nếu nhận xét là một câu hỏi hoặc chưa rõ ràng, hãy trả lời mà không sửa đổi tài liệu.',
   ribbonShowCommentsTip: 'Hiện nhận xét ({count})',
   ribbonShowCommentsContextual: 'Theo ngữ cảnh',
   ribbonShowCommentsList: 'Danh sách',
@@ -1259,8 +1230,6 @@ export const vi = {
   ribbonColWidthSpacing: 'Độ rộng và khoảng cách',
   ribbonColNo: 'Cột số',
   ribbonColStartNew: 'Bắt đầu cột mới',
-  ribbonTranslationLanguageTitle: 'Đặt ngôn ngữ dịch tài liệu',
-  ribbonTranslationLanguageLabel: 'Dịch sang',
   ribbonAddTextNone: 'Không hiển thị trong mục lục',
   ribbonLnRestartPage: 'Bắt đầu lại mỗi trang',
   ribbonLnRestartSection: 'Bắt đầu lại mỗi phần',

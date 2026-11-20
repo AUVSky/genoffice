@@ -231,7 +231,7 @@ export function GraphView({
   // `no-drag` on the button alone does not win while the strip keeps its
   // region (the popover-open row flip exists for the same reason). Mark the
   // open graph on <html> so the row yields, and dismiss on Escape the way a
-  // full-screen view elsewhere does (RedactMenu).
+  // full-screen view elsewhere does.
   useEffect(() => {
     document.documentElement.classList.add('markdown-graph-open')
     const onKey = (e: KeyboardEvent): void => {

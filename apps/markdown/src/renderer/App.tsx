@@ -5,13 +5,7 @@ import {
   type MarkdownSourceSnapshot,
 } from './markdown/roundtripSerializer'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import {
-  ImageViewer,
-  aiPanelInitiallyOpen,
-  rememberAiPanelOpen,
-  useAutoSavePref,
-  useAiSidebarEnabled,
-} from '@genoffice/ui'
+import { ImageViewer, useAutoSavePref } from '@genoffice/ui'
 import {
   pollUntilReady,
   runHeadlessRendererExport,
@@ -48,10 +42,7 @@ import { invalidateWikiHeads } from './editor/wikiSuggest'
 import { dirOf, setImageBaseDir, VIEW_IMAGE_EVENT } from './editor/localImage'
 import { Ribbon } from './components/Ribbon'
 import { deriveAutoFileName } from './auto-file-name'
-import { modelSaveAsName, proposedSaveName } from './file-naming'
 import type { MarkdownTheme } from '../shared/markdown-theme'
-import { ImageHostDialog } from './components/ImageHostDialog'
-import { RedactMenu } from './components/RedactMenu'
 import { OutlinePane } from './components/OutlinePane'
 import { SourcePane } from './components/SourcePane'
 import { SlashMenu, type SlashMenuHandle } from './components/SlashMenu'
@@ -63,10 +54,6 @@ import { ToastHost } from './components/toast'
 import { showToast } from './components/toast-bus'
 import { TableMenu } from './components/TableMenu'
 import { FrontmatterPanel } from './components/FrontmatterPanel'
-import { AiAskPopover } from './components/AiAskPopover'
-import { AiPanel, GensparkMark, type AiPreset, type MarkdownAiDeps } from './ai/AiPanel'
-import { EDIT_QUEUE_MAX, selectionForAnchor, type EditQueueItem } from './ai/edit-queue'
-import { addQueueAnchor, clearQueueAnchors, removeQueueAnchors } from './editor/aiQueueAnchors'
 import { DOCX_MAX_IMAGE_PX, exportDocxBytes } from './export/docxExport'
 import { decodeImageDataUrl, toDocxImage } from './export/exportImage'
 import { buildPrintHtml } from './export/printHtml'
@@ -158,15 +145,6 @@ export default function App() {
   const [wikiSuggestState, setWikiSuggestState] = useState<WikiSuggestState | null>(null)
   const [fmOpen, setFmOpen] = useState(false)
   const [fmText, setFmText] = useState('')
-  // Persisted so a closed AI panel stays closed on next launch (docs/slides parity)
-  const [aiOpen, setAiOpen] = useState(() => aiPanelInitiallyOpen('mdapp.showAi'))
-  // the sidebar switch is a soft hide; it closes the panel when it turns off
-  const aiSidebarEnabled = useAiSidebarEnabled(setAiOpen)
-  const [aiPreset, setAiPreset] = useState<AiPreset | null>(null)
-  const [editQueue, setEditQueue] = useState<EditQueueItem[]>([])
-  const editQueueRef = useRef(editQueue)
-  editQueueRef.current = editQueue
-  const queueSeqRef = useRef(0)
   const [autoSave, setAutoSave] = useAutoSavePref('mdapp.autoSave', window.markdownApi)
   const [showFind, setShowFind] = useState(false)
   const [findFocus, setFindFocus] = useState<FindFocusRequest>({ field: 'find', nonce: 0 })
@@ -183,9 +161,6 @@ export default function App() {
   const pendingSourceRef = useRef<string | null>(null)
   const sourceApplyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const syncSourceFromEditorRef = useRef<() => void>(() => {})
-  const [spellcheck, setSpellcheck] = useState(
-    () => localStorage.getItem('mdapp.spellcheck') !== '0',
-  )
   // paper theme (markdown-themes.css scopes the palette on data-markdown-theme)
   const [mdTheme, setMdTheme] = useState<MarkdownTheme>('default')
   useEffect(() => {
@@ -201,11 +176,6 @@ export default function App() {
     else document.documentElement.setAttribute('data-markdown-theme', theme)
     window.markdownApi.setMarkdownTheme(theme).catch(() => {})
   }
-  // off by default: it takes over the editor's right-click menu, and a reader
-  // should opt into that rather than discover it
-  const [redactEnabled, setRedactEnabled] = useState(
-    () => localStorage.getItem('mdapp.redact') === '1',
-  )
   const [viewImage, setViewImage] = useState<string | null>(null)
   useEffect(() => {
     const onEvent = (e: Event) => setViewImage((e as CustomEvent<{ src: string }>).detail.src)
@@ -264,8 +234,6 @@ export default function App() {
     setSaveState('idle')
     window.markdownApi.setDirty(true)
   }, [])
-
-  const [imageHostOpen, setImageHostOpen] = useState(false)
 
   const insertImage = useCallback(() => {
     void (async () => {
@@ -381,7 +349,7 @@ export default function App() {
     extensions,
     content: '',
     autofocus: true,
-    editorProps: { attributes: { class: 'doc-editor', spellcheck: String(spellcheck) } },
+    editorProps: { attributes: { class: 'doc-editor', spellcheck: 'false' } },
     // uiOnly transactions (toggle fold state) never reach the file — not dirty
     onUpdate: ({ editor: updated, transaction }) => {
       if (!transaction.getMeta('uiOnly')) markDirty()
@@ -392,13 +360,6 @@ export default function App() {
   })
   editorRef.current = editor
   filePathRef.current = filePath
-
-  useEffect(() => {
-    localStorage.setItem('mdapp.spellcheck', spellcheck ? '1' : '0')
-    editor?.setOptions({
-      editorProps: { attributes: { class: 'doc-editor', spellcheck: String(spellcheck) } },
-    })
-  }, [editor, spellcheck])
 
   useEffect(() => {
     if (outlineWidth) localStorage.setItem('mdapp.outlineWidth', String(outlineWidth))
@@ -611,8 +572,8 @@ export default function App() {
   }, [closeSource, openSource])
 
   // A keystroke is re-parsed into the editor rather than saved, so save,
-  // autosave, the AI tools and the outline keep reading one document. The
-  // re-parse is debounced; the pane itself updates immediately.
+  // autosave and the outline keep reading one document. The re-parse is
+  // debounced; the pane itself updates immediately.
   const onSourceChange = useCallback(
     (text: string) => {
       setSourceText(text)
@@ -631,8 +592,8 @@ export default function App() {
     if (text !== null) setSourceText(text)
   }, [currentFileText, flushSource])
 
-  // An AI run or external reload landing while the pane is open must show up
-  // there; while the textarea is focused the user's own half-typed text wins.
+  // An external reload landing while the pane is open must show up there;
+  // while the textarea is focused the user's own half-typed text wins.
   syncSourceFromEditorRef.current = () => {
     if (!sourceViewOpenRef.current || pendingSourceRef.current !== null) return
     if (document.activeElement?.classList.contains('source-textarea')) return
@@ -648,7 +609,7 @@ export default function App() {
 
   /** Serialize and write to disk; false when canceled/failed (caller keeps the tab open) */
   const doSave = useCallback(
-    async (mode: SaveMode, suggestedName?: string, proposedName?: string): Promise<boolean> => {
+    async (mode: SaveMode): Promise<boolean> => {
       if (sourceMode) return doSaveSource(mode)
       flushSource()
       const current = editorRef.current
@@ -660,8 +621,8 @@ export default function App() {
       savingRef.current = true
       setSaveState('saving')
       try {
-        // edits landing while the write is in flight (AI streaming, fast typing)
-        // must keep the document dirty — compare doc identity after the await
+        // edits landing while the write is in flight (fast typing) must keep
+        // the document dirty — compare doc identity after the await
         const docAtSave = current.state.doc
         const fmAtSave = envelopeRef.current.frontmatter
         const sourceAtSave = originalSourceRef.current
@@ -675,19 +636,15 @@ export default function App() {
         const imageSources = imageSourcesFromEditor(current)
         // A never-saved document is offered a name derived from its own
         // content: its first heading, else its first words. It prefills the
-        // save dialog rather than replacing it — the reader still chooses where
-        // the file goes, and a save never waits on a model. A name the caller
-        // proposed outright (the ribbon's "Name with AI") wins over both.
-        const defaultName = await proposedSaveName(current, {
-          filePath: filePathRef.current,
-          suggestedName,
-          proposedName,
-        })
+        // save dialog rather than replacing it — the reader still chooses
+        // where the file goes.
+        const defaultName = filePathRef.current
+          ? undefined
+          : deriveAutoFileName(current) || undefined
         const result = await window.markdownApi.save({
           text,
           imageSources,
           mode,
-          suggestedName,
           overwrite: overwriteRef.current,
           ...(defaultName ? { defaultName } : {}),
         })
@@ -823,24 +780,8 @@ export default function App() {
   }, [doSave])
 
   /**
-   * Ask the model to name this document, on request, then open Save As with its
-   * answer prefilled.
-   *
-   * The stem goes into the dialog rather than renaming the file on disk: a file
-   * that may be open elsewhere, referenced from a note, or synced is not
-   * something to move behind the reader's back. A declined or empty answer
-   * leaves the dialog on the document's current name, so this is a no-op
-   * rather than a failure.
+   * `outPath` (headless export only) skips the save dialog; resolves true when a file was written.
    */
-  const nameWithAi = useCallback(async () => {
-    const current = editorRef.current
-    if (!current || statusRef.current !== 'ready' || savingRef.current) return
-    const stem = await modelSaveAsName(current)
-    if (!stem) return
-    await doSave('saveAs', undefined, stem)
-  }, [doSave])
-
-  /** `outPath` (headless export only) skips the save dialog; resolves true when a file was written. */
   const runExport = useCallback(
     async (format: ExportFormat, outPath?: string) => {
       // a source file has no rendered document to export
@@ -1192,10 +1133,6 @@ export default function App() {
     return () => window.removeEventListener('wheel', onWheel)
   }, [])
 
-  useEffect(() => {
-    rememberAiPanelOpen('mdapp.showAi', aiOpen)
-  }, [aiOpen])
-
   // autosave: every 30s and on window blur, silently persist pending changes
   // (same policy as the docs app; untitled documents are skipped — the first
   // save must go through the explicit save path that names the file)
@@ -1214,51 +1151,6 @@ export default function App() {
     }
   }, [autoSave, filePath, doSave])
 
-  // ---- selection-scoped AI edit queue (anchors live in the editor as decorations) ----
-  const getQueueItem = useCallback(
-    (qid: string) => editQueueRef.current.find((item) => item.qid === qid),
-    [],
-  )
-  const queueAdd = useCallback((instruction: string): void => {
-    const current = editorRef.current
-    if (!current) return
-    const { from, to, empty } = current.state.selection
-    if (empty || editQueueRef.current.length >= EDIT_QUEUE_MAX) return
-    const qid = `q${++queueSeqRef.current}`
-    addQueueAnchor(current, qid, from, to)
-    const capturedText = current.state.doc
-      .textBetween(from, to, ' ', ' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .slice(0, 80)
-    setEditQueue((queue) => [...queue, { qid, instruction, capturedText }])
-  }, [])
-  const queueUpdate = useCallback(
-    (qid: string, instruction: string): void =>
-      setEditQueue((queue) => queue.map((i) => (i.qid === qid ? { ...i, instruction } : i))),
-    [],
-  )
-  const queueRemove = useCallback((qid: string): void => {
-    if (editorRef.current) removeQueueAnchors(editorRef.current, [qid])
-    setEditQueue((queue) => queue.filter((i) => i.qid !== qid))
-  }, [])
-  const queueClear = useCallback((): void => {
-    if (editorRef.current) clearQueueAnchors(editorRef.current)
-    setEditQueue([])
-  }, [])
-  /** a submission hands its items to the run and drops them from the queue */
-  const queueConsume = useCallback((qids: string[]): void => {
-    if (editorRef.current) removeQueueAnchors(editorRef.current, qids)
-    setEditQueue((queue) => queue.filter((i) => !qids.includes(i.qid)))
-  }, [])
-  const queueFocus = useCallback((qid: string): void => {
-    const current = editorRef.current
-    if (!current) return
-    const selection = selectionForAnchor(current, qid)
-    if (!selection) return
-    current.view.dispatch(current.state.tr.setSelection(selection).scrollIntoView())
-    current.view.focus()
-  }, [])
   /** outline click: move the cursor into the heading and scroll it into view */
   const jumpToOutline = useCallback((pos: number): void => {
     const current = editorRef.current
@@ -1267,45 +1159,6 @@ export default function App() {
     current.view.dispatch(current.state.tr.setSelection(selection).scrollIntoView())
     current.view.focus()
   }, [])
-  const askSendNow = useCallback((text: string): void => {
-    setAiOpen(true)
-    setAiPreset((prev) => ({ text, nonce: (prev?.nonce ?? 0) + 1 }))
-  }, [])
-
-  const aiDeps: MarkdownAiDeps = {
-    getEditor: () => editorRef.current,
-    // envelopeRef, not fmText state: a write-then-read within one AI run must
-    // see the new value before React commits
-    getFrontmatter: () => frontmatterInner(envelopeRef.current.frontmatter),
-    setFrontmatter: (inner) => {
-      onFrontmatterChange(inner)
-      setFmOpen(inner.trim() !== '')
-    },
-    // snapshots carry body + the raw frontmatter block (structured, no
-    // file-text round-trip) so a rollback also reverts set_frontmatter and
-    // an untouched block restores byte-for-byte
-    getSnapshot: () => ({
-      body: editorRef.current ? bodyMarkdown(editorRef.current) : '',
-      frontmatter: envelopeRef.current.frontmatter,
-    }),
-    restoreSnapshot: (snapshot) => {
-      const current = editorRef.current
-      if (!current) return
-      envelopeRef.current.frontmatter = snapshot.frontmatter
-      const inner = frontmatterInner(snapshot.frontmatter)
-      setFmText(inner)
-      setFmOpen(inner !== '')
-      current.commands.setContent(snapshot.body, { contentType: 'markdown' })
-      sourceMapRef.current = buildSourceMap(current, current.state.doc, snapshot.body)
-      markDirty()
-    },
-    onRunDone: (mutated) => {
-      // AI wrote into a never-saved document → name it from the content and save silently
-      if (!mutated || filePathRef.current || !editorRef.current) return
-      const name = deriveAutoFileName(editorRef.current)
-      if (name) void doSave('save', name)
-    },
-  }
 
   const fileName = filePath ? filePath.replace(/^.*[/\\]/, '') : null
   const statusText =
@@ -1348,7 +1201,6 @@ export default function App() {
         dirty={dirty}
         onSave={() => void doSave('save')}
         onSaveAs={() => void doSave('saveAs')}
-        onNameWithAi={() => void nameWithAi()}
         onFind={() => openFind(false)}
         autoSave={autoSave}
         onToggleAutoSave={setAutoSave}
@@ -1356,7 +1208,6 @@ export default function App() {
         mdTheme={mdTheme}
         onMarkdownTheme={pickMarkdownTheme}
         onInsertImage={insertImage}
-        onImageHost={() => setImageHostOpen(true)}
         frontmatterOpen={fmOpen}
         onToggleFrontmatter={() => setFmOpen((v) => !v)}
         sourceViewOpen={sourceViewOpen}
@@ -1370,55 +1221,11 @@ export default function App() {
         onToggleTags={() => setTagsOpen((v) => !v)}
         onOpenGraph={() => setGraphOpen(true)}
         onCopyBlockLink={() => editor?.commands.copyBlockLink()}
-        spellcheck={spellcheck}
-        onToggleSpellcheck={() => setSpellcheck((v) => !v)}
         sourceMode={sourceMode}
         sourceHistory={sourceMode ? sourceHistory : undefined}
-        aiOpen={aiOpen}
-        onToggleAi={() => setAiOpen((v) => !v)}
-        onAiPreset={(text) => {
-          setAiOpen(true)
-          setAiPreset((prev) => ({ text, nonce: (prev?.nonce ?? 0) + 1 }))
-        }}
-        redactEnabled={redactEnabled}
-        onToggleRedact={(on) => {
-          setRedactEnabled(on)
-          localStorage.setItem('mdapp.redact', on ? '1' : '0')
-        }}
       />
       {status === 'loading' && <div className="center-note">{t('loading')}</div>}
       <div className="app-main" style={status === 'ready' ? undefined : { display: 'none' }}>
-        <div
-          className={`ai-dock${aiOpen ? '' : ' collapsed'}${
-            !aiSidebarEnabled && !aiOpen ? ' ai-dock-off' : ''
-          }`}
-        >
-          {!aiOpen && aiSidebarEnabled && (
-            <button
-              className="ai-rail"
-              data-tip={t('aiOpenAssistant')}
-              aria-label={t('aiOpenAssistant')}
-              onClick={() => setAiOpen(true)}
-            >
-              <GensparkMark size={22} />
-            </button>
-          )}
-          {/* mounted only after the file is loaded so chat history resolves against the real path */}
-          {status === 'ready' && (
-            <AiPanel
-              deps={aiDeps}
-              filePath={filePath}
-              preset={aiPreset}
-              onCollapse={() => setAiOpen(false)}
-              editQueue={editQueue}
-              onQueueEditInstruction={queueUpdate}
-              onQueueRemove={queueRemove}
-              onQueueClear={queueClear}
-              onQueueFocus={queueFocus}
-              onQueueConsume={queueConsume}
-            />
-          )}
-        </div>
         {outlineOpen && !sourceMode && (
           <OutlinePane
             items={outlineItems}
@@ -1468,7 +1275,6 @@ export default function App() {
                 ref={sourceRef}
                 initialText={sourceTextRef.current}
                 mode={textMode === 'json' ? 'json' : 'plain'}
-                spellcheck={spellcheck}
                 onChange={(text) => {
                   sourceTextRef.current = text
                   setSourceRev((n) => n + 1)
@@ -1560,7 +1366,6 @@ export default function App() {
           onDismiss={() => setWikiSuggestState(null)}
         />
       )}
-      <RedactMenu editor={editor} enabled={redactEnabled} />
       <ToastHost />
       {graphOpen && (
         <GraphView
@@ -1571,9 +1376,6 @@ export default function App() {
             void window.markdownApi.openSourcePath(path)
           }}
         />
-      )}
-      {imageHostOpen && (
-        <ImageHostDialog onClose={() => setImageHostOpen(false)} onSaved={() => {}} />
       )}
       {viewImage && (
         <ImageViewer
@@ -1592,17 +1394,6 @@ export default function App() {
         />
       )}
       {!sourceMode && <TableMenu editor={editor} scrollRef={scrollRef} zoom={zoom} />}
-      {editor && !sourceMode && status === 'ready' && (
-        <AiAskPopover
-          editor={editor}
-          queueFull={editQueue.length >= EDIT_QUEUE_MAX}
-          getItem={getQueueItem}
-          onSendNow={askSendNow}
-          onQueueAdd={queueAdd}
-          onQueueUpdate={queueUpdate}
-          onQueueRemove={queueRemove}
-        />
-      )}
     </div>
   )
 }

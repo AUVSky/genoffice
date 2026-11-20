@@ -1,9 +1,8 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import type { Editor } from '@tiptap/core'
 import { NodeSelection } from '@tiptap/pm/state'
 import { mergeCells } from '@tiptap/pm/tables'
 import { platformShortcuts } from '@genoffice/i18n'
-import { redactTextBetween, type RedactableNode } from '../ai/redact-view'
 import type { TextboxDisplay } from '@genoffice/docx-engine'
 
 import { useI18n, type StringKey } from '../i18n/locale'
@@ -21,15 +20,9 @@ import {
   type CellVAlign,
   type TableSelectKind,
 } from '../editor/table-ops'
-import { IconSparkle } from './icons'
 import { IconCellAlign } from './table-icons'
-import { spellcheckEnabled } from '../spellcheck-pref'
-import { applySpellingSuggestion } from '../editor/spell-replace'
 import { linkRangeAt, linkTarget, removeLink } from '../editor/link-actions'
 import { fieldRangeAt, toggleFieldCodes, type FieldRange } from '../editor/field-codes'
-import { hasRedactionIn } from '../editor/redaction'
-import type { SpellLanguages } from '../../shared/ipc'
-import { TRANSLATE_LANGS, appLangKey } from './translate-langs'
 import type { RevisionRange } from '../editor/revisions'
 
 export { FontDialog } from './FontDialog'
@@ -44,12 +37,8 @@ export interface ContextMenuState {
   y: number
   /** src of the picture under the pointer, when the click landed on one */
   imageSrc?: string | null
-  /** claim sequence of the right-click this menu answers (pairs it with Chromium's data) */
-  seq?: number
   /** document position under the click (the caret for a keyboard-invoked menu) */
   pos?: number | null
-  /** Chromium's misspelling under the pointer, relayed by the main process after the menu opened */
-  spell?: { word: string; suggestions: string[] } | null
   /** hyperlink under the pointer as rendered (a TOC line counts: Word treats its entries as links) */
   link?: { href: string; toc?: boolean; tocTitle?: string } | null
   /** thread of the comment balloon the click landed on */
@@ -76,12 +65,6 @@ interface EditorContextMenuProps {
   onEditField?: (field: FieldRange) => void
   /** Open Hyperlink: browser for http(s), in-document jump for #bookmark */
   onOpenLink?: (href: string) => void
-  /** Ask for a label, then withhold the selection from the model */
-  onRedact?: () => void
-  /** Stop withholding a selection that already carries the mark, keeping the text */
-  onUnredact?: () => void
-  /** re-mark existing text after the session dictionary or languages changed */
-  onRespell?: () => void
   /** tracked changes under the pointer; null while protection disables accept/reject */
   revisions?: {
     at: RevisionRange[]
@@ -160,72 +143,13 @@ export function EditorContextMenu({
   onUpdateFields,
   onEditField,
   onOpenLink,
-  onRedact,
-  onUnredact,
-  onRespell,
   revisions,
   comment,
   trackChanges,
 }: EditorContextMenuProps) {
-  const { t, lang } = useI18n()
+  const { t } = useI18n()
   const ref = useRef<HTMLDivElement>(null)
   const [submenu, setSubmenu] = useState<string | null>(null)
-
-  // ---- spelling section (Word: suggestions · Add to Dictionary · Language) ----
-  const spell = spellcheckEnabled() && editor.isEditable ? menu.spell : null
-  const [spellLangs, setSpellLangs] = useState<SpellLanguages | null>(null)
-  useEffect(() => {
-    if (!spell) return
-    let alive = true
-    void window.desktop.spellLanguages?.().then((langs) => {
-      if (alive) setSpellLangs(langs)
-    })
-    return () => {
-      alive = false
-    }
-  }, [spell])
-  const langNames = useMemo(() => {
-    try {
-      return new Intl.DisplayNames([lang], { type: 'language' })
-    } catch {
-      return null
-    }
-  }, [lang])
-  // active dictionaries first, the rest by display name
-  const spellLangOrder = useMemo(() => {
-    if (!spellLangs) return []
-    const name = (code: string) => langNames?.of(code) ?? code
-    const rest = spellLangs.available
-      .filter((code) => !spellLangs.active.includes(code))
-      .sort((a, b) => name(a).localeCompare(name(b), lang))
-    return [...spellLangs.active, ...rest]
-  }, [spellLangs, langNames, lang])
-  const applySuggestion = (replacement: string) => {
-    if (!spell) return
-    applySpellingSuggestion(
-      editor,
-      menu.pos ?? null,
-      spell.word,
-      replacement,
-      window.desktop.spellReplace,
-    )
-  }
-  const addToDictionary = () => {
-    if (spell) void window.desktop.spellAddWord?.(spell.word).then(() => onRespell?.())
-  }
-  const ignoreAll = () => {
-    if (spell) void window.desktop.spellIgnoreWord?.(spell.word).then(() => onRespell?.())
-  }
-  const toggleLanguage = (code: string) => {
-    if (!spellLangs) return
-    const active = spellLangs.active.includes(code)
-      ? spellLangs.active.filter((l) => l !== code)
-      : [...spellLangs.active, code]
-    if (!active.length) return
-    // the respell kick that follows must not run under an open menu (Word closes it too)
-    onClose()
-    void window.desktop.spellSetLanguages?.(active).then(() => onRespell?.())
-  }
 
   const { from, to } = editor.state.selection
   const hasSelection = from !== to
@@ -245,17 +169,6 @@ export function EditorContextMenu({
   const field = fieldRangeAt(editor.state, clickPos)
   const canComment = canCommentAt(editor)
   const canEdit = editor.isEditable
-  // Whether stopping the withholding is an option here. Decided from the live
-  // selection rather than from a list kept alongside the document, so it cannot
-  // drift from the marks the editor is actually carrying. A bare caret answers
-  // false on its own, so no selection test is needed here either.
-  const isRedactedSelection = hasRedactionIn(editor, from, to)
-  // the presets quote the selection back to the model, so it reads the projection
-  const selectedText = hasSelection
-    ? redactTextBetween(editor.getJSON() as RedactableNode, from, to, ' ').trim()
-    : ''
-  // Synonyms targets a word / short phrase, not long selections
-  const synonymText = selectedText.length > 0 && selectedText.length <= 20 ? selectedText : ''
 
   // keep the menu inside the viewport (flip up / clamp left near the edges)
   const [pos, setPos] = useState({ left: menu.x, top: menu.y })
@@ -340,22 +253,15 @@ export function EditorContextMenu({
       disabled?: boolean
       onClick?: () => void
       submenuKey?: string
-      ai?: boolean
     },
   ) => (
     <button
       className="ctx-item"
       disabled={opts.disabled}
-      data-tip={opts.ai ? t('appAiBadgeTip') : undefined}
       onMouseEnter={() => setSubmenu(opts.submenuKey ?? null)}
       onClick={opts.submenuKey ? undefined : opts.onClick}
     >
       <span className="ctx-label">{label}</span>
-      {opts.ai && (
-        <span className="copilot-badge copilot-badge-menu">
-          <IconSparkle size={10} />
-        </span>
-      )}
       {opts.key && <span className="ctx-key">{platformShortcuts(opts.key)}</span>}
       {opts.submenuKey && <span className="ctx-arrow">›</span>}
     </button>
@@ -479,42 +385,6 @@ export function EditorContextMenu({
       style={{ left: pos.left, top: pos.top, minWidth: MENU_WIDTH }}
       onContextMenu={(e) => e.preventDefault()}
     >
-      {spell && (
-        <>
-          {/* always-disabled: says there is nothing to pick; not an action */}
-          {spell.suggestions.length === 0 && item(t('appSpellNoSuggestions'), { disabled: true })}
-          {spell.suggestions.slice(0, 5).map((word) => (
-            <button
-              key={word}
-              className="ctx-item ctx-item-strong"
-              onClick={run(() => applySuggestion(word))}
-            >
-              <span className="ctx-label">{word}</span>
-            </button>
-          ))}
-          <div className="ctx-sep" />
-          {item(t('appSpellIgnoreAll'), { onClick: run(ignoreAll) })}
-          {item(t('appSpellAddToDictionary'), { onClick: run(addToDictionary) })}
-          {spellLangs && spellLangs.available.length > 0 && (
-            <div className="ctx-item-wrap" onMouseLeave={() => setSubmenu(null)}>
-              {item(t('appSpellLanguage'), { submenuKey: 'spellLang' })}
-              {submenu === 'spellLang' && (
-                <CtxSubmenu>
-                  {spellLangOrder.map((code) => (
-                    <button key={code} className="ctx-item" onClick={() => toggleLanguage(code)}>
-                      <span className="ctx-label">
-                        {spellLangs.active.includes(code) ? '✓ ' : ''}
-                        {langNames?.of(code) ?? code}
-                      </span>
-                    </button>
-                  ))}
-                </CtxSubmenu>
-              )}
-            </div>
-          )}
-          <div className="ctx-sep" />
-        </>
-      )}
       {item(t('appCut'), {
         key: '⌘X',
         disabled: !hasSelection || !canEdit,
@@ -868,72 +738,6 @@ export function EditorContextMenu({
             </div>
           </>
         )}
-      {!onPicture && (
-        <>
-          <div className="ctx-sep" />
-          {item(t('appSynonyms'), {
-            disabled: !synonymText,
-            ai: true,
-            onClick: run(() =>
-              onCommand('ai-preset', t('appSynonymsPrompt', { text: synonymText })),
-            ),
-          })}
-          <div className="ctx-item-wrap" onMouseLeave={() => setSubmenu(null)}>
-            {item(t('appTranslate'), {
-              disabled: !hasSelection,
-              submenuKey: 'translate',
-              ai: true,
-            })}
-            {submenu === 'translate' && hasSelection && (
-              <CtxSubmenu>
-                {TRANSLATE_LANGS.map(({ code }) => (
-                  <button
-                    key={code}
-                    className="ctx-item"
-                    onClick={run(() =>
-                      onCommand(
-                        'ai-preset',
-                        t('appTranslateSelectionPrompt', {
-                          lang: t(appLangKey(code)),
-                          text: selectedText,
-                        }),
-                      ),
-                    )}
-                  >
-                    <span className="ctx-label">
-                      {t('appTranslateTo', { lang: t(appLangKey(code)) })}
-                    </span>
-                  </button>
-                ))}
-              </CtxSubmenu>
-            )}
-          </div>
-          {/* Withholding a span. No AI badge: the item spends the words rather
-          than using the model, and the badge would read "Uses AI".
-          Text only, deliberately. A picture alone in a paragraph is a *block*
-          node (docProtected), which takes no marks at all, and a picture
-          beside text is an inline atom whose mark is dropped by the docx save
-          (convert.ts reads the run's node attrs, never the node's marks) — so
-          offering it for a picture would hide it for one session and then lose
-          the decision on the next save, with nothing to tell the reader. */}
-          {onRedact &&
-            item(t('redactMenuLabel'), {
-              disabled: !canEdit || !hasSelection,
-              onClick: run(onRedact),
-            })}
-          {/* The other half of the item above, and its mirror: offered only when the
-          selection really carries the mark. Without this the sole way to stop
-          withholding a span was to delete the words, which loses the reader's
-          own text to undo a decision they made in the editor. Same reason as
-          the item beside it for no AI badge — this one only moves a mark. */}
-          {onUnredact &&
-            isRedactedSelection &&
-            item(t('redactShowLabel'), {
-              disabled: !canEdit,
-              onClick: run(onUnredact),
-            })}
-        </>
-      )}
       {!onPicture && isFloating && (
         <>
           <div className="ctx-sep" />

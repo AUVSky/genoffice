@@ -1,18 +1,6 @@
 import type { zh } from './zh'
 
 export const hu = {
-  redactMenuLabel: 'Kijelölés elrejtése az AI elől',
-  redactDialogDesc:
-    'A kijelölés megmarad a dokumentumban és a fájlban; a modell helyette az alábbi helyőrzőt látja. Nevezd el úgy, hogy a modell tudja, mit helyettesít.',
-  redactDialogScope:
-    'Az elrejtés csak ennek az alkalmazásnak az AI-jára vonatkozik. A CLI, az MCP-eszközök és a felület nélküli exportálás közvetlenül olvassa a fájlt, így ezek a szavak számukra továbbra is láthatók.',
-  redactDialogPlaceholder: 'Helyőrző neve, pl. ügyfél telefonszáma',
-  redactCancel: 'Mégse',
-  redactInsert: 'Elrejtés',
-  redactEnable: 'Kattints jobb gombbal a kijelölésre, hogy elrejtsd a modell elől.',
-  redactNeedsSavedRow: 'Ez a sor még nincs a fájlban. Először ments, majd rejts el benne cellát.',
-  redactRecoveredFromNames:
-    'Egy másik alkalmazás újraírta a fájlt, és elveszett az elrejtések nyilvántartása. A rejtett cellák a munkafüzetben lévő nevekből álltak helyre; mentéskor a teljes nyilvántartás helyreáll.',
   appMergeWorkbooks: 'Munkafüzetek egyesítése',
   appMergeWorkbooksTip: 'Munkalapok hozzáfűzése más Excel-fájlokból ebbe a munkafüzetbe',
   appMergeWorkbooksPicking: 'Válaszd ki az egyesítendő fájlokat…',
@@ -160,14 +148,11 @@ export const hu = {
   appRefresh: 'Frissítés',
   appRefreshHintIn: 'Számold újra az aktuális kimutatást',
   appRefreshHintOut: 'Előbb jelöld ki a kimutatás területét, majd frissíts',
-  appAttachmentReadFailed: '{name}: nem sikerült beolvasni',
   appTooManyImages: 'Üzenetenként legfeljebb {max} kép lehet; a további képek kimaradtak',
-  appAppliedRevision: 'Alkalmazva (verzió: {revision}) — visszavonás: ⌘Z, mentés a fájlba: ⌘S.',
   appCannotReadImage: 'Nem sikerült beolvasni a képfájlt.',
   appTableNotDeletable:
     'Nem létezik „{name}” nevű táblázat, vagy nem ebben a munkamenetben jött létre — a fájlban már meglévő táblázatokat egyelőre nem lehet törölni.',
   appImageNotLoaded: 'Nem sikerült betölteni a képet: {path}',
-  appApplyFailed: '⚠️ Nem sikerült alkalmazni: {reason}',
   appPivotChartNeedsFile: 'Előbb nyiss meg egy XLSX-fájlt — a kimutatásdiagram a fájlba íródik.',
   appCursorNotInPivot:
     'A kurzor nem áll kimutatáson belül — előbb jelölj ki egy cellát a kimutatás kimeneti területén.',
@@ -307,16 +292,7 @@ export const hu = {
   appSavedTwoPhase: 'Mentve.',
   appSaveSecondFailed:
     'A szerkezet mentve, de a második fázis (kimutatások/táblázatok/elnevezett tartományok) nem sikerült: {reason}',
-  appReadyInitial: 'Kész a helyi, determinisztikus AI-parancs fogadására.',
-  appAiThinking: 'Az AI gondolkodik…',
-  appAiDone: 'Az AI kész',
-  appAiTurnLimit:
-    '(A kérés elérte az eszközhívási fordulók korlátját; a fenti válasz az eddig beolvasott adatokon alapul, és hiányos lehet.)',
-  appAiTruncatedNote: '(A válasz a hosszkorlát miatt megszakadt, és hiányos lehet.)',
-  appAiStopped: '(leállítva)',
-  appAiNoSummary: 'Az AI kész, összefoglaló nélkül.',
-  appAiNoAction:
-    'Az AI nem végzett módosítást, és nem adott választ. Próbáld újra, vagy fogalmazd át.',
+  appReadyInitial: 'Kész.',
   appNewConversation: 'Új csevegés indult.',
   appPivotCellNoEdit: 'Ez a cella egy kimutatás része — a szerkesztése még nem támogatott.',
   appAreaStreaming: 'A terület még töltődik — egy pillanat múlva próbáld újra a szerkesztést.',
@@ -364,17 +340,8 @@ export const hu = {
   appDvListOptions: 'Lista: {items}',
   appDvListFromRange: 'Lista (tartomány: {range})',
   appRuleBrokenRef: 'Törött hivatkozás (#REF!) — ez a szabály soha nem alkalmazható',
-  appCellStreaming: 'A cella még töltődik — próbáld újra egy pillanat múlva.',
-  appPreviewCreated: 'Előnézet létrehozva — semmi nem változik, amíg nem alkalmazod.',
-  appPreviewCreatedDemo: 'Előnézet létrehozva. A munkafüzet állapota nem változott.',
-  appPreviewFailed: 'Nem sikerült létrehozni az előnézetet.',
   appApplyTxFailed: 'Nem sikerült alkalmazni a tranzakciót.',
   appTxCommitted: 'Tranzakció véglegesítve — verzió: {revision}.',
-  appPreviewOtherWorkbook: 'Az előnézet egy másik munkafüzethez tartozott — hozz létre újat.',
-  appPreviewSheetGone:
-    'Az előnézetben megjelenített munkalap már nem létezik — hozz létre új előnézetet.',
-  appWorkbookChangedSincePreview:
-    'A munkafüzet az előnézet óta megváltozott — hozz létre új előnézetet.',
   appAppliedJournaled: 'Alkalmazva — a módosítások naplózva; a ⌘S menti a fájlt.',
   appUndoCommitted: 'Visszavonás verzióként rögzítve: {revision}.',
   appUndoFailed: 'Nem sikerült a visszavonás.',
@@ -641,8 +608,6 @@ export const hu = {
   appShowCommentsTitle: 'A kijelölt cella megjegyzésbuborékának rögzítése/feloldása',
   appStructuralShiftBlocked:
     'Ezen a munkalapon egy diagram vagy táblázat az érintett sorokhoz/oszlopokhoz van rögzítve, ezért azok nem tolódhatnak el; a szerkezeti módosítás nem lett elmentve. Visszavonás (Cmd+Z) után mentsd el újra.',
-  appAiChangesNotSaved:
-    'Az AI-módosítások alkalmazva (nincsenek mentve). Visszavonás: Cmd+Z; mentés a fájlba: Cmd+S.',
   appChartUpdated: 'Diagram frissítve.',
   appChartNotEditable: 'Ez a diagram nem szerkeszthető.',
   appChartEditRecorded: 'Diagrammódosítás rögzítve — mentés: ⌘S.',
@@ -727,7 +692,6 @@ export const hu = {
   appRibbonExpand: 'Menüszalag kibontása',
   appRibbonCompact: 'Kompakt menüszalag (csak ikonok)',
   appTabView: 'Nézet',
-  appTabAi: 'AI',
   appTabChartDesign: 'Diagramtervezés',
   appAutoSave: 'Automatikus mentés',
   appAutoSaveTitle: 'Az automatikus mentés csak felhőfájlokhoz érhető el',
@@ -735,7 +699,6 @@ export const hu = {
   appExportPdfTitle: 'Exportálás PDF-ként',
   appSaveTitle: 'Mentés (⌘S)',
   appSaveAs: 'Mentés másként',
-  aiNameFile: 'Névadás AI-val…',
   appUndo: 'Visszavonás',
   appRedo: 'Újra',
   appUnsavedEditOne: '● {count} mentetlen módosítás',
@@ -745,8 +708,6 @@ export const hu = {
   appRevisionChip: 'Változat: {revision}',
   appOpenWorkbookTitle: 'Munkafüzet megnyitása (⌘O)',
   appOpenXlsx: 'XLSX megnyitása',
-  appHideAi: 'AI elrejtése',
-  appShowAi: 'AI megjelenítése',
   appCategoryAxisTitle: 'Kategóriatengely címe',
   appValueAxisTitle: 'Értéktengely címe',
   appTitleText: 'Címszöveg',
@@ -815,10 +776,6 @@ export const hu = {
   appFormatPaneDetail: 'Tengely, térköz szélessége, szétválasztás',
   appGroupChartActions: 'Diagramműveletek',
   appRemoveFromSheet: 'Eltávolítás a munkalapról',
-  appGroupAiAssistant: 'AI-asszisztens',
-  appAiOpenPanelDetail: 'Csevegő oldalsáv',
-  appGroupAiStarters: 'Gyorsindítás',
-  appAiStarterDetail: 'Küldés az AI-panelnek',
   appGroupTables: 'Táblázatok',
   appFromSelection: 'A kijelölésből',
   appEditPivotTable: 'Kimutatás szerkesztése',
@@ -1323,11 +1280,7 @@ export const hu = {
   appGroupProofing: 'Nyelvi ellenőrzés',
   appWorkbookStatsLabel: 'Munkafüzet-statisztika',
   appSheetsCellsFormulas: 'Munkalapok, cellák, képletek',
-  appTranslate: 'Fordítás',
   appGroupLanguage: 'Nyelv',
-  appTranslateTitle: 'Kijelölés lefordítása AI-val',
-  appTranslatePrompt:
-    'Fordítsd le a kijelölt tartományban lévő szöveget a következő nyelvre: {language}, és írd vissza a fordításokat ugyanazokba a cellákba.',
   appNewCommentDetail: 'Hozzáadás vagy szerkesztés',
   appDeleteLabel: 'Törlés',
   appNoteAtSelection: 'Jegyzet a kijelölésnél',

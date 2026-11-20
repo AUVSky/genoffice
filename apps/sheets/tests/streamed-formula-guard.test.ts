@@ -1,13 +1,10 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
-import type { WorkbookOperation } from '@genoffice/xlsx-gateway/domain/workbook-dsl'
 import { cellKey } from '../src/renderer/formula-closure'
 import {
   carryCopyFormulasPlan,
   collectStreamedFormulaPrecedents,
-  proposeOperations,
   streamedPinBudgetError,
-  type PlanContext,
   type StreamedRefSheet,
 } from '../src/renderer/plan-operations'
 import { CLOSURE_MAX_CELLS, type LazyWorkbookState } from '../src/renderer/univer-state'
@@ -201,90 +198,5 @@ describe('carryCopyFormulasPlan', () => {
     )
     expect(plan.ok).toBe(false)
     if (!plan.ok) expect(plan.reason).toContain('too expensive')
-  })
-})
-
-describe('proposeOperations: streaming-mode budget rejection (lazy workbook)', () => {
-  function streamedState(): LazyWorkbookState {
-    return {
-      file: {
-        sessionId: 'session-1',
-        sheets: [{ id: 'd1', name: 'Data', rowCount: 20_000, columnCount: 6, pivotRanges: [] }],
-        visuals: [],
-      },
-      editJournal: {
-        cells: new Map(),
-        structuralOps: new Map(),
-        sheets: { added: new Set(['new1']), removed: new Set() },
-        visualAdds: [],
-        tableAdds: [],
-      },
-      loadedRanges: new Map(),
-      formulaMode: false,
-      flags: { preloadComplete: false },
-      filterOrigins: new Map(),
-      appliedDvSheets: new Set(),
-      closure: { status: 'unavailable', pinned: new Map() },
-    } as unknown as LazyWorkbookState
-  }
-
-  function lazyContext(state: LazyWorkbookState): PlanContext {
-    const worksheets = new Map(
-      [
-        { id: 'd1', name: 'Data', rows: 20_000, columns: 6 },
-        { id: 'new1', name: 'ja', rows: 7000, columns: 6 },
-      ].map((sheet) => [
-        sheet.id,
-        {
-          getSheetId: () => sheet.id,
-          getSheetName: () => sheet.name,
-          getMaxRows: () => sheet.rows,
-          getMaxColumns: () => sheet.columns,
-          getRange: () => ({ getValue: () => null, getRawValue: () => null }),
-        },
-      ]),
-    )
-    const workbook = {
-      getActiveSheet: () => worksheets.get('d1'),
-      getSheetBySheetId: (id: string) => worksheets.get(id) ?? null,
-      getSheets: () => [...worksheets.values()],
-    }
-    return {
-      adapterRef: { current: { getSnapshot: () => ({ revision: 0, sheets: [] }) } },
-      univerRef: { current: { univerAPI: { getActiveWorkbook: () => workbook } } },
-      lazyWorkbookRef: { current: state },
-      lazyPreviewRef: { current: null },
-      setPreview: vi.fn(),
-      autoApplySafePlan: vi.fn().mockResolvedValue({ ok: true }),
-    } as unknown as PlanContext
-  }
-
-  function propose(operation: WorkbookOperation) {
-    return proposeOperations(lazyContext(streamedState()), [operation], 'test')
-  }
-
-  it('rejects set_formula whose refs exceed the pin budget', () => {
-    const outcome = propose({
-      op: 'set_formula',
-      sheetId: 'new1',
-      address: 'A2',
-      formula: '=FILTER(Data!A2:F20000,Data!D2:D20000="ja")',
-    })
-    expect(outcome.ok).toBe(false)
-    if (!outcome.ok) {
-      expect(outcome.error).toContain('session budget')
-      expect(outcome.error).toContain('aggregate_range')
-    }
-  })
-
-  it('rejects "="-strings smuggled in through set_range past the budget', () => {
-    const outcome = propose({
-      op: 'set_range',
-      sheetId: 'new1',
-      start: 'A2',
-      values: [['=SUM(Data!A1:F20000)']],
-    })
-    expect(outcome.ok).toBe(false)
-    if (!outcome.ok) expect(outcome.error).toContain('session budget')
   })
 })

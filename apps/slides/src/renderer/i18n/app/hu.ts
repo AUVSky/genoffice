@@ -1,15 +1,6 @@
 import type { zh } from './zh'
 
 export const hu = {
-  redactMenuLabel: 'Kijelölés elrejtése az AI elől',
-  redactDialogDesc:
-    'A kijelölés megmarad a dokumentumban és a fájlban; a modell helyette az alábbi helyőrzőt látja. Nevezd el úgy, hogy a modell tudja, mit jelent.',
-  redactDialogScope:
-    'Az elrejtés az alkalmazás AI-jára vonatkozik. A CLI, az MCP-eszközök és a felület nélküli exportálás közvetlenül olvassa a fájlt, így számukra ezek a szavak továbbra is láthatók.',
-  redactDialogPlaceholder: 'Helyőrző neve, pl. ügyfél telefonszáma',
-  redactCancel: 'Mégse',
-  redactInsert: 'Elrejtés',
-  redactEnable: 'Kattints jobb gombbal a kijelölésre, hogy elrejtsd a modell elől.',
   appPhPromptTitle: 'Kattints a cím hozzáadásához',
   appPhPromptSubtitle: 'Kattints az alcím hozzáadásához',
   appPhPromptBody: 'Kattints a szöveg hozzáadásához',
@@ -272,8 +263,6 @@ export const hu = {
   appNotesPlaceholder: 'Kattints az előadói jegyzetek hozzáadásához (a .pptx fájlba mentve)',
   appNotesShow: 'Jegyzetek megjelenítése',
   appNotesHide: 'Jegyzetek elrejtése',
-  appAiRailExpand: 'AI-asszisztens kibontása',
-  appAiRailText: 'AI',
   appStatusBarSlide: 'Dia: {current}/{total}',
   appStatusBarReady: 'Kész',
   appMediaCloseTitle: 'Bezárás (Esc)',
@@ -290,14 +279,7 @@ export const hu = {
   appStatusRecordSaved: 'A narráció elmentve {count} dián (a PowerPoint is lejátssza)',
   appStatusRecordFailed: 'A felvételt nem sikerült menteni',
   appStatusNarrationCleared: 'A narráció törölve',
-  appSettingsTitle: 'AI-beállítások',
-  appSettingsAccount: 'Genspark-fiók',
   appSettingsChecking: 'Ellenőrzés…',
-  appSettingsLoggedIn: 'Bejelentkezve',
-  appSettingsLoggedInEmail: 'Bejelentkezve: {email}',
-  appSettingsLoggedOut: 'Nem vagy bejelentkezve (az AI-funkciókhoz Genspark-fiók szükséges)',
-  appSettingsLoginPending: 'Várakozás a böngészős bejelentkezésre…',
-  appSettingsLogin: 'Bejelentkezés a Genspark-fiókba',
   appSettingsModel: 'Modell',
   appSettingsCancel: 'Mégse',
   appSettingsSave: 'Mentés',

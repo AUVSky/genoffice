@@ -1,20 +1,6 @@
 import type { zh } from './zh'
 
 export const en = {
-  // ── Withholding cells from the model ──
-  redactMenuLabel: 'Hide the selection from AI',
-  redactDialogDesc:
-    'The selection stays in the document and in the file; the model sees the placeholder below instead. Name it so the model knows what it stands for.',
-  redactDialogScope:
-    "Hiding covers this app's AI. The CLI, MCP tools and headless export read the file directly, and they still see these words.",
-  redactDialogPlaceholder: 'Placeholder name, e.g. client phone',
-  redactCancel: 'Cancel',
-  redactInsert: 'Hide',
-  redactEnable: 'Right-click a selection to hide it from the model.',
-  redactNeedsSavedRow: 'This row is not in the file yet. Save first, then hide a cell in it.',
-  redactRecoveredFromNames:
-    'Another app rewrote this file and dropped the record of what is hidden. The hidden cells were recovered from the names in the workbook; saving restores the full record.',
-
   appMergeWorkbooks: 'Merge Workbooks',
   appMergeWorkbooksTip: 'Append sheets from other Excel files into this workbook',
   appMergeWorkbooksPicking: 'Choose files to merge…',
@@ -156,14 +142,11 @@ export const en = {
   appRefresh: 'Refresh',
   appRefreshHintIn: 'Recalculate the current PivotTable',
   appRefreshHintOut: 'Select the PivotTable area first, then refresh',
-  appAttachmentReadFailed: '{name}: failed to read',
   appTooManyImages: 'At most {max} images per message; the extras were ignored',
-  appAppliedRevision: 'Applied (revision {revision}) — undo with ⌘Z, save to the file with ⌘S.',
   appCannotReadImage: 'Unable to read the image file.',
   appTableNotDeletable:
     'Table "{name}" does not exist or was not created this session — tables already in the file cannot be deleted yet.',
   appImageNotLoaded: 'The image failed to load: {path}',
-  appApplyFailed: '⚠️ Failed to apply: {reason}',
   appPivotChartNeedsFile: 'Open an XLSX file first — the PivotChart is written into the file.',
   appCursorNotInPivot:
     'The cursor is not inside a PivotTable — select a cell in the PivotTable output first.',
@@ -293,15 +276,7 @@ export const en = {
   appSavedTwoPhase: 'Saved.',
   appSaveSecondFailed:
     'The structure is saved, but the second phase (PivotTables/tables/defined names) failed: {reason}',
-  appReadyInitial: 'Ready for a local, deterministic AI command.',
-  appAiThinking: 'AI is thinking…',
-  appAiDone: 'AI finished',
-  appAiTurnLimit:
-    '(Reached the tool-call turn limit for this request; the answer above is based on what was read so far and may be incomplete.)',
-  appAiTruncatedNote: '(The reply was cut off by the length limit and may be incomplete.)',
-  appAiStopped: '(stopped)',
-  appAiNoSummary: 'AI finished with no summary.',
-  appAiNoAction: 'The AI made no changes and gave no reply. Try again or rephrase.',
+  appReadyInitial: 'Ready.',
   appNewConversation: 'New conversation started.',
   appPivotCellNoEdit: 'This cell is part of a PivotTable — editing it is not supported yet.',
   appAreaStreaming: 'That area is still streaming in — try editing it again in a moment.',
@@ -346,15 +321,8 @@ export const en = {
   appDvListOptions: 'List: {items}',
   appDvListFromRange: 'List (from range {range})',
   appRuleBrokenRef: 'Broken reference (#REF!) — this rule can never apply',
-  appCellStreaming: 'That cell is still streaming in — try again in a moment.',
-  appPreviewCreated: 'Preview created — nothing changes until you apply.',
-  appPreviewCreatedDemo: 'Preview created. No workbook state has changed.',
-  appPreviewFailed: 'Unable to create a preview.',
   appApplyTxFailed: 'Unable to apply the transaction.',
   appTxCommitted: 'Transaction committed at revision {revision}.',
-  appPreviewOtherWorkbook: 'The preview belonged to a different workbook — create a new one.',
-  appPreviewSheetGone: 'The previewed sheet no longer exists — create a new preview.',
-  appWorkbookChangedSincePreview: 'The workbook changed since the preview — create a new preview.',
   appAppliedJournaled: 'Applied — the changes are journaled; save with ⌘S.',
   appUndoCommitted: 'Undo committed as revision {revision}.',
   appUndoFailed: 'Unable to undo.',
@@ -603,8 +571,6 @@ export const en = {
   appShowCommentsTitle: "Pin/unpin the selected cell's comment bubble",
   appStructuralShiftBlocked:
     "A chart or table on this sheet is anchored to the affected rows/columns, so they can't shift; the structural change was not saved. Undo it (Cmd+Z) and save again.",
-  appAiChangesNotSaved:
-    'AI changes applied (not saved). Undo with Cmd+Z; save to the file with Cmd+S.',
   appChartUpdated: 'Chart updated.',
   appChartNotEditable: 'This chart is not editable.',
   appChartEditRecorded: 'Chart edit recorded — save with ⌘S.',
@@ -683,7 +649,6 @@ export const en = {
   appRibbonExpand: 'Expand the Ribbon',
   appRibbonCompact: 'Compact Ribbon (icons only)',
   appTabView: 'View',
-  appTabAi: 'AI',
   appTabChartDesign: 'Chart Design',
   appAutoSave: 'AutoSave',
   appAutoSaveTitle: 'AutoSave is available for cloud files only',
@@ -691,7 +656,6 @@ export const en = {
   appExportPdfTitle: 'Export as PDF',
   appSaveTitle: 'Save (⌘S)',
   appSaveAs: 'Save As',
-  aiNameFile: 'Name with AI…',
   appUndo: 'Undo',
   appRedo: 'Redo',
   appUnsavedEditOne: '● {count} unsaved edit',
@@ -701,8 +665,6 @@ export const en = {
   appRevisionChip: 'Revision {revision}',
   appOpenWorkbookTitle: 'Open Workbook (⌘O)',
   appOpenXlsx: 'Open XLSX',
-  appHideAi: 'Hide AI',
-  appShowAi: 'Show AI',
   appCategoryAxisTitle: 'Category Axis Title',
   appValueAxisTitle: 'Value Axis Title',
   appTitleText: 'Title text',
@@ -771,10 +733,6 @@ export const en = {
   appFormatPaneDetail: 'Axis, gap width, explosion',
   appGroupChartActions: 'Chart actions',
   appRemoveFromSheet: 'Remove from sheet',
-  appGroupAiAssistant: 'AI assistant',
-  appAiOpenPanelDetail: 'Chat sidebar',
-  appGroupAiStarters: 'Quick start',
-  appAiStarterDetail: 'Send to AI panel',
   appGroupTables: 'Tables',
   appFromSelection: 'From selection',
   appEditPivotTable: 'Edit PivotTable',
@@ -1276,11 +1234,7 @@ export const en = {
   appGroupProofing: 'Proofing',
   appWorkbookStatsLabel: 'Workbook Statistics',
   appSheetsCellsFormulas: 'Sheets, cells, formulas',
-  appTranslate: 'Translate',
   appGroupLanguage: 'Language',
-  appTranslateTitle: 'Translate the selection with AI',
-  appTranslatePrompt:
-    'Translate the text in the selected range into {language} and write the translations back to the same cells.',
   appNewCommentDetail: 'Add or edit',
   appDeleteLabel: 'Delete',
   appNoteAtSelection: 'Note at selection',

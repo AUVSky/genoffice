@@ -62,7 +62,7 @@ export function emuToLength(emu: number, unit: SizeUnit): string {
   return String(Number((emu / EMU_PER_UNIT[unit]).toFixed(digits)))
 }
 
-const DEFAULT_KEY = 'ai-slides-default-size'
+const DEFAULT_KEY = 'slides-default-size'
 
 const inLimits = (n: unknown): n is number =>
   typeof n === 'number' && Number.isInteger(n) && n >= MIN_SLIDE_EMU && n <= MAX_SLIDE_EMU

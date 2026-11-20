@@ -1,21 +1,6 @@
 import type { zh } from './zh'
 
 export const es = {
-  // ── Withholding cells from the model ──
-  redactMenuLabel: 'Ocultar la selección a la IA',
-  redactDialogDesc:
-    'Lo seleccionado sigue en el documento y en el archivo; el modelo solo ve el marcador. Ponle un nombre para que sepa qué representa.',
-  redactDialogScope:
-    'Ocultar solo se aplica a la IA de esta aplicación. La CLI, las herramientas MCP y la exportación headless leen el archivo directamente y siguen viendo estas palabras.',
-  redactDialogPlaceholder: 'Nombre del marcador, p. ej.: teléfono del cliente',
-  redactCancel: 'Cancelar',
-  redactInsert: 'Ocultar',
-  redactEnable: 'Clic derecho en una selección para ocultarla al modelo.',
-  redactNeedsSavedRow:
-    'Esta fila todavía no está en el archivo. Guarda primero y luego oculta la celda.',
-  redactRecoveredFromNames:
-    'Otra aplicación reescribió este archivo y descartó el registro de lo que está oculto. Las celdas ocultas se recuperaron de los nombres del libro; al guardar se restaura el registro completo.',
-
   appMergeWorkbooks: 'Combinar libros',
   appMergeWorkbooksTip: 'Añadir las hojas de otros archivos de Excel a este libro',
   appMergeWorkbooksPicking: 'Elige los archivos para combinar…',
@@ -164,15 +149,11 @@ export const es = {
   appRefresh: 'Actualizar',
   appRefreshHintIn: 'Recalcular la tabla dinámica actual',
   appRefreshHintOut: 'Seleccione primero el área de la tabla dinámica y luego actualice',
-  appAttachmentReadFailed: '{name}: error de lectura',
   appTooManyImages: 'Como máximo {max} imágenes por mensaje; las sobrantes se ignoraron',
-  appAppliedRevision:
-    'Aplicado (revisión {revision}) — deshaga con ⌘Z, guarde en el archivo con ⌘S.',
   appCannotReadImage: 'No se puede leer el archivo de imagen.',
   appTableNotDeletable:
     'La tabla "{name}" no existe o no se creó en esta sesión — las tablas ya presentes en el archivo aún no se pueden eliminar.',
   appImageNotLoaded: 'La imagen no se pudo cargar: {path}',
-  appApplyFailed: '⚠️ Error al aplicar: {reason}',
   appPivotChartNeedsFile:
     'Abra primero un archivo XLSX — el gráfico dinámico se escribe en el archivo.',
   appCursorNotInPivot:
@@ -321,17 +302,7 @@ export const es = {
   appSavedTwoPhase: 'Guardado.',
   appSaveSecondFailed:
     'La estructura está guardada, pero la segunda fase (tablas dinámicas/tablas/nombres definidos) falló: {reason}',
-  appReadyInitial: 'Listo para un comando de IA local y determinista.',
-  appAiThinking: 'La IA está pensando…',
-  appAiDone: 'La IA ha terminado',
-  appAiTurnLimit:
-    '(Se alcanzó el límite de rondas de llamadas a herramientas para esta solicitud; la respuesta anterior se basa en lo leído hasta ahora y puede estar incompleta.)',
-  appAiTruncatedNote:
-    '(La respuesta fue cortada por el límite de longitud y puede estar incompleta.)',
-  appAiStopped: '(detenido)',
-  appAiNoSummary: 'La IA terminó sin generar un resumen.',
-  appAiNoAction:
-    'La IA no realizó ninguna acción ni dio respuesta. Inténtalo de nuevo o reformula.',
+  appReadyInitial: 'Listo.',
   appNewConversation: 'Se inició una conversación nueva.',
   appPivotCellNoEdit: 'Esta celda forma parte de una tabla dinámica — su edición aún no se admite.',
   appAreaStreaming:
@@ -379,17 +350,8 @@ export const es = {
   appDvListOptions: 'Lista: {items}',
   appDvListFromRange: 'Lista (del rango {range})',
   appRuleBrokenRef: 'Referencia rota (#REF!): esta regla nunca se aplicará',
-  appCellStreaming:
-    'Esa celda todavía se está cargando por streaming — inténtelo de nuevo en un momento.',
-  appPreviewCreated: 'Vista previa creada — nada cambia hasta que la aplique.',
-  appPreviewCreatedDemo: 'Vista previa creada. El estado del libro no ha cambiado.',
-  appPreviewFailed: 'No se puede crear una vista previa.',
   appApplyTxFailed: 'No se puede aplicar la transacción.',
   appTxCommitted: 'Transacción confirmada (revisión {revision}).',
-  appPreviewOtherWorkbook: 'La vista previa pertenecía a otro libro — cree una nueva.',
-  appPreviewSheetGone: 'La hoja de la vista previa ya no existe — cree una vista previa nueva.',
-  appWorkbookChangedSincePreview:
-    'El libro cambió desde la vista previa — cree una vista previa nueva.',
   appAppliedJournaled: 'Aplicado — los cambios quedaron registrados; guarde con ⌘S.',
   appUndoCommitted: 'Deshacer confirmado (revisión {revision}).',
   appUndoFailed: 'No se puede deshacer.',
@@ -664,7 +626,6 @@ export const es = {
   appShowCommentsTitle: 'Fijar o soltar el globo de comentario de la celda seleccionada',
   appStructuralShiftBlocked:
     'Un gráfico o tabla de esta hoja está anclado a las filas/columnas afectadas; no se pueden desplazar y el cambio estructural no se guardó. Deshágalo (⌘Z) y vuelva a guardar.',
-  appAiChangesNotSaved: 'Cambios de IA aplicados (sin guardar). Deshaga con ⌘Z; guarde con ⌘S.',
   appChartUpdated: 'Gráfico actualizado.',
   appChartNotEditable: 'Este gráfico no es editable.',
   appChartEditRecorded: 'Edición del gráfico registrada — guarde con ⌘S.',
@@ -748,7 +709,6 @@ export const es = {
   appRibbonExpand: 'Expandir la cinta de opciones',
   appRibbonCompact: 'Cinta compacta (solo iconos)',
   appTabView: 'Vista',
-  appTabAi: 'IA',
   appTabChartDesign: 'Diseño de gráfico',
   appAutoSave: 'Autoguardado',
   appAutoSaveTitle: 'El autoguardado solo está disponible para archivos en la nube',
@@ -756,7 +716,6 @@ export const es = {
   appExportPdfTitle: 'Exportar como PDF',
   appSaveTitle: 'Guardar (⌘S)',
   appSaveAs: 'Guardar como',
-  aiNameFile: 'Nombrar con IA…',
   appUndo: 'Deshacer',
   appRedo: 'Rehacer',
   appUnsavedEditOne: '● {count} edición sin guardar',
@@ -766,8 +725,6 @@ export const es = {
   appRevisionChip: 'Revisión {revision}',
   appOpenWorkbookTitle: 'Abrir libro (⌘O)',
   appOpenXlsx: 'Abrir XLSX',
-  appHideAi: 'Ocultar IA',
-  appShowAi: 'Mostrar IA',
   appCategoryAxisTitle: 'Título del eje de categorías',
   appValueAxisTitle: 'Título del eje de valores',
   appTitleText: 'Texto del título',
@@ -837,10 +794,6 @@ export const es = {
   appFormatPaneDetail: 'Ejes, ancho del intervalo, separación',
   appGroupChartActions: 'Acciones del gráfico',
   appRemoveFromSheet: 'Quitar de la hoja',
-  appGroupAiAssistant: 'Asistente de IA',
-  appAiOpenPanelDetail: 'Barra lateral de chat',
-  appGroupAiStarters: 'Inicio rápido',
-  appAiStarterDetail: 'Enviar al panel de IA',
   appGroupTables: 'Tablas',
   appFromSelection: 'Desde la selección',
   appEditPivotTable: 'Editar tabla dinámica',
@@ -1343,11 +1296,7 @@ export const es = {
   appGroupProofing: 'Revisión',
   appWorkbookStatsLabel: 'Estadísticas del libro',
   appSheetsCellsFormulas: 'Hojas, celdas, fórmulas',
-  appTranslate: 'Traducir',
   appGroupLanguage: 'Idioma',
-  appTranslateTitle: 'Traducir la selección con IA',
-  appTranslatePrompt:
-    'Traduce el texto del rango seleccionado a {language} y escribe las traducciones en las mismas celdas.',
   appNewCommentDetail: 'Agregar o editar',
   appDeleteLabel: 'Eliminar',
   appNoteAtSelection: 'Nota en la selección',

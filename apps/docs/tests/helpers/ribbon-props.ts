@@ -31,7 +31,6 @@ export function ribbonProps(editor: Editor, formatState: RibbonFormatState) {
     onSave: noop,
     onSaveAs: noop,
     onNameWithAi: noop,
-    showAi: false,
     onCommand: commandRunner(editor),
     editTarget: {
       hasSelection: !editor.state.selection.empty,
@@ -101,8 +100,6 @@ export function ribbonProps(editor: Editor, formatState: RibbonFormatState) {
     onGotoComment: noop,
     trackChanges: false,
     onTrackChanges: noop,
-    spellcheck: true,
-    onSpellcheck: noop,
     revisionDisplay: 'all' as const,
     onRevisionDisplay: noop,
     balloonMode: 'comments' as const,

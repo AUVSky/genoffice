@@ -5,7 +5,7 @@ import { parseDocx, saveDocx } from '@genoffice/docx-engine'
 import { buildDocx } from '../../../packages/docx-engine/tests/helpers/build-docx'
 import { blocksToPmDoc, pmDocToSavePlan, type PmNode } from '../src/renderer/editor/convert'
 import { editorExtensions } from '../src/renderer/editor/extensions'
-import { executeOps } from '../src/renderer/ai/ops'
+import { executeOps } from '../src/renderer/doc-core/ops'
 import { setModuleLang } from '../src/renderer/i18n/locale'
 
 setModuleLang('en')

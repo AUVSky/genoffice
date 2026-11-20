@@ -1,20 +1,6 @@
 import type { zh } from './zh'
 
 export const cs = {
-  // ── Withholding cells from the model ──
-  redactMenuLabel: 'Skrýt výběr před AI',
-  redactDialogDesc:
-    'Vybraný obsah zůstane v dokumentu i v souboru; model uvidí jen zástupný symbol. Pojmenujte ho, aby věděl, co zastupuje.',
-  redactDialogScope:
-    'Skrýtí se týká jen AI v této aplikaci. CLI, nástroje MCP a headless export čtou soubor přímo a tato slova stále vidí.',
-  redactDialogPlaceholder: 'Název zástupného symbolu, např. telefon zákazníka',
-  redactCancel: 'Zrušit',
-  redactInsert: 'Skrýt',
-  redactEnable: 'Pravým klikem na výběr jej skryjete před modelem.',
-  redactNeedsSavedRow: 'Tento řádek zatím není v souboru. Nejprve uložte, pak buňku skryjte.',
-  redactRecoveredFromNames:
-    'Jiná aplikace tento soubor přepsala a zahodila záznam o tom, co je skrytoé. Skryté buňky byly obnoveny z názvů v sešitě; uložením se obnoví celý záznam.',
-
   appMergeWorkbooks: 'Sloučit sešity',
   appMergeWorkbooksTip: 'Připojit listy z jiných souborů Excelu do tohoto sešitu',
   appMergeWorkbooksPicking: 'Vyberte soubory ke sloučení…',
@@ -156,14 +142,11 @@ export const cs = {
   appRefresh: 'Aktualizovat',
   appRefreshHintIn: 'Přepočítat aktuální kontingenční tabulku',
   appRefreshHintOut: 'Nejprve vyberte oblast kontingenční tabulky a pak aktualizujte',
-  appAttachmentReadFailed: '{name}: nepodařilo se načíst',
   appTooManyImages: 'Nejvýše {max} obrázků na zprávu; přebývající byly ignorovány',
-  appAppliedRevision: 'Použito (revize {revision}) — zpět pomocí ⌘Z, uložit do souboru pomocí ⌘S.',
   appCannotReadImage: 'Nelze načíst soubor obrázku.',
   appTableNotDeletable:
     'Tabulka „{name}“ neexistuje nebo nebyla vytvořena v této relaci — tabulky již obsažené v souboru zatím nelze odstranit.',
   appImageNotLoaded: 'Obrázek se nepodařilo načíst: {path}',
-  appApplyFailed: '⚠️ Použití se nezdařilo: {reason}',
   appPivotChartNeedsFile:
     'Nejprve otevřete soubor XLSX — kontingenční graf se zapisuje do souboru.',
   appCursorNotInPivot:
@@ -303,15 +286,7 @@ export const cs = {
   appSavedTwoPhase: 'Uloženo.',
   appSaveSecondFailed:
     'Struktura je uložena, ale druhá fáze (kontingenční tabulky/tabulky/definované názvy) selhala: {reason}',
-  appReadyInitial: 'Připraveno na místní deterministický příkaz AI.',
-  appAiThinking: 'AI přemýšlí…',
-  appAiDone: 'AI dokončila',
-  appAiTurnLimit:
-    '(Dosažen limit počtu volání nástrojů pro tento požadavek; odpověď výše vychází z dosud přečtených dat a může být neúplná.)',
-  appAiTruncatedNote: '(Odpověď byla zkrácena limitem délky a může být neúplná.)',
-  appAiStopped: '(zastaveno)',
-  appAiNoSummary: 'AI skončila bez shrnutí.',
-  appAiNoAction: 'AI neprovedla žádné změny a neodpověděla. Zkuste to znovu nebo přeformulujte.',
+  appReadyInitial: 'Připraveno.',
   appNewConversation: 'Zahájena nová konverzace.',
   appPivotCellNoEdit:
     'Tato buňka je součástí kontingenční tabulky — její úprava zatím není podporována.',
@@ -359,15 +334,8 @@ export const cs = {
   appDvListOptions: 'Seznam: {items}',
   appDvListFromRange: 'Seznam (z oblasti {range})',
   appRuleBrokenRef: 'Neplatný odkaz (#REF!) — toto pravidlo se nikdy nemůže uplatnit',
-  appCellStreaming: 'Tato buňka se stále načítá — zkuste to za chvíli znovu.',
-  appPreviewCreated: 'Náhled vytvořen — dokud ho nepoužijete, nic se nezmění.',
-  appPreviewCreatedDemo: 'Náhled vytvořen. Stav sešitu se nezměnil.',
-  appPreviewFailed: 'Náhled nelze vytvořit.',
   appApplyTxFailed: 'Transakci nelze použít.',
   appTxCommitted: 'Transakce potvrzena v revizi {revision}.',
-  appPreviewOtherWorkbook: 'Náhled patřil jinému sešitu — vytvořte nový.',
-  appPreviewSheetGone: 'List z náhledu již neexistuje — vytvořte nový náhled.',
-  appWorkbookChangedSincePreview: 'Sešit se od vytvoření náhledu změnil — vytvořte nový náhled.',
   appAppliedJournaled: 'Použito — změny jsou zaznamenány v žurnálu; uložte pomocí ⌘S.',
   appUndoCommitted: 'Krok zpět potvrzen jako revize {revision}.',
   appUndoFailed: 'Nelze vzít zpět.',
@@ -624,8 +592,6 @@ export const cs = {
   appShowCommentsTitle: 'Připnout/odepnout bublinu komentáře vybrané buňky',
   appStructuralShiftBlocked:
     'Graf nebo tabulka na tomto listu je ukotvena k dotčeným řádkům/sloupcům, takže je nelze posunout; strukturální změna nebyla uložena. Vraťte ji zpět (Cmd+Z) a uložte znovu.',
-  appAiChangesNotSaved:
-    'Změny AI použity (neuloženo). Zpět pomocí Cmd+Z; uložit do souboru pomocí Cmd+S.',
   appChartUpdated: 'Graf aktualizován.',
   appChartNotEditable: 'Tento graf nelze upravovat.',
   appChartEditRecorded: 'Úprava grafu zaznamenána — uložte pomocí ⌘S.',
@@ -706,7 +672,6 @@ export const cs = {
   appRibbonExpand: 'Rozbalit pás karet',
   appRibbonCompact: 'Kompaktní pás karet (pouze ikony)',
   appTabView: 'Zobrazení',
-  appTabAi: 'AI',
   appTabChartDesign: 'Návrh grafu',
   appAutoSave: 'Automatické ukládání',
   appAutoSaveTitle: 'Automatické ukládání je k dispozici pouze pro cloudové soubory',
@@ -714,7 +679,6 @@ export const cs = {
   appExportPdfTitle: 'Exportovat do PDF',
   appSaveTitle: 'Uložit (⌘S)',
   appSaveAs: 'Uložit jako',
-  aiNameFile: 'Pojmenovat pomocí AI…',
   appUndo: 'Zpět',
   appRedo: 'Znovu',
   appUnsavedEditOne: '● {count} neuložená úprava',
@@ -724,8 +688,6 @@ export const cs = {
   appRevisionChip: 'Revize {revision}',
   appOpenWorkbookTitle: 'Otevřít sešit (⌘O)',
   appOpenXlsx: 'Otevřít XLSX',
-  appHideAi: 'Skrýt AI',
-  appShowAi: 'Zobrazit AI',
   appCategoryAxisTitle: 'Název osy kategorií',
   appValueAxisTitle: 'Název osy hodnot',
   appTitleText: 'Text názvu',
@@ -794,10 +756,6 @@ export const cs = {
   appFormatPaneDetail: 'Osa, šířka mezery, odsazení',
   appGroupChartActions: 'Akce grafu',
   appRemoveFromSheet: 'Odebrat z listu',
-  appGroupAiAssistant: 'Asistent AI',
-  appAiOpenPanelDetail: 'Postranní panel chatu',
-  appGroupAiStarters: 'Rychlý start',
-  appAiStarterDetail: 'Odeslat do panelu AI',
   appGroupTables: 'Tabulky',
   appFromSelection: 'Z výběru',
   appEditPivotTable: 'Upravit kontingenční tabulku',
@@ -1300,11 +1258,7 @@ export const cs = {
   appGroupProofing: 'Kontrola pravopisu',
   appWorkbookStatsLabel: 'Statistika sešitu',
   appSheetsCellsFormulas: 'Listy, buňky, vzorce',
-  appTranslate: 'Přeložit',
   appGroupLanguage: 'Jazyk',
-  appTranslateTitle: 'Přeložit výběr pomocí AI',
-  appTranslatePrompt:
-    'Přelož text ve vybrané oblasti do jazyka {language} a zapiš překlady zpět do stejných buněk.',
   appNewCommentDetail: 'Přidat nebo upravit',
   appDeleteLabel: 'Odstranit',
   appNoteAtSelection: 'Poznámka u výběru',

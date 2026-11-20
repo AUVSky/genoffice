@@ -9,7 +9,6 @@ import { COMMANDS, type CommandDef } from '../src/shared/commands'
 import { EMPTY_FORMAT_STATE } from '../src/renderer/components/ribbon-format-state'
 
 const VIEW = {
-  showAi: false,
   showMarks: false,
   showStylesPane: false,
   readOnlyRecommended: false,
@@ -45,15 +44,8 @@ describe('ribbon command state', () => {
     const readOnly = { ...open, editable: false }
     for (const id of ['bold', 'strikethrough', 'superscript', 'indent-increase'] as const)
       expect(offByDocument(id, readOnly), id).toBe(true)
-    for (const id of ['find', 'replace', 'show-marks', 'styles-pane', 'toggle-ai'] as const)
+    for (const id of ['find', 'replace', 'show-marks', 'styles-pane'] as const)
       expect(offByDocument(id, readOnly), id).toBe(false)
-  })
-
-  it('with no document only the AI entry stays on', () => {
-    const none = { ...open, hasDoc: false, editable: false }
-    expect(offByDocument('toggle-ai', none)).toBe(false)
-    for (const id of ['find', 'show-marks', 'styles-pane', 'bold'] as const)
-      expect(offByDocument(id, none), id).toBe(true)
   })
 
   it('paragraph direction is off inside a text box', () => {
@@ -74,7 +66,6 @@ describe('ribbon command state', () => {
     const cells = { ...open, inTable: true, hasSelection: true, cellsSelected: true }
     for (const id of [
       'insert-date-time',
-      'tools-thesaurus',
       'format-phonetic-guide',
       'format-enclose-characters',
     ] as const) {
@@ -180,8 +171,7 @@ describe('ribbon command state', () => {
   })
 
   it('pressed follows the panes the app shows', () => {
-    const view = { ...VIEW, showAi: true, showMarks: true }
-    expect(ribbonCommandPressed('toggle-ai', EMPTY_FORMAT_STATE, view)).toBe(true)
+    const view = { ...VIEW, showMarks: true }
     expect(ribbonCommandPressed('show-marks', EMPTY_FORMAT_STATE, view)).toBe(true)
     expect(ribbonCommandPressed('styles-pane', EMPTY_FORMAT_STATE, view)).toBe(false)
   })

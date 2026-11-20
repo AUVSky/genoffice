@@ -1,5 +1,5 @@
 /**
- * Chart/shape/image insertion (ribbon and AI ops). Extracted from App.tsx;
+ * Chart/shape/image insertion (ribbon and batch ops). Extracted from App.tsx;
  * the App component passes a VisualActionContext built fresh per call so
  * refs and state never go stale.
  */
@@ -19,7 +19,6 @@ import type {
   EditChartOperation,
   EditShapeOperation,
 } from '@genoffice/xlsx-gateway/domain/workbook-dsl'
-import type { ChangePlan } from '@genoffice/xlsx-gateway/domain/workbook.types'
 import { IRenderManagerService, Vector2 } from '@univerjs/engine-render'
 import { SheetSkeletonManagerService } from '@univerjs/preset-sheets-core'
 import type { WorkbookVisualObject } from '../shared/desktop-api'
@@ -68,7 +67,6 @@ export interface VisualActionContext {
   shapeEditRef: { current: (visualId: string, changes: ShapeEditChanges) => void }
   setMessage: (message: string) => void
   setRevision: (revision: number) => void
-  setPreview: (plan: ChangePlan | null) => void
   setPendingEdits: (count: number) => void
   pivotContext: () => PivotActionContext
   queueDemoVisualInstall: (runtime: UniverRuntime) => void
@@ -108,7 +106,7 @@ function pushVisualAddUndo(
 }
 
 /// Ribbon Insert Chart in demo mode: routes the selection through the same
-/// adapter add_chart op as the AI path, so the chart lives in the snapshot
+/// adapter add_chart op as the batch path, so the chart lives in the snapshot
 /// (undo/rebuild replay it). Values come from the snapshot — formula cells
 /// carry no cached value there and read as empty.
 function insertDemoChartFromSelection(
@@ -159,7 +157,6 @@ function insertDemoChartFromSelection(
     })
     const receipt = ctx.adapterRef.current.apply(plan)
     ctx.setRevision(receipt.revision)
-    ctx.setPreview(null)
     ctx.queueDemoVisualInstall(runtime)
     ctx.setMessage(t('appChartInsertedDemo'))
   } catch (error: unknown) {
@@ -472,7 +469,7 @@ export function handleInsertShape(
   ctx.setMessage(isTextBox ? t('appTextBoxInserted') : t('appShapeInserted'))
 }
 
-/// AI edit_chart → renderer edit data. Series ranges are read from the
+/// edit_chart → renderer edit data. Series ranges are read from the
 /// sheet here so the file cache and the on-screen render update together.
 export async function buildAiChartEdit(
   ctx: VisualActionContext,
@@ -529,7 +526,7 @@ export async function buildAiChartEdit(
   return { ...edit, series }
 }
 
-/// AI add_image: same visual pipeline as the picker-based insert, sized
+/// add_image: same visual pipeline as the picker-based insert, sized
 /// from the measured natural dimensions.
 export function insertAiImageVisual(
   ctx: VisualActionContext,
@@ -568,7 +565,7 @@ export function insertAiImageVisual(
   queueCtxVisualInstall(ctx, runtime)
 }
 
-/// AI edit_shape: in-place journal update of a session-added shape,
+/// edit_shape: in-place journal update of a session-added shape,
 /// preserving the frame size on a move.
 export function applyAiShapeEdit(
   ctx: VisualActionContext,
@@ -599,7 +596,7 @@ export function applyAiShapeEdit(
   queueCtxVisualInstall(ctx, runtime)
 }
 
-/// AI add_chart: same visual-add pipeline as the ribbon's Insert Chart,
+/// add_chart: same visual-add pipeline as the ribbon's Insert Chart,
 /// fed an explicit data range instead of the selection. Values come from
 /// the sidecar-mapped read, so ranges outside the streamed viewport work.
 export async function insertAiChartVisual(

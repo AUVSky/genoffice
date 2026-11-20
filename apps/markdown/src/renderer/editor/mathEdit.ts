@@ -129,8 +129,8 @@ export function openMathEditor(editor: Editor, options: OpenMathOptions): void {
   }
   document.addEventListener('pointerdown', onPointerDown, true)
 
-  // any document change (typing in the editor, an AI edit, …) invalidates
-  // `pos` — close instead of ever applying against a stale position
+  // any document change (typing in the editor, a programmatic edit, …)
+  // invalidates `pos` — close instead of ever applying against a stale position
   const onTransaction = ({ transaction }: { transaction: { docChanged: boolean } }): void => {
     if (transaction.docChanged) close()
   }

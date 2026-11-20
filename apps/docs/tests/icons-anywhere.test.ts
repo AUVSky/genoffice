@@ -122,7 +122,6 @@ describe('an icon put into a header', () => {
       value: { text: '' },
       pageNo: '1',
       pageTotal: '1',
-      spellcheck: false,
       onCommit: (next) => (committed = next),
       onExit: () => host.remove(),
     })

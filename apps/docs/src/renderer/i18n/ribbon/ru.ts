@@ -26,9 +26,6 @@ export const ru = {
   ribbonLangVietnamese: 'вьетнамский',
   ribbonLangTurkish: 'турецкий',
   ribbonLangHungarian: 'венгерский',
-  ribbonAiCreditNote: 'Использует ИИ и расходует кредиты',
-  ribbonAiRewriteConfirm:
-    'Это действие вызывает ИИ: расходуются кредиты, и всё содержимое может быть переписано. Продолжить? (Вопрос больше не появится.)',
   ribbonTabHome: 'Главная',
   ribbonTabDraw: 'Рисование',
   ribbonTabLayout: 'Макет',
@@ -85,7 +82,6 @@ export const ru = {
   ribbonOpen: 'Открыть…',
   ribbonSave: 'Сохранить',
   ribbonSaveAs: 'Сохранить как…',
-  ribbonNameWithAi: 'Назвать с помощью ИИ…',
   ribbonConvert: 'Преобразовать',
   ribbonConvertTip: 'Преобразовать в PDF, HTML, Markdown или изображения',
   ribbonConvertPdf: 'Преобразовать в PDF…',
@@ -160,7 +156,6 @@ export const ru = {
   ribbonIcons: 'Значки',
   ribbonDateTime: 'Дата и время',
   ribbonNumber: 'Номер',
-  ribbonThesaurus: 'Тезаурус',
   ribbonWordCount: 'Статистика',
   ribbonProofingLanguage: 'Язык',
   ribbonProofingNoCheck: 'Не проверять правописание',
@@ -305,7 +300,6 @@ export const ru = {
   ribbonReplaceTip: 'Найти и заменить текст',
   ribbonSelectAll: 'Выделить все',
   ribbonSelectAllTip: 'Выделить весь документ',
-  ribbonAiAssistantTip: 'Открыть помощника ИИ',
   ribbonRemoveTableStyleTip: 'Удалить стиль таблицы',
   ribbonNoStyle: 'Без стиля',
   ribbonApplyTableStyleTip: 'Применить стиль таблицы {name}',
@@ -838,23 +832,10 @@ export const ru = {
   ribbonSourceJournalName: 'Название журнала',
   ribbonSourceSiteName: 'Название сайта',
   ribbonSourcePublisher: 'Издательство',
-  ribbonEditorBtn: 'Корректор',
-  ribbonEditorTip: 'ИИ проверит орфографию, грамматику и пунктуацию',
-  ribbonEditorPrompt:
-    'Вычитайте весь документ: исправьте опечатки, пунктуацию и грамматические ошибки, сохранив исходный смысл и структуру абзацев.',
   ribbonGroupProofing: 'Правописание',
   ribbonSpellcheckBtn: 'Правописание',
   ribbonSpellcheckTip:
     'Проверять орфографию при вводе — подчёркивает красным слова с возможными ошибками',
-  ribbonTranslate: 'Перевод',
-  ribbonTranslateTip: 'ИИ переведёт документ',
-  ribbonTranslatePrompt:
-    'Переведите весь документ на {lang}, сохранив структуру абзацев и уровни заголовков.',
-  ribbonTranslateSelectionPrompt:
-    'Переведите выделенный текст на {lang}, сохранив структуру абзацев.',
-  ribbonEditorSelectionPrompt:
-    'Вычитайте выделенный текст: исправьте опечатки, пунктуацию и грамматические ошибки, сохранив исходный смысл и структуру абзацев.',
-  ribbonTranslateTo: 'Перевести на {lang}',
   ribbonGroupLanguage: 'Язык',
   ribbonNewComment: 'Создать примечание',
   ribbonNewCommentTip: 'Добавить примечание к выделенному фрагменту',
@@ -871,16 +852,6 @@ export const ru = {
   ribbonPrevCommentTip: 'Перейти к предыдущему примечанию',
   ribbonNextComment: 'Далее',
   ribbonNextCommentTip: 'Перейти к следующему примечанию',
-  ribbonAiComments: 'ИИ: примечания',
-  ribbonAiRevisions: 'ИИ: сводка исправлений',
-  ribbonAiRevisionsTip:
-    'ИИ читает нерассмотренные исправления ({count}), резюмирует их по разделам и отмечает риски',
-  ribbonAiRevisionsPrompt:
-    'Составьте сводку всех нерассмотренных исправлений в документе: сначала общая статистика (число вставок/удалений, авторы, диапазон дат), затем изменения по разделам (с указанием индексов блоков), в конце — список рисков (удалённые обязательства или оговорки, изменённые числа/даты/суммы). Только сводка — не изменяйте документ и не принимайте/отклоняйте исправления.',
-  ribbonAiCommentsTip:
-    'ИИ обрабатывает нерешённые примечания ({count}): правка, ответ, отметка «решено»',
-  ribbonAiCommentsPrompt:
-    'Обработайте все нерешённые примечания в документе: для каждого внесите запрошенную правку, ответьте с описанием изменения и отметьте его решённым; если примечание — вопрос или неоднозначно, только ответьте, не меняя документ.',
   ribbonShowCommentsTip: 'Показать примечания ({count})',
   ribbonShowCommentsContextual: 'Контекстно',
   ribbonShowCommentsList: 'Список',
@@ -1266,8 +1237,6 @@ export const ru = {
   ribbonColWidthSpacing: 'Ширина и промежуток',
   ribbonColNo: 'Номер колонки',
   ribbonColStartNew: 'Начать новую колонку',
-  ribbonTranslationLanguageTitle: 'Задать язык перевода документа',
-  ribbonTranslationLanguageLabel: 'Перевести на',
   ribbonAddTextNone: 'Не показывать в оглавлении',
   ribbonLnRestartPage: 'На каждой странице',
   ribbonLnRestartSection: 'В каждом разделе',

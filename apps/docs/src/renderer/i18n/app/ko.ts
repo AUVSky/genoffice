@@ -51,8 +51,6 @@ export const ko = {
   appScShrinkFont1: '글꼴 크기 1pt 작게',
   appScListDemote: '목록 수준 내리기',
   appScListPromote: '목록 수준 올리기',
-  appScProofread: '교정',
-  // Common
   appClose: '닫기',
   appCancel: '취소',
   appOk: '확인',
@@ -301,9 +299,6 @@ export const ko = {
   appSplitPaneLabel: '분할 창(읽기 전용 미리 보기, 독립 스크롤 가능)',
   appRemoveSplit: '분할 제거',
   appExitReadMode: '읽기 모드 끝내기 (Esc)',
-  appExpandAiPanel: 'AI 편집 패널 펼치기',
-  appAiRail: 'AI',
-  // Status bar / word count
   appPageOf: '{current}/{total} 페이지',
   appWordCountTitle: '단어 개수',
   appWordCountN: '단어 {n}개',
@@ -432,14 +427,10 @@ export const ko = {
   appTabBar: '세로 막대',
   appTabClear: '지우기',
   // AI settings
-  appAiSettings: 'AI 설정',
-  appGensparkAccount: 'Genspark 계정',
   appChecking: '확인 중…',
   appLoggedIn: '로그인됨',
   appLoggedInEmail: '로그인됨: {email}',
-  appNotLoggedIn: '로그인되지 않음(AI 기능을 사용하려면 Genspark 계정 로그인이 필요합니다)',
   appWaitingBrowserLogin: '브라우저 로그인 대기 중…',
-  appLoginGenspark: 'Genspark 로그인',
   appModel: '모델',
   // Context menu
   appCut: '잘라내기',
@@ -484,25 +475,6 @@ export const ko = {
   appSpellingChangeAll: '모두 변경',
   appSpellingComplete: '맞춤법 검사가 완료되었습니다.',
   appSpellLanguage: '언어',
-  appSynonyms: '동의어',
-  appSynonymsPrompt:
-    '"{text}"의 더 나은 동의어나 유사 표현을 3-5개 나열하고 차이를 간단히 설명해 주세요. 문서는 수정하지 마세요.',
-  appTranslateSelectionPrompt:
-    '현재 선택된 텍스트를 {lang}(으)로 번역하여 원문을 번역문으로 바꿔 주세요. 서식은 유지해 주세요: "{text}"',
-  appAiBadgeTip: 'AI를 사용합니다',
-  appTranslate: '번역',
-  appTranslateTo: '{lang}(으)로 번역',
-  appThesaurusSelect: '먼저 단어나 짧은 구를 선택하세요',
-  appTranslateSelect: '먼저 번역할 텍스트를 선택하세요',
-  redactMenuLabel: '선택한 부분을 AI에서 숨기기',
-  redactDialogDesc:
-    '문서는 그대로 두고 AI에게는 아래 자리표시자만 보냅니다. 이름을 붙이면 AI가 무엇을 뜻하는지 알 수 있습니다.',
-  redactDialogScope:
-    '이 앱의 AI에만 적용됩니다. CLI, MCP 도구, 창 없는 내보내기는 파일을 직접 읽으므로 이 단어들은 여전히 보입니다.',
-  redactDialogPlaceholder: '자리표시자 이름, 예: 고객 전화',
-  redactCancel: '취소',
-  redactInsert: '숨기기',
-  redactShowLabel: '선택 영역을 AI에 다시 표시',
   appLangEnglish: '영어',
   appLangSimplifiedChinese: '중국어 간체',
   appLangJapanese: '일본어',

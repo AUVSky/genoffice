@@ -20,7 +20,7 @@ import {
 } from '../../../packages/docx-engine/tests/helpers/build-docx'
 
 import { deleteTableColumn, insertRowsOrColumns } from '../src/renderer/editor/table-ops'
-import { replaceInlineRange } from '../src/renderer/ai/protocol'
+import { replaceInlineRange } from '../src/renderer/doc-core/protocol'
 import { setAuthorName } from '../src/renderer/author-name'
 import {
   acceptAllRevisions,

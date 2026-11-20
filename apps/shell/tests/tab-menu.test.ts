@@ -233,14 +233,6 @@ describe('the tab context menu', () => {
     expect(enabled(stuck.get('Open in New Window'))).toBe(false)
   })
 
-  it('disables document commands for the chrome-free Present tab', () => {
-    const preview = tab('preview', { kind: 'html', filePath: '/tmp/x/page.html' })
-    const { items } = menu(preview, [home, preview], { canDetach: false })
-    for (const label of ['Save', 'Save As…', 'Print…'])
-      expect(enabled(items.get(label))).toBe(false)
-    expect(enabled(items.get('Close'))).toBe(true)
-  })
-
   it('reopens a closed tab only when there is one', () => {
     expect(enabled(menu(a, all, { canReopen: false }).items.get('Reopen closed tab'))).toBe(false)
     const { items, actions: given } = menu(a, all)

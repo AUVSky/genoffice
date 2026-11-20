@@ -1,16 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { Editor } from '@tiptap/core'
-import { TextSelection } from '@tiptap/pm/state'
 import { parseDocx } from '@genoffice/docx-engine'
 import { buildDocx } from '../../../packages/docx-engine/tests/helpers/build-docx'
 import { blocksToPmDoc } from '../src/renderer/editor/convert'
 import { editorExtensions } from '../src/renderer/editor/extensions'
-import { DocRedaction } from '../src/renderer/editor/redaction'
 import {
   dialogNameFor,
   noteDocumentSwapped,
   save,
-  suggestedSaveAsName,
   type FileActionContext,
 } from '../src/renderer/file-actions'
 import { t } from '../src/renderer/i18n/locale'
@@ -37,12 +34,10 @@ import { t } from '../src/renderer/i18n/locale'
 // jsdom has no CSS.escape, and the document's stylesheet builder needs it
 ;(globalThis as { CSS?: unknown }).CSS ??= { escape: (s: string) => s }
 
-const LABEL = '\u5ba2\u6237\u7535\u8bdd'
-const SECRET = '13800138000'
 const FILE_NAME = '\u73b0\u6709\u6587\u6863.docx'
 const ANSWER = '\u5b63\u5ea6\u8425\u6536\u603b\u7ed3'
 const SAVED_PATH = '/tmp/\u5b63\u5ea6\u8425\u6536\u603b\u7ed3.docx'
-const extensions = [...editorExtensions, DocRedaction]
+const extensions = editorExtensions
 const editors = new Set<Editor>()
 afterEach(() => {
   for (const e of editors) e.destroy()
@@ -51,24 +46,10 @@ afterEach(() => {
 
 /** The text each naming call handed over. */
 let sent: Array<{ content: string }> = []
-/** What the model answers with; '' is a model that returned nothing usable. */
-let answer = ANSWER
-/** What the model was configured with: a provider, or none at all. */
-let providerConfigured = true
 /** The names the save path handed to the main process. */
 let saved: Array<{ kind: string; name: string }> = []
 /** What the save path told the reader; a failure lands here. */
 let statuses: string[] = []
-
-function installBridge(): void {
-  ;(window as unknown as { aiNamingApi: unknown }).aiNamingApi = {
-    suggestFileName: async (input: { content: string }) => {
-      sent.push({ content: input.content })
-      if (!providerConfigured) return { ok: false, reason: 'skip-no-provider' }
-      return answer ? { ok: true, name: answer } : { ok: false, reason: 'empty-name' }
-    },
-  }
-}
 
 function installDesktop(): void {
   const record = (kind: string) => async (name: string) => {
@@ -102,29 +83,6 @@ async function open(text: string): Promise<Opened> {
   return { editor, parsed }
 }
 
-function selectText(editor: Editor, needle: string): void {
-  let start = -1
-  editor.state.doc.descendants((node, pos) => {
-    if (start >= 0) return
-    const at = node.textContent.indexOf(needle)
-    if (at >= 0) start = pos + 1 + at
-  })
-  expect(start).toBeGreaterThan(0)
-  editor.view.dispatch(
-    editor.state.tr.setSelection(
-      TextSelection.create(editor.state.doc, start, start + needle.length),
-    ),
-  )
-}
-
-/** a document that already has a name, holding one withheld span */
-async function namedWithSecret(): Promise<Opened> {
-  const opened = await open(`\u8054\u7cfb ${SECRET} \u786e\u8ba4\u5b63\u5ea6\u8425\u6536`)
-  selectText(opened.editor, SECRET)
-  opened.editor.commands.setRedaction(LABEL)
-  return opened
-}
-
 /**
  * Only the fields the save path actually reads. `save` takes the whole
  * context, and the rest of it belongs to the window this test is not building.
@@ -146,8 +104,6 @@ function ctxFor(opened: Opened, fileName: string, filePath: string | null): File
     setDoc: noop,
     setDocCss: noop,
     setDocLoading: noop,
-    setShowAi: noop,
-    setAiPanelKey: noop,
     setReadMode: noop,
     setLargeDocSpellOff: noop,
     setShowPrintDialog: noop,
@@ -266,45 +222,11 @@ function ctxFor(opened: Opened, fileName: string, filePath: string | null): File
 
 beforeEach(() => {
   sent = []
-  answer = ANSWER
-  providerConfigured = true
   saved = []
   statuses = []
-  installBridge()
   installDesktop()
   // the module state is per-document; each case starts from a freshly swapped one
   noteDocumentSwapped()
-})
-
-describe('the manual trigger: the reader asks the model for a name', () => {
-  it('hands the model the projected text, never the withheld words', async () => {
-    const opened = await namedWithSecret()
-    await suggestedSaveAsName(ctxFor(opened, FILE_NAME, '/tmp/existing.docx'))
-    expect(sent).toHaveLength(1)
-    expect(sent[0].content).not.toContain(SECRET)
-    // and the marker is there, so the model can still tell something was hidden
-    expect(sent[0].content).toContain(LABEL)
-  })
-
-  it('offers the answer as a complete file name, extension and all', async () => {
-    const opened = await namedWithSecret()
-    expect(await suggestedSaveAsName(ctxFor(opened, FILE_NAME, '/tmp/existing.docx'))).toBe(
-      `${ANSWER}.docx`,
-    )
-  })
-
-  it('proposes nothing when the model has nothing usable', async () => {
-    // '' is the signal that leaves the dialog on the name the document had
-    answer = ''
-    const opened = await namedWithSecret()
-    expect(await suggestedSaveAsName(ctxFor(opened, FILE_NAME, '/tmp/existing.docx'))).toBe('')
-  })
-
-  it('proposes nothing when no provider is configured', async () => {
-    providerConfigured = false
-    const opened = await namedWithSecret()
-    expect(await suggestedSaveAsName(ctxFor(opened, FILE_NAME, '/tmp/existing.docx'))).toBe('')
-  })
 })
 
 describe('the first save of a document that has never been on disk', () => {
@@ -316,7 +238,7 @@ describe('the first save of a document that has never been on disk', () => {
   })
 
   it('never hands the document to the model on a save, withheld words included', async () => {
-    const opened = await namedWithSecret()
+    const opened = await open('\u5b63\u5ea6\u8425\u6536\u603b\u7ed3\u4e0e\u660e\u7ec6')
     await save(ctxFor(opened, t('appUntitledDocx'), null), false)
     expect(sent).toHaveLength(0)
   })

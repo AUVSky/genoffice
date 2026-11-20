@@ -36,7 +36,7 @@ import {
   tcPrRestoreAttrs,
   trPrRestoreAttrs,
 } from './prop-change-restore'
-import { columnWidthsPx, pctOf, reflowColumns } from '../ai/table-ops'
+import { columnWidthsPx, pctOf, reflowColumns } from '../doc-core/table-ops'
 
 export interface RevisionRange {
   from: number

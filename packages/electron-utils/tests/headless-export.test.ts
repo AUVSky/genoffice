@@ -68,7 +68,7 @@ describe('parseHeadlessExportArgv', () => {
 
   it("accepts the non-pdf targets; input/target pairing is the host's job", () => {
     const parsed = parseHeadlessExportArgv(
-      argv('--headless-export', '/tmp/a.html', '--to', 'DOCX', '--out', '/o.docx'),
+      argv('--headless-export', '/tmp/a.docx', '--to', 'DOCX', '--out', '/o.docx'),
     )
     expect(parsed).toMatchObject({ kind: 'ok', request: { targetFormat: 'docx' } })
   })
@@ -90,8 +90,6 @@ describe('headlessModuleFor', () => {
     ['/x/a.pptx', 'slides'],
     ['/x/a.md', 'markdown'],
     ['/x/a.markdown', 'markdown'],
-    ['/x/a.html', 'html'],
-    ['/x/a.htm', 'html'],
   ])('routes %s to %s', (path, module) => {
     expect(headlessModuleFor(path)).toBe(module)
   })
@@ -99,6 +97,7 @@ describe('headlessModuleFor', () => {
   it('returns null for an unsupported extension', () => {
     expect(headlessModuleFor('/x/a.pdf')).toBeNull()
     expect(headlessModuleFor('/x/a.doc')).toBeNull()
+    expect(headlessModuleFor('/x/a.html')).toBeNull()
     expect(headlessModuleFor('/x/noext')).toBeNull()
   })
 })

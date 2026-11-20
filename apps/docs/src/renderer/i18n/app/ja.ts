@@ -51,8 +51,6 @@ export const ja = {
   appScShrinkFont1: 'フォントサイズを 1 pt 縮小',
   appScListDemote: 'リストのレベルを下げる',
   appScListPromote: 'リストのレベルを上げる',
-  appScProofread: '校正',
-  // Common
   appClose: '閉じる',
   appCancel: 'キャンセル',
   appOk: 'OK',
@@ -302,9 +300,6 @@ export const ja = {
   appSplitPaneLabel: '分割ウィンドウ(読み取り専用プレビュー、独立してスクロール可能)',
   appRemoveSplit: '分割の解除',
   appExitReadMode: '閲覧モードを終了 (Esc)',
-  appExpandAiPanel: 'AI 編集パネルを展開',
-  appAiRail: 'AI',
-  // Status bar / word count
   appPageOf: '{current} / {total} ページ',
   appWordCountTitle: '文字カウント',
   appWordCountN: '{n} 文字',
@@ -434,14 +429,10 @@ export const ja = {
   appTabBar: '縦棒',
   appTabClear: 'クリア',
   // AI settings
-  appAiSettings: 'AI 設定',
-  appGensparkAccount: 'Genspark アカウント',
   appChecking: '確認中…',
   appLoggedIn: 'サインイン済み',
   appLoggedInEmail: 'サインイン済み:{email}',
-  appNotLoggedIn: '未サインイン(AI 機能には Genspark アカウントが必要です)',
   appWaitingBrowserLogin: 'ブラウザーでのサインインを待っています…',
-  appLoginGenspark: 'Genspark にサインイン',
   appModel: 'モデル',
   // Context menu
   appCut: '切り取り',
@@ -486,25 +477,6 @@ export const ja = {
   appSpellingChangeAll: 'すべて変更',
   appSpellingComplete: 'スペル チェックが完了しました。',
   appSpellLanguage: '言語',
-  appSynonyms: '類義語',
-  appSynonymsPrompt:
-    '「{text}」のより良い類義語や言い換え表現を 3〜5 個挙げ、違いを簡潔に説明してください。ドキュメントは変更しないでください。',
-  appTranslateSelectionPrompt:
-    '現在選択中のテキストを{lang}に翻訳し、訳文で原文を置き換えてください。書式は変えないでください：「{text}」',
-  appAiBadgeTip: 'AI を使用します',
-  appTranslate: '翻訳',
-  appTranslateTo: '{lang}に翻訳',
-  appThesaurusSelect: '先に単語または短い語句を選択してください',
-  appTranslateSelect: '先に翻訳するテキストを選択してください',
-  redactMenuLabel: '選択範囲をAIから隠す',
-  redactDialogDesc:
-    '文章はドキュメントとファイルに残り、AI には下のマーカーしか見えません。名前をつけると、何を表すかAIが理解できます。',
-  redactDialogScope:
-    'これはこのアプリの AI に限られます。CLI、MCP ツール、GUI なしのエクスポートはファイルを直接読み込むため、これらの文字はまだ見えています。',
-  redactDialogPlaceholder: 'プレースホルダー名（例：顧客電話）',
-  redactCancel: 'キャンセル',
-  redactInsert: '隠す',
-  redactShowLabel: '選択範囲をAIにもう一度見せる',
   appLangEnglish: '英語',
   appLangSimplifiedChinese: '簡体字中国語',
   appLangJapanese: '日本語',

@@ -22,21 +22,21 @@ describe('retargetNotesDraft (genoffice#900)', () => {
 
   it('drops the draft when the deck edit changed that slide’s notes', () => {
     const slides = deck('ppt/slides/slide1.xml', 'ppt/slides/slide2.xml')
-    expect(retargetNotesDraft(draft, slides, 'rewritten by AI')).toBeNull()
+    expect(retargetNotesDraft(draft, slides, 'rewritten externally')).toBeNull()
   })
 
   it('drops the draft when the slide was removed', () => {
     expect(retargetNotesDraft(draft, deck('ppt/slides/slide1.xml'), 'old')).toBeNull()
   })
 
-  it('survives an AI run when typing resumed after a flush that did not reload the notes', () => {
+  it('survives an external deck replace when typing resumed after a flush that did not reload the notes', () => {
     const slides = deck('ppt/slides/slide1.xml', 'ppt/slides/slide2.xml')
     // blur/save/onBeforeRun flush the draft; the baseline must follow the written text
     const flushed = { index: 1, text: 'first half' }
     const resumed = startNotesDraft(null, flushed, 1, 'first half, second half', slides[1].partPath)
     expect(resumed.base).toBe('first half')
     expect(retargetNotesDraft(resumed, slides, 'first half')).toBe(resumed)
-    // without the baseline update the flushed text would read as an AI rewrite
+    // without the baseline update the flushed text would read as an external rewrite
     const stale = startNotesDraft(
       null,
       { index: 1, text: 'old' },

@@ -26,10 +26,6 @@ export const ko = {
   ribbonLangVietnamese: '베트남어',
   ribbonLangTurkish: '터키어',
   ribbonLangHungarian: '헝가리어',
-  ribbonAiCreditNote: 'AI를 호출하며 크레딧이 소모됩니다',
-  ribbonAiRewriteConfirm:
-    '이 작업은 AI를 호출합니다. 크레딧이 소모되며 전체 내용이 다시 작성될 수 있습니다. 계속하시겠습니까? (확인 후 다시 묻지 않습니다)',
-  // Tabs
   ribbonTabHome: '홈',
   ribbonTabDraw: '그리기',
   ribbonTabLayout: '레이아웃',
@@ -87,7 +83,6 @@ export const ko = {
   ribbonOpen: '열기…',
   ribbonSave: '저장',
   ribbonSaveAs: '다른 이름으로 저장…',
-  ribbonNameWithAi: 'AI로 이름 지정…',
   ribbonConvert: '변환',
   ribbonConvertTip: 'PDF, HTML, Markdown 또는 이미지로 변환',
   ribbonConvertPdf: 'PDF로 변환…',
@@ -163,7 +158,6 @@ export const ko = {
   ribbonIcons: '아이콘',
   ribbonDateTime: '날짜 및 시간',
   ribbonNumber: '번호',
-  ribbonThesaurus: '동의어 사전',
   ribbonWordCount: '단어 개수',
   ribbonProofingLanguage: '언어',
   ribbonProofingNoCheck: '맞춤법 또는 문법 검사 안 함',
@@ -310,8 +304,6 @@ export const ko = {
   ribbonSelectAll: '모두 선택',
   ribbonSelectAllTip: '문서 전체 선택',
   // Home · AI
-  ribbonAiAssistantTip: 'AI 도우미 열기',
-  // Table Design
   ribbonRemoveTableStyleTip: '표 스타일 제거',
   ribbonNoStyle: '스타일 없음',
   ribbonApplyTableStyleTip: '표 스타일 {name} 적용',
@@ -852,23 +844,10 @@ export const ko = {
   ribbonSourceSiteName: '사이트 이름',
   ribbonSourcePublisher: '출판사',
   // Review
-  ribbonEditorBtn: '편집기',
-  ribbonEditorTip: 'AI가 맞춤법, 문법 및 문장 부호 검사',
-  ribbonEditorPrompt:
-    '문서 전체를 교정해 주세요: 오탈자, 문장 부호, 문법 오류를 수정하되 원래 의미와 단락 구조는 유지해 주세요.',
   ribbonGroupProofing: '언어 교정',
   ribbonSpellcheckBtn: '맞춤법 검사',
   ribbonSpellcheckTip:
     '입력하는 동안 맞춤법을 검사하여 잘못 입력된 것으로 보이는 단어에 빨간 밑줄을 표시합니다',
-  ribbonTranslate: '번역',
-  ribbonTranslateTip: 'AI가 문서 번역',
-  ribbonTranslatePrompt:
-    '문서 전체를 {lang}(으)로 번역해 주세요. 단락 구조와 제목 수준은 유지해 주세요.',
-  ribbonTranslateSelectionPrompt:
-    '선택한 내용을 {lang}(으)로 번역해 주세요. 단락 구조는 유지해 주세요.',
-  ribbonEditorSelectionPrompt:
-    '선택한 내용을 교정해 주세요: 오탈자, 문장 부호, 문법 오류를 수정하되 원래 의미와 단락 구조는 유지해 주세요.',
-  ribbonTranslateTo: '{lang}(으)로 번역',
   ribbonGroupLanguage: '언어',
   ribbonNewComment: '새 메모',
   ribbonNewCommentTip: '선택 영역에 메모 추가',
@@ -885,15 +864,6 @@ export const ko = {
   ribbonPrevCommentTip: '이전 메모로 이동',
   ribbonNextComment: '다음',
   ribbonNextCommentTip: '다음 메모로 이동',
-  ribbonAiComments: 'AI 메모 처리',
-  ribbonAiRevisions: 'AI 변경 내용 요약',
-  ribbonAiRevisionsTip:
-    '대기 중인 변경 내용 {count}건을 AI가 읽고 섹션별로 요약하며 위험 요소를 짚어 줍니다',
-  ribbonAiRevisionsPrompt:
-    '문서의 대기 중인 변경 내용을 모두 요약해 주세요: 먼저 전체 통계(삽입/삭제 수, 작성자, 날짜 범위), 다음으로 섹션별로 무엇이 바뀌었는지 설명하고(block 번호 표기), 마지막으로 주의할 점(의무나 한정 표현 삭제, 숫자·날짜·금액 변경 등)을 나열하세요. 요약만 하고 문서를 수정하거나 변경 내용을 적용/거부하지 마세요.',
-  ribbonAiCommentsTip: '해결되지 않은 메모 {count}건을 AI가 순서대로 처리합니다(수정·회신·해결)',
-  ribbonAiCommentsPrompt:
-    '문서의 해결되지 않은 메모를 모두 처리해 주세요: 각 메모의 요청대로 수정하고, 변경 내용을 회신한 뒤 해결로 표시하세요. 질문이거나 모호한 메모에는 회신만 하고 본문은 수정하지 마세요.',
   ribbonShowCommentsTip: '메모 표시({count}개)',
   ribbonShowCommentsContextual: '상황별',
   ribbonShowCommentsList: '목록',
@@ -1276,8 +1246,6 @@ export const ko = {
   ribbonColWidthSpacing: '너비 및 간격',
   ribbonColNo: '단 번호',
   ribbonColStartNew: '새 단으로 시작',
-  ribbonTranslationLanguageTitle: '문서 번역 언어 설정',
-  ribbonTranslationLanguageLabel: '번역할 언어',
   ribbonAddTextNone: '목차에 표시 안 함',
   ribbonLnRestartPage: '페이지마다 다시 매기기',
   ribbonLnRestartSection: '구역마다 다시 매기기',

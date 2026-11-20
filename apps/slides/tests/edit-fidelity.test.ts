@@ -258,7 +258,7 @@ describe('applyEditParagraphs: srcPara/srcRun tracing + unedited fields preserve
     expect(out[0]!.runs[1]!.field).toBe('slidenum')
   })
 
-  it('untraced paragraphs past the end continue the last paragraph (AI tools send plain paragraphs)', () => {
+  it('untraced paragraphs past the end continue the last paragraph (op callers send plain paragraphs)', () => {
     const oldParas: Paragraph[] = [
       { runs: [{ text: 'Title', bold: true, fontSize: 24 }] },
       { runs: [{ text: 'One', fontSize: 14 }], bullet: { type: 'char', char: '•' }, level: 1 },

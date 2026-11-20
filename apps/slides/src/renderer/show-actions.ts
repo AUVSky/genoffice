@@ -40,7 +40,7 @@ export function updateCustomShows(ctx: ActionCtx, shows: CustomShow[]): void {
   ctx.setCustomShows(shows)
   if (ctx.path) {
     try {
-      localStorage.setItem(`ai-slides-custom-shows:${ctx.path}`, JSON.stringify(shows))
+      localStorage.setItem(`slides-custom-shows:${ctx.path}`, JSON.stringify(shows))
     } catch {
       // Degrade to memory-only when localStorage is full/unavailable
     }

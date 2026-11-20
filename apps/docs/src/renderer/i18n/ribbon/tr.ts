@@ -26,9 +26,6 @@ export const tr = {
   ribbonLangVietnamese: 'Vietnamca',
   ribbonLangTurkish: 'Türkçe',
   ribbonLangHungarian: 'Macarca',
-  ribbonAiCreditNote: 'Yapay zeka kullanır ve kredi harcar',
-  ribbonAiRewriteConfirm:
-    'Bu işlem yapay zeka asistanını çağırır: kredi harcar ve içeriğin tamamını yeniden yazabilir. Devam edilsin mi? (Bir daha sorulmayacak.)',
   ribbonTabHome: 'Giriş',
   ribbonTabDraw: 'Çizim',
   ribbonTabLayout: 'Düzen',
@@ -85,7 +82,6 @@ export const tr = {
   ribbonOpen: 'Aç…',
   ribbonSave: 'Kaydet',
   ribbonSaveAs: 'Farklı Kaydet…',
-  ribbonNameWithAi: 'Yapay zeka ile adlandır…',
   ribbonConvert: 'Dönüştür',
   ribbonConvertTip: 'PDF, HTML, Markdown veya resimlere dönüştür',
   ribbonConvertPdf: "PDF'ye Dönüştür…",
@@ -160,7 +156,6 @@ export const tr = {
   ribbonIcons: 'Simgeler',
   ribbonDateTime: 'Tarih ve Saat',
   ribbonNumber: 'Sayı',
-  ribbonThesaurus: 'Eş Anlamlılar',
   ribbonWordCount: 'Sözcük Sayımı',
   ribbonProofingLanguage: 'Dil',
   ribbonProofingNoCheck: 'Yazım veya dil bilgisi denetimi yapma',
@@ -305,7 +300,6 @@ export const tr = {
   ribbonReplaceTip: 'Metin bul ve değiştir',
   ribbonSelectAll: 'Tümünü Seç',
   ribbonSelectAllTip: 'Belgenin tamamını seç',
-  ribbonAiAssistantTip: 'Yapay zeka asistanını aç',
   ribbonRemoveTableStyleTip: 'Tablo stilini kaldır',
   ribbonNoStyle: 'Stil Yok',
   ribbonApplyTableStyleTip: '{name} tablo stilini uygula',
@@ -841,22 +835,9 @@ export const tr = {
   ribbonSourceJournalName: 'Dergi Adı',
   ribbonSourceSiteName: 'Site Adı',
   ribbonSourcePublisher: 'Yayıncı',
-  ribbonEditorBtn: 'Düzenleyici',
-  ribbonEditorTip: 'Yapay zeka yazımı, dil bilgisini ve noktalamayı denetler',
-  ribbonEditorPrompt:
-    'Belgenin tamamını düzelt: özgün anlamı ve paragraf yapısını değiştirmeden yazım, noktalama ve dil bilgisi hatalarını gider.',
   ribbonGroupProofing: 'Yazım Denetimi',
   ribbonSpellcheckBtn: 'Yazım',
   ribbonSpellcheckTip: 'Yazarken yazımı denetle — olası yazım hatalarının altını kırmızıyla çizer',
-  ribbonTranslate: 'Çevir',
-  ribbonTranslateTip: 'Yapay zeka belgeyi çevirir',
-  ribbonTranslatePrompt:
-    'Belgenin tamamını paragraf yapısını ve başlık düzeylerini değiştirmeden {lang} diline çevir.',
-  ribbonTranslateSelectionPrompt:
-    'Seçili içeriği paragraf yapısını değiştirmeden {lang} diline çevir.',
-  ribbonEditorSelectionPrompt:
-    'Seçili içeriği düzelt: özgün anlamı ve paragraf yapısını değiştirmeden yazım, noktalama ve dil bilgisi hatalarını gider.',
-  ribbonTranslateTo: '{lang} diline çevir',
   ribbonGroupLanguage: 'Dil',
   ribbonNewComment: 'Yeni Açıklama',
   ribbonNewCommentTip: 'Seçime açıklama ekle',
@@ -873,16 +854,6 @@ export const tr = {
   ribbonPrevCommentTip: 'Önceki açıklamaya git',
   ribbonNextComment: 'Sonraki',
   ribbonNextCommentTip: 'Sonraki açıklamaya git',
-  ribbonAiComments: 'Açıklamaları Yapay Zeka ile Çözümle',
-  ribbonAiRevisions: 'Yapay Zeka Düzeltme Özeti',
-  ribbonAiRevisionsTip:
-    'Yapay zeka bekleyen {count} düzeltmeyi okur, değişiklikleri bölüm bölüm özetler ve riskleri işaretler',
-  ribbonAiRevisionsPrompt:
-    'Belgedeki bekleyen tüm izlenen düzeltmeleri özetle: önce genel istatistiklerle başla (ekleme/silme sayıları, yazarlar, tarih aralığı), ardından değişiklikleri bölüm bölüm açıkla (blok dizinlerini belirt) ve olası endişelerin listesiyle bitir (ör. silinen yükümlülükler veya nitelemeler, değişen sayılar/tarihler/tutarlar). Yalnızca özetle — belgeyi değiştirme ve hiçbir düzeltmeyi kabul veya reddetme.',
-  ribbonAiCommentsTip:
-    'Yapay zeka çözümlenmemiş {count} açıklamayı ele alır: her açıklama için düzenler, neyin değiştiğini yanıtlar, sonra çözümler',
-  ribbonAiCommentsPrompt:
-    'Belgedeki çözümlenmemiş her açıklamayı ele al: her biri için istenen değişikliği uygula, neyin değiştiğini açıklayan bir yanıt yaz ve ardından çözümle; açıklama bir soruysa veya belirsizse belgeyi değiştirmeden yanıtla.',
   ribbonShowCommentsTip: 'Açıklamaları göster ({count})',
   ribbonShowCommentsContextual: 'Bağlamsal',
   ribbonShowCommentsList: 'Liste',
@@ -1270,8 +1241,6 @@ export const tr = {
   ribbonColWidthSpacing: 'Genişlik ve aralık',
   ribbonColNo: 'Sütun no.',
   ribbonColStartNew: 'Yeni sütun başlat',
-  ribbonTranslationLanguageTitle: 'Belge Çeviri Dilini Ayarla',
-  ribbonTranslationLanguageLabel: 'Şu dile çevir',
   ribbonAddTextNone: 'İçindekiler Tablosunda Gösterme',
   ribbonLnRestartPage: 'Her Sayfada Yeniden Başlat',
   ribbonLnRestartSection: 'Her Bölümde Yeniden Başlat',

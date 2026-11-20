@@ -22,7 +22,7 @@ const css = read('src/renderer/styles.css')
 describe('sheets ribbon compact density', () => {
   it('opts in: the collapse hook gets the compact labels', () => {
     expect(shellSrc).toMatch(
-      /useRibbonCollapse\('ai-sheets-ribbon-collapsed', \{[^}]*compact: t\('appRibbonCompact'\),[^}]*expandFull: t\('appRibbonExpand'\),[^}]*\}\)/s,
+      /useRibbonCollapse\('sheets-ribbon-collapsed', \{[^}]*compact: t\('appRibbonCompact'\),[^}]*expandFull: t\('appRibbonExpand'\),[^}]*\}\)/s,
     )
   })
 

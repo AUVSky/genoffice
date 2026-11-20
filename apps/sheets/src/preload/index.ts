@@ -1,21 +1,7 @@
-import type { AiPanelPrefs } from '@genoffice/ui'
-import { contextBridge, ipcRenderer, webFrame, webUtils } from 'electron'
-
+import { contextBridge, ipcRenderer, webUtils } from 'electron'
 import type {
-  AiChatResponse,
-  AiSettings,
-  AiStreamChunk,
-  GenSparkAccountStatus,
-} from '@genoffice/ai-provider'
-import type { ProjectApi } from '@genoffice/project-store'
-import type {
-  AttachmentAddResult,
-  AttachmentImageResult,
-  AttachmentMeta,
-  AttachmentReadResult,
   CopyEmfRequest,
   DesktopApi,
-  McpCommandMessage,
   RecoveryPromptPayload,
   ScreenCaptureResult,
   ScreenSourcesResult,
@@ -40,17 +26,12 @@ import type {
   WorkbookRangeResult,
   WorkbookRecalcRequest,
   WorkbookRecalcResult,
-  WorkbookRedactionsResult,
   WorkbookQueriesResult,
   WorkbookRichRun,
   WorkbookSaveRequest,
   WorkbookSlicerState,
   WorkbookSaveResult,
   WorkbookVisualObject,
-  WebSearchResult,
-  ImageSearchResponse,
-  GenerateImageResult,
-  UserSkillEntry,
   WorkbookConnection,
   WorkbookConnectionsRequest,
   WorkbookConnectionsResult,
@@ -71,8 +52,6 @@ import type {
 import {
   HEADER_FOOTER_PICTURE_POSITION,
   IPC_CHANNELS,
-  MAX_CREATE_DOCUMENT_CONTENT_CHARS,
-  MAX_CREATE_DOCUMENT_TITLE_CHARS,
   MAX_CSV_EXPORT_CHARS,
   MAX_PDF_TEMPLATE_CHARS,
   MAX_SAVE_EDITS,
@@ -130,13 +109,6 @@ const desktopApi: DesktopApi = {
     const listener = (_event: Electron.IpcRendererEvent, value: AutoSaveDefault) => handler(value)
     ipcRenderer.on('app:auto-save-default-changed', listener)
     return () => ipcRenderer.removeListener('app:auto-save-default-changed', listener)
-  },
-  getAiPanelPrefs: () => ipcRenderer.invoke('app:get-ai-panel-prefs'),
-  setAiPanelPrefs: (patch) => ipcRenderer.invoke('app:set-ai-panel-prefs', patch),
-  onAiPanelPrefsChanged: (handler) => {
-    const listener = (_event: Electron.IpcRendererEvent, prefs: AiPanelPrefs) => handler(prefs)
-    ipcRenderer.on('app:ai-panel-prefs-changed', listener)
-    return () => ipcRenderer.removeListener('app:ai-panel-prefs-changed', listener)
   },
   onChromePressed(handler) {
     const listener = () => handler()
@@ -424,15 +396,6 @@ const desktopApi: DesktopApi = {
     if (!Array.isArray(result)) throw new Error('Invalid slicer state response.')
     return result as WorkbookSlicerState
   },
-  async readWorkbookRedactions(request) {
-    if (!isRecord(request) || !isUuid(request.sessionId)) {
-      throw new Error('Invalid redaction request.')
-    }
-    const result: unknown = await ipcRenderer.invoke(IPC_CHANNELS.readWorkbookRedactions, {
-      sessionId: request.sessionId,
-    })
-    return parseWorkbookRedactionsResult(result)
-  },
   async readWorkbookQueries(request) {
     if (!isRecord(request) || !isUuid(request.sessionId)) {
       throw new Error('Invalid queries request.')
@@ -515,21 +478,6 @@ const desktopApi: DesktopApi = {
     )
     return { ok: (result as { ok?: unknown } | null)?.ok === true }
   },
-  async autoRenameWorkbook(sessionId, baseName) {
-    if (!isUuid(sessionId)) throw new Error('Invalid workbook session.')
-    if (typeof baseName !== 'string' || baseName.length === 0 || baseName.length > 100) {
-      throw new Error('Invalid workbook name.')
-    }
-    const result: unknown = await ipcRenderer.invoke(
-      IPC_CHANNELS.autoRenameWorkbook,
-      sessionId,
-      baseName,
-    )
-    if (!isRecord(result) || typeof result.renamed !== 'boolean') {
-      throw new Error('Invalid auto-rename response.')
-    }
-    return result as { renamed: boolean; name?: string }
-  },
   async exportPdf(request) {
     if (!isPdfExportRequest(request)) throw new Error('Invalid PDF export request.')
     const result: unknown = await ipcRenderer.invoke(IPC_CHANNELS.exportPdf, request)
@@ -598,41 +546,6 @@ const desktopApi: DesktopApi = {
       throw new Error('Invalid CSV save confirmation response.')
     }
     return result
-  },
-  async createDocument(request) {
-    if (
-      !isRecord(request) ||
-      (request.type !== 'xlsx' &&
-        request.type !== 'csv' &&
-        request.type !== 'docx' &&
-        request.type !== 'pdf' &&
-        request.type !== 'md') ||
-      typeof request.title !== 'string' ||
-      request.title.length === 0 ||
-      request.title.length > MAX_CREATE_DOCUMENT_TITLE_CHARS ||
-      typeof request.content !== 'string' ||
-      request.content.length === 0 ||
-      request.content.length >
-        (request.type === 'xlsx' || request.type === 'csv'
-          ? MAX_CSV_EXPORT_CHARS
-          : MAX_CREATE_DOCUMENT_CONTENT_CHARS) ||
-      (request.sheetName !== undefined &&
-        (typeof request.sheetName !== 'string' ||
-          request.sheetName.length === 0 ||
-          request.sheetName.length > 31))
-    ) {
-      throw new Error('Invalid create-document request.')
-    }
-    const result: unknown = await ipcRenderer.invoke(IPC_CHANNELS.createDocument, request)
-    if (
-      !isRecord(result) ||
-      typeof result.ok !== 'boolean' ||
-      (result.path !== undefined && typeof result.path !== 'string') ||
-      (result.error !== undefined && typeof result.error !== 'string')
-    ) {
-      throw new Error('Invalid create-document response.')
-    }
-    return result as { ok: boolean; path?: string; error?: string }
   },
   async closeWorkbook(sessionId) {
     if (!isUuid(sessionId)) throw new Error('Invalid workbook session.')
@@ -712,135 +625,9 @@ const desktopApi: DesktopApi = {
     ipcRenderer.on('app:author-name-changed', listener)
     return () => ipcRenderer.removeListener('app:author-name-changed', listener)
   },
-  async getAiSettings() {
-    const result: unknown = await ipcRenderer.invoke(IPC_CHANNELS.aiGetSettings)
-    if (!isRecord(result)) throw new Error('Invalid AI settings response.')
-    return result as unknown as AiSettings
-  },
-  async setAiSettings(settings) {
-    await ipcRenderer.invoke(IPC_CHANNELS.aiSetSettings, settings)
-  },
-  onAiSettingsChanged(handler) {
-    const listener = () => handler()
-    ipcRenderer.on(IPC_CHANNELS.aiSettingsChanged, listener)
-    return () => ipcRenderer.removeListener(IPC_CHANNELS.aiSettingsChanged, listener)
-  },
-  async openAiModelSettings() {
-    await ipcRenderer.invoke(IPC_CHANNELS.aiOpenModelSettings)
-  },
-  async openSkillsSettings() {
-    await ipcRenderer.invoke('ai:open-skills-settings')
-  },
-  skillsList() {
-    return ipcRenderer.invoke('ai:skills-list') as Promise<UserSkillEntry[]>
-  },
-  skillText(name: string) {
-    return ipcRenderer.invoke('ai:skill-text', name) as Promise<string>
-  },
-  async aiChat(request) {
-    const result: unknown = await ipcRenderer.invoke(IPC_CHANNELS.aiChat, request)
-    if (!isRecord(result) || typeof result.ok !== 'boolean') {
-      throw new Error('Invalid AI chat response.')
-    }
-    return result as unknown as AiChatResponse
-  },
-  async aiStream(request) {
-    await ipcRenderer.invoke(IPC_CHANNELS.aiStream, request)
-  },
-  async aiStreamCancel(requestId) {
-    if (!requestId) throw new Error('Invalid AI stream request id.')
-    await ipcRenderer.invoke(IPC_CHANNELS.aiStreamCancel, requestId)
-  },
-  async aiGskStatus(withEmail) {
-    const result: unknown = await ipcRenderer.invoke(IPC_CHANNELS.aiGskStatus, withEmail)
-    if (!isRecord(result) || typeof result.loggedIn !== 'boolean') {
-      throw new Error('Invalid Genspark account status response.')
-    }
-    return result as unknown as GenSparkAccountStatus
-  },
-  async aiGskLogin() {
-    await ipcRenderer.invoke(IPC_CHANNELS.aiGskLogin)
-  },
-  onGskLoginLanded(handler) {
-    const listener = () => handler()
-    ipcRenderer.on(IPC_CHANNELS.aiGskLoginLanded, listener)
-    return () => ipcRenderer.removeListener(IPC_CHANNELS.aiGskLoginLanded, listener)
-  },
-  async webSearch(query, maxResults) {
-    if (typeof query !== 'string' || !query.trim() || query.length > 512) {
-      throw new Error('Invalid search query.')
-    }
-    const result: unknown = await ipcRenderer.invoke('ai:web-search', query, maxResults)
-    if (!isRecord(result) || !Array.isArray(result.results) || typeof result.method !== 'string') {
-      throw new Error('Invalid web search response.')
-    }
-    return result as unknown as WebSearchResult
-  },
-  async imageSearch(query, maxResults) {
-    if (typeof query !== 'string' || !query.trim() || query.length > 512) {
-      throw new Error('Invalid search query.')
-    }
-    const result: unknown = await ipcRenderer.invoke(IPC_CHANNELS.aiImageSearch, query, maxResults)
-    if (!isRecord(result) || !Array.isArray(result.images) || typeof result.method !== 'string') {
-      throw new Error('Invalid image search response.')
-    }
-    return result as unknown as ImageSearchResponse
-  },
-  async generateImage(op) {
-    if (!isRecord(op) || typeof op.prompt !== 'string' || !op.prompt.trim()) {
-      throw new Error('Invalid image generation request.')
-    }
-    const result: unknown = await ipcRenderer.invoke(IPC_CHANNELS.aiGenerateImage, op)
-    if (!isRecord(result)) throw new Error('Invalid image generation response.')
-    return result as unknown as GenerateImageResult
-  },
-  async fetchImage(url) {
-    if (typeof url !== 'string' || !/^https?:\/\//i.test(url) || url.length > 2048) {
-      throw new Error('Invalid image URL.')
-    }
-    const result: unknown = await ipcRenderer.invoke(IPC_CHANNELS.aiFetchImage, url)
-    if (result === null) return null
-    if (!isRecord(result) || typeof result.base64 !== 'string' || typeof result.mime !== 'string') {
-      throw new Error('Invalid image download response.')
-    }
-    return result as { base64: string; mime: string }
-  },
-  onAiStream(callback) {
-    const listener = (_event: unknown, chunk: unknown): void => {
-      if (
-        isRecord(chunk) &&
-        typeof chunk.requestId === 'string' &&
-        typeof chunk.type === 'string'
-      ) {
-        callback(chunk as unknown as AiStreamChunk)
-      }
-    }
-    ipcRenderer.on(IPC_CHANNELS.aiStreamChunk, listener)
-    return () => ipcRenderer.removeListener(IPC_CHANNELS.aiStreamChunk, listener)
-  },
   async consumeNewBlankWorkbook() {
     const result: unknown = await ipcRenderer.invoke('sheets:consume-new-blank')
     return result === true
-  },
-  onMcpCommand(callback) {
-    const listener = (_event: unknown, message: unknown): void => {
-      if (
-        isRecord(message) &&
-        typeof message.requestId === 'string' &&
-        typeof message.command === 'string'
-      ) {
-        callback(message as unknown as McpCommandMessage)
-      }
-    }
-    ipcRenderer.on(IPC_CHANNELS.mcpCommand, listener)
-    return () => ipcRenderer.removeListener(IPC_CHANNELS.mcpCommand, listener)
-  },
-  reportMcpResult(result) {
-    if (!isRecord(result) || typeof result.requestId !== 'string') return
-    ipcRenderer.send(IPC_CHANNELS.mcpResult, result)
-  },
-  signalMcpReady() {
-    ipcRenderer.send(IPC_CHANNELS.mcpReady)
   },
   async hasQueuedWorkbook() {
     const result: unknown = await ipcRenderer.invoke('sheets:has-queued-workbook')
@@ -856,36 +643,6 @@ const desktopApi: DesktopApi = {
       ...(typeof result.error === 'string' ? { error: result.error } : {}),
     })
   },
-  async pickAttachments() {
-    const result: unknown = await ipcRenderer.invoke(IPC_CHANNELS.filesPick)
-    return result === null ? null : parseAttachmentAddResult(result)
-  },
-  async addAttachmentPaths(paths) {
-    if (
-      !Array.isArray(paths) ||
-      paths.length === 0 ||
-      paths.length > 50 ||
-      paths.some((p) => typeof p !== 'string' || p.length === 0 || p.length > 1024)
-    ) {
-      throw new Error('Invalid attachment paths.')
-    }
-    const result: unknown = await ipcRenderer.invoke(IPC_CHANNELS.filesAdd, paths)
-    return parseAttachmentAddResult(result)
-  },
-  async addPastedImage(data, ext) {
-    if (
-      !(data instanceof ArrayBuffer) ||
-      data.byteLength === 0 ||
-      data.byteLength > 64 * 1024 * 1024
-    ) {
-      throw new Error('Invalid pasted image data.')
-    }
-    if (typeof ext !== 'string' || ext.length === 0 || ext.length > 8) {
-      throw new Error('Invalid pasted image extension.')
-    }
-    const result: unknown = await ipcRenderer.invoke(IPC_CHANNELS.filesAddPastedImage, data, ext)
-    return parseAttachmentAddResult(result)
-  },
   async appendCopyEmf(request) {
     const validated = parseCopyEmfRequest(request)
     const result: unknown = await ipcRenderer.invoke(IPC_CHANNELS.appendCopyEmf, validated)
@@ -895,50 +652,6 @@ const desktopApi: DesktopApi = {
   },
   async isCopyEmfAvailable() {
     return (await ipcRenderer.invoke(IPC_CHANNELS.copyEmfAvailable)) === true
-  },
-  async readAttachment(path, offset, maxChars) {
-    if (typeof path !== 'string' || path.length === 0 || path.length > 1024) {
-      throw new Error('Invalid attachment path.')
-    }
-    const result: unknown = await ipcRenderer.invoke(IPC_CHANNELS.filesRead, path, offset, maxChars)
-    if (
-      !isRecord(result) ||
-      typeof result.ok !== 'boolean' ||
-      !isOptionalString(result.error) ||
-      !isOptionalString(result.name) ||
-      !isOptionalString(result.text) ||
-      (result.totalChars !== undefined && !isNonnegativeInteger(result.totalChars)) ||
-      (result.offset !== undefined && !isNonnegativeInteger(result.offset))
-    ) {
-      throw new Error('Invalid attachment read response.')
-    }
-    const read: AttachmentReadResult = { ok: result.ok }
-    if (result.error !== undefined) read.error = result.error
-    if (result.name !== undefined) read.name = result.name
-    if (result.text !== undefined) read.text = result.text
-    if (result.totalChars !== undefined) read.totalChars = result.totalChars
-    if (result.offset !== undefined) read.offset = result.offset
-    return read
-  },
-  async readAttachmentImage(path) {
-    if (typeof path !== 'string' || path.length === 0 || path.length > 1024) {
-      throw new Error('Invalid attachment path.')
-    }
-    const result: unknown = await ipcRenderer.invoke(IPC_CHANNELS.filesReadImage, path)
-    if (
-      !isRecord(result) ||
-      typeof result.ok !== 'boolean' ||
-      !isOptionalString(result.base64) ||
-      !isOptionalString(result.mime) ||
-      !isOptionalString(result.error)
-    ) {
-      throw new Error('Invalid attachment image response.')
-    }
-    const image: AttachmentImageResult = { ok: result.ok }
-    if (result.base64 !== undefined) image.base64 = result.base64
-    if (result.mime !== undefined) image.mime = result.mime
-    if (result.error !== undefined) image.error = result.error
-    return image
   },
   getPathForFile(file) {
     return webUtils.getPathForFile(file)
@@ -1010,78 +723,7 @@ function parseCopyEmfRequest(request: unknown): CopyEmfRequest {
   }
 }
 
-function parseAttachmentAddResult(input: unknown): AttachmentAddResult {
-  if (
-    !isRecord(input) ||
-    !Array.isArray(input.accepted) ||
-    input.accepted.length > 50 ||
-    !Array.isArray(input.rejected) ||
-    input.rejected.length > 50 ||
-    input.rejected.some((reason) => typeof reason !== 'string')
-  ) {
-    throw new Error('Invalid attachment response.')
-  }
-  const accepted = input.accepted.map((meta): AttachmentMeta => {
-    if (
-      !isRecord(meta) ||
-      typeof meta.path !== 'string' ||
-      meta.path.length === 0 ||
-      typeof meta.name !== 'string' ||
-      meta.name.length === 0 ||
-      typeof meta.ext !== 'string' ||
-      !isNonnegativeInteger(meta.sizeBytes)
-    ) {
-      throw new Error('Invalid attachment metadata.')
-    }
-    return { path: meta.path, name: meta.name, ext: meta.ext, sizeBytes: meta.sizeBytes }
-  })
-  return { accepted, rejected: input.rejected as string[] }
-}
-
-/**
- * Model file naming: the transport half of `suggestFileName`.
- *
- * Inlined rather than imported — a preload entry must stay a single-file bundle,
- * or the sandbox drops every global it exposed. The one `ai:` channel is
- * registered app-wide by the shell rather than by this app, the same arrangement
- * the `project:*` bridge below already depends on.
- *
- * `content` crosses this bridge verbatim and the main process cannot see what
- * this editor withheld, so what the caller hands over is exactly what the model
- * sees. A caller that passed raw document text would undo its own redactions.
- *
- * The global is `aiNamingApi`, not `aiOffice`: `aiOffice` is the shell's home
- * API, and a partial one in an editor window would shadow it there.
- */
-const aiNamingApi = {
-  suggestFileName: (input: { content: string }) =>
-    ipcRenderer.invoke('ai:suggest-file-name', input),
-}
-
 contextBridge.exposeInMainWorld('desktopApi', desktopApi)
-contextBridge.exposeInMainWorld('aiNamingApi', aiNamingApi)
-
-// The frame's own spell engine (Chromium Hunspell / the OS dictionary): the
-// same checker docs' squiggles run on, batch-driven over sheet cell texts so
-// nothing leaves the machine for the F7 spelling dialog. webFrame consults
-// it only while the webContents' spellcheck is on — the Review ▸ Proofing
-// preference gates the dialog, and comment-box squiggles share the switch.
-contextBridge.exposeInMainWorld('nativeSpell', {
-  isWordMisspelled: (word: unknown): boolean =>
-    typeof word === 'string' ? webFrame.isWordMisspelled(word) : false,
-  getWordSuggestions: (word: unknown): string[] =>
-    typeof word === 'string' ? webFrame.getWordSuggestions(word) : [],
-})
-
-const projectApi: ProjectApi = {
-  resolveChat: (args) => ipcRenderer.invoke('project:resolveChat', args),
-  appendChat: (args) => ipcRenderer.invoke('project:appendChat', args),
-  loadChat: (args) => ipcRenderer.invoke('project:loadChat', args),
-  rebindChat: (args) => ipcRenderer.invoke('project:rebindChat', args),
-  listChats: (args) => ipcRenderer.invoke('project:listChats', args),
-  deleteChat: (args) => ipcRenderer.invoke('project:deleteChat', args),
-}
-contextBridge.exposeInMainWorld('projectApi', projectApi)
 
 // Off by default. e2e drivers launch the BUILT app with GENOFFICE_DEBUG_HOOKS=1
 // so the renderer exposes window.__genofficeDebug (see App.tsx) — the dev-only
@@ -2704,7 +2346,6 @@ function parseSaveRequest(input: WorkbookSaveRequest): WorkbookSaveRequest {
     )
   )
     invalid('protected-range states: malformed entry')
-  if (input.redactionStates !== null) cappedArray('redaction states', input.redactionStates, 1_000)
   // Slicer state's detailed shape is authoritatively validated by main's zod
   // schema (like pivot relayouts); the preload guards the envelope only.
   if (input.slicerState !== null && input.slicerState !== undefined) {
@@ -2717,27 +2358,6 @@ function parseSaveRequest(input: WorkbookSaveRequest): WorkbookSaveRequest {
     )
       invalid('slicer state')
   }
-  if (
-    (input.redactionStates ?? []).some(
-      (state) =>
-        !isRecord(state) ||
-        typeof state.sheetName !== 'string' ||
-        state.sheetName.length === 0 ||
-        !Array.isArray(state.marks) ||
-        state.marks.length > 100_000 ||
-        state.marks.some(
-          (mark: unknown) =>
-            !isRecord(mark) ||
-            typeof mark.startRow !== 'number' ||
-            typeof mark.endRow !== 'number' ||
-            typeof mark.startColumn !== 'number' ||
-            typeof mark.endColumn !== 'number' ||
-            typeof mark.label !== 'string' ||
-            mark.label.length === 0,
-        ),
-    )
-  )
-    invalid('redaction states: malformed entry')
   if (
     input.mode !== 'save-as' &&
     input.restoreWriteBack !== true &&
@@ -2766,7 +2386,6 @@ function parseSaveRequest(input: WorkbookSaveRequest): WorkbookSaveRequest {
     input.themeState === null &&
     input.workbookProtectionState === null &&
     input.protectedRangeStates.length === 0 &&
-    (input.redactionStates?.length ?? 0) === 0 &&
     (input.slicerState ?? null) === null
   )
     invalid('no changes to save')
@@ -3796,52 +3415,6 @@ function parsePivotDefinitionResult(input: unknown): WorkbookPivotDefinition {
     throw new Error('Invalid pivot definition response.')
   }
   return input as unknown as WorkbookPivotDefinition
-}
-
-/**
- * Structural check only — the main process zod-validates the full shape, and
- * the gateway's own parser is what refuses a part it cannot understand. The
- * three states stay distinct here: an `unreadable` result must not be folded
- * into an empty state list on the way to the renderer, or a damaged part would
- * read as "nothing is withheld".
- */
-function parseWorkbookRedactionsResult(input: unknown): WorkbookRedactionsResult {
-  if (!isRecord(input)) throw new Error('Invalid redaction response.')
-  if (input.status === 'absent') return { status: 'absent' }
-  if (input.status === 'unreadable') {
-    if (typeof input.error !== 'string' || input.error.length === 0) {
-      throw new Error('Invalid redaction response.')
-    }
-    return { status: 'unreadable', error: input.error }
-  }
-  if (input.status !== 'ok' || !Array.isArray(input.states) || input.states.length > 1_000) {
-    throw new Error('Invalid redaction response.')
-  }
-  for (const state of input.states) {
-    if (
-      !isRecord(state) ||
-      typeof state.sheetName !== 'string' ||
-      state.sheetName.length === 0 ||
-      !Array.isArray(state.marks) ||
-      state.marks.length > 100_000
-    ) {
-      throw new Error('Invalid redaction response.')
-    }
-    for (const mark of state.marks) {
-      if (
-        !isRecord(mark) ||
-        typeof mark.startRow !== 'number' ||
-        typeof mark.endRow !== 'number' ||
-        typeof mark.startColumn !== 'number' ||
-        typeof mark.endColumn !== 'number' ||
-        typeof mark.label !== 'string' ||
-        mark.label.length === 0
-      ) {
-        throw new Error('Invalid redaction response.')
-      }
-    }
-  }
-  return input as unknown as WorkbookRedactionsResult
 }
 
 function parseCellStyle(input: unknown): WorkbookCellStyle {

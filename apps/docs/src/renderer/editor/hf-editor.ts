@@ -634,7 +634,6 @@ export function mountHfEditor(
     pageTotal: string
     /** the edited page's section page count (SECTIONPAGES); defaults to pageTotal */
     sectionPages?: string
-    spellcheck: boolean
     onCommit: (next: HeaderFooter) => void
     onExit: () => void
   },
@@ -644,7 +643,7 @@ export function mountHfEditor(
     extensions: hfSubExtensions,
     content: hfDocJson(opts.value),
     editorProps: {
-      attributes: { class: 'page-hf-editor', spellcheck: opts.spellcheck ? 'true' : 'false' },
+      attributes: { class: 'page-hf-editor', spellcheck: 'false' },
       handleKeyDown: (view, event) => {
         if (
           (event.key === 'End' || event.key === 'Home') &&

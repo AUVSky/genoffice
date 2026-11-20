@@ -9,7 +9,7 @@ export interface DefaultShapeStyle {
   stroke?: { color: string; widthPt: number }
 }
 
-const KEY = 'ai-slides-default-shape'
+const KEY = 'slides-default-shape'
 const FACTORY: DefaultShapeStyle = { fillColor: '#C43E1C' }
 
 // #RRGGBB or #RRGGBBAA (the alpha byte is how the format pane stores transparency)

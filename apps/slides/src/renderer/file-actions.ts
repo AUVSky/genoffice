@@ -7,7 +7,6 @@ import type { RenderSlide } from '@genoffice/pptx-render'
 import { shortFileError } from '@genoffice/ui'
 import type { ExportPdfLink } from '../shared/ipc'
 import { baseName } from '../shared/base-name'
-import { modelSaveAsName } from './file-naming'
 import type { ActionCtx } from './action-context'
 import { collectExportPdfLinks } from './export-links'
 import { renderSlidesToPdfPages } from './export-pages'
@@ -130,30 +129,7 @@ export async function saveAs(getCtx: () => ActionCtx): Promise<void> {
 }
 
 /**
- * Ask the model to name this deck, on request, then open Save As with its
- * answer prefilled.
- *
- * The stem goes into the dialog rather than renaming the file on disk: a deck
- * that may be open elsewhere, presented from another machine, or synced is not
- * something to move behind the reader's back. A declined or empty answer
- * leaves the dialog on the deck's current name, so this is a no-op rather than
- * a failure.
- */
-export async function nameWithAi(getCtx: () => ActionCtx): Promise<void> {
-  const ctx = getCtx()
-  // the model reads the deck, so an edit still being typed has to land first
-  const editing = ctx.editingActiveRef.current
-  await flushActiveEdit(ctx)
-  // that commit can replace the deck, so read it again rather than from the
-  // snapshot taken before the flush
-  const deck = editing ? getCtx() : ctx
-  const stem = await modelSaveAsName(deck.slides)
-  if (!stem) return
-  await saveAsWithName(getCtx, `${stem}.pptx`)
-}
-
-/**
- * Save As with a name the reader (or the model, via `nameWithAi`) chose.
+ * Save As with a name the reader chose.
  *
  * A null name means "the deck's current name", which is read inside the queue:
  * a save that landed while this call was waiting may have changed it.

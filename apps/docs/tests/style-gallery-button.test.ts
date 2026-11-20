@@ -33,7 +33,6 @@ function ribbonProps(editor: Editor) {
     onSave: noop,
     onSaveAs: noop,
     onNameWithAi: noop,
-    showAi: false,
     onCommand: commandRunner(editor),
     editTarget: { hasSelection: false, editable: true, field: false },
     section: null,

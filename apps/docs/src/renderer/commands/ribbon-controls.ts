@@ -9,7 +9,6 @@ export interface RibbonControl {
 }
 
 const RIBBON_CONTROLS = {
-  'toggle-ai': { tip: 'aiOpenAssistant' },
   bold: { tip: 'ribbonBoldTip' },
   italic: { tip: 'ribbonItalicTip' },
   underline: { tip: 'ribbonUnderlineTip' },
@@ -46,7 +45,6 @@ const RIBBON_CONTROLS = {
   'insert-icons': { tip: 'ribbonIcons', caption: 'ribbonIcons' },
   'insert-date-time': { tip: 'ribbonDateTime', caption: 'ribbonDateTime' },
   'insert-number': { tip: 'ribbonNumber', caption: 'ribbonNumber' },
-  'tools-thesaurus': { tip: 'ribbonThesaurus', caption: 'ribbonThesaurus' },
   'word-count': { tip: 'ribbonWordCount', caption: 'ribbonWordCount' },
   'tools-language': { tip: 'ribbonProofingLanguage', caption: 'ribbonProofingLanguage' },
   'file-always-read-only': { tip: 'ribbonAlwaysReadOnly', caption: 'ribbonAlwaysReadOnly' },
@@ -113,7 +111,6 @@ export const ribbonControl = (id: RibbonCommandId): RibbonControl => RIBBON_CONT
 
 /** the app state, beside the selection's formatting, that a ribbon control shows as pressed or greyed */
 export interface RibbonViewState {
-  showAi: boolean
   showMarks: boolean
   showStylesPane: boolean
   readOnlyRecommended: boolean
@@ -129,8 +126,6 @@ export function ribbonCommandPressed(
   view: RibbonViewState,
 ): boolean {
   switch (id) {
-    case 'toggle-ai':
-      return view.showAi
     case 'show-marks':
       return view.showMarks
     case 'styles-pane':

@@ -26,9 +26,6 @@ export const fr = {
   ribbonLangVietnamese: 'vietnamien',
   ribbonLangTurkish: 'turc',
   ribbonLangHungarian: 'hongrois',
-  ribbonAiCreditNote: "Fait appel à l'IA et consomme des crédits",
-  ribbonAiRewriteConfirm:
-    "Cette action fait appel à l'IA : elle consomme des crédits et peut réécrire tout le contenu. Continuer ? (Vous ne serez plus averti.)",
   ribbonTabHome: 'Accueil',
   ribbonTabDraw: 'Dessin',
   ribbonTabLayout: 'Mise en page',
@@ -86,7 +83,6 @@ export const fr = {
   ribbonOpen: 'Ouvrir…',
   ribbonSave: 'Enregistrer',
   ribbonSaveAs: 'Enregistrer sous…',
-  ribbonNameWithAi: 'Nommer avec l’IA…',
   ribbonConvert: 'Convertir',
   ribbonConvertTip: 'Convertir en PDF, HTML, Markdown ou images',
   ribbonConvertPdf: 'Convertir en PDF…',
@@ -163,7 +159,6 @@ export const fr = {
   ribbonIcons: 'Icônes',
   ribbonDateTime: 'Date et heure',
   ribbonNumber: 'Numéro',
-  ribbonThesaurus: 'Dictionnaire des synonymes',
   ribbonWordCount: 'Statistiques',
   ribbonProofingLanguage: 'Langue',
   ribbonProofingNoCheck: "Ne pas vérifier l'orthographe ou la grammaire",
@@ -308,7 +303,6 @@ export const fr = {
   ribbonReplaceTip: 'Rechercher et remplacer du texte',
   ribbonSelectAll: 'Tout sélectionner',
   ribbonSelectAllTip: 'Sélectionner tout le document',
-  ribbonAiAssistantTip: "Ouvrir l'assistant IA",
   ribbonRemoveTableStyleTip: 'Supprimer le style de tableau',
   ribbonNoStyle: 'Aucun style',
   ribbonApplyTableStyleTip: 'Appliquer le style de tableau {name}',
@@ -846,23 +840,10 @@ export const fr = {
   ribbonSourceJournalName: 'Nom de la revue',
   ribbonSourceSiteName: 'Nom du site',
   ribbonSourcePublisher: 'Éditeur',
-  ribbonEditorBtn: 'Éditeur',
-  ribbonEditorTip: "L'IA vérifie l'orthographe, la grammaire et la ponctuation",
-  ribbonEditorPrompt:
-    "Relisez tout le document : corrigez les fautes de frappe, la ponctuation et la grammaire en conservant le sens d'origine et la structure des paragraphes.",
   ribbonGroupProofing: 'Vérification',
   ribbonSpellcheckBtn: 'Orthographe',
   ribbonSpellcheckTip:
     "Vérifier l'orthographe au cours de la frappe — souligne en rouge les mots peut-être mal orthographiés",
-  ribbonTranslate: 'Traduire',
-  ribbonTranslateTip: "L'IA traduit le document",
-  ribbonTranslatePrompt:
-    'Traduisez tout le document en {lang}, en conservant la structure des paragraphes et les niveaux de titres.',
-  ribbonTranslateSelectionPrompt:
-    'Traduisez le contenu sélectionné en {lang}, en conservant la structure des paragraphes.',
-  ribbonEditorSelectionPrompt:
-    "Relisez le contenu sélectionné : corrigez les fautes de frappe, la ponctuation et la grammaire en conservant le sens d'origine et la structure des paragraphes.",
-  ribbonTranslateTo: 'Traduire en {lang}',
   ribbonGroupLanguage: 'Langue',
   ribbonNewComment: 'Nouveau commentaire',
   ribbonNewCommentTip: 'Ajouter un commentaire sur la sélection',
@@ -879,16 +860,6 @@ export const fr = {
   ribbonPrevCommentTip: 'Aller au commentaire précédent',
   ribbonNextComment: 'Suivant',
   ribbonNextCommentTip: 'Aller au commentaire suivant',
-  ribbonAiComments: 'Commentaires par IA',
-  ribbonAiRevisions: 'Résumé IA des révisions',
-  ribbonAiRevisionsTip:
-    "L'IA lit les {count} révisions en attente, résume les changements par section et signale les risques",
-  ribbonAiRevisionsPrompt:
-    "Résumez toutes les révisions en attente du document : commencez par des statistiques globales (nombre d'insertions/suppressions, auteurs, plage de dates), puis décrivez les changements section par section (citez les index de blocs), et terminez par les points de vigilance (obligations ou réserves supprimées, chiffres/dates/montants modifiés). Résumez seulement — ne modifiez pas le document et n'acceptez/rejetez aucune révision.",
-  ribbonAiCommentsTip:
-    "L'IA traite les {count} commentaires non résolus : modification, réponse, puis résolution",
-  ribbonAiCommentsPrompt:
-    'Traitez tous les commentaires non résolus du document : pour chacun, appliquez la modification demandée, répondez en décrivant le changement, puis marquez-le comme résolu ; si un commentaire est une question ou est ambigu, répondez sans modifier le document.',
   ribbonShowCommentsTip: 'Afficher les commentaires ({count})',
   ribbonShowCommentsContextual: 'Contextuel',
   ribbonShowCommentsList: 'Liste',
@@ -1279,8 +1250,6 @@ export const fr = {
   ribbonColWidthSpacing: 'Largeur et espacement',
   ribbonColNo: 'Col. n°',
   ribbonColStartNew: 'Nouvelle colonne',
-  ribbonTranslationLanguageTitle: 'Définir la langue de traduction du document',
-  ribbonTranslationLanguageLabel: 'Traduire en',
   ribbonAddTextNone: 'Ne pas afficher dans la table des matières',
   ribbonLnRestartPage: 'Recommencer à chaque page',
   ribbonLnRestartSection: 'Recommencer à chaque section',

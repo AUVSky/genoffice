@@ -21,9 +21,9 @@ const ILLEGAL_NAME_CHARS = /[/\\:*?"<>|]/g
 
 /**
  * One directory segment of a created note's path, safe to join on every
- * supported filesystem. The same replacement the AI auto-naming save path
- * uses, plus a trimmed tail: Windows refuses names that end in a dot or a
- * space, and `Note.` + `.md` would spell a double dot.
+ * supported filesystem. The same replacement the save path uses for a name
+ * taken from document content, plus a trimmed tail: Windows refuses names that
+ * end in a dot or a space, and `Note.` + `.md` would spell a double dot.
  */
 function sanitizeSegment(segment: string): string {
   const cleaned = segment.replace(ILLEGAL_NAME_CHARS, '_').replace(/[. ]+$/, '')

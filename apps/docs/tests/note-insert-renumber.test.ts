@@ -9,7 +9,7 @@ import {
   submitNote,
   type ReviewContext,
 } from '../src/renderer/review-actions'
-import { noteBlockSections, renumber } from '../src/renderer/ai/note-ops'
+import { noteBlockSections, renumber } from '../src/renderer/doc-core/note-ops'
 import { setNoteProps } from '../src/renderer/note-format'
 
 /** the in-text reference marks of one kind, in document order */

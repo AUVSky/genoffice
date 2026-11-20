@@ -10,7 +10,7 @@ import { blocksToPmDoc, pmDocToSavePlan, type PmNode } from '../src/renderer/edi
 import { Ribbon } from '../src/renderer/components/Ribbon'
 import { computeFormatState } from '../src/renderer/components/ribbon-format-state'
 import { ribbonProps } from './helpers/ribbon-props'
-import { executeOps } from '../src/renderer/ai/ops'
+import { executeOps } from '../src/renderer/doc-core/ops'
 
 const families = [
   'MiSans',

@@ -30,7 +30,6 @@ const BUILTIN = new Set(builtinModules)
  */
 const SRC_GLOBS = [
   'apps/docs/src',
-  'apps/html/src',
   'apps/markdown/src',
   'apps/pdf/src',
   'apps/sheets/src',
@@ -76,8 +75,6 @@ const NOTE = {
     'Copyright (c) Microsoft Corporation. Licensed under the MIT License.\nhttps://github.com/microsoft/fluentui-system-icons',
   '@fluentui/svg-icons':
     'Copyright (c) 2020 Microsoft Corporation. Licensed under the MIT License.\nhttps://github.com/microsoft/fluentui-system-icons',
-  '@genspark/cli':
-    'Copyright (c) Genspark. Licensed under the MIT License.\nhttps://www.npmjs.com/package/@genspark/cli',
 }
 
 /**

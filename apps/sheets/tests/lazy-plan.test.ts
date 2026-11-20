@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 
-import { planPrompt } from '../src/ai/deterministic-planner'
 import { workbookCommandBatchSchema } from '@genoffice/xlsx-gateway/domain/workbook-dsl'
 import type { CellState } from '@genoffice/xlsx-gateway/domain/workbook.types'
 import { buildLazyChangePlan, planStillMatches } from '../src/renderer/lazy-plan'
@@ -11,10 +10,23 @@ const CELLS: Record<string, CellState> = {
 }
 const readCell = (address: string): CellState => CELLS[address] ?? { value: null }
 
+const PLAN_BATCHES: Record<string, unknown[]> = {
+  'set B2 to 4242': [{ op: 'set_cell', sheetId: 'sheet-1', address: 'B2', value: 4242 }],
+  'formula C3 = MAX(A1:A9)': [
+    { op: 'set_formula', sheetId: 'sheet-1', address: 'C3', formula: '=MAX(A1:A9)' },
+  ],
+  'rename sheet to Budget 2027': [{ op: 'rename_sheet', sheetId: 'sheet-1', name: 'Budget 2027' }],
+  'rename sheet to bad[name]': [{ op: 'rename_sheet', sheetId: 'sheet-1', name: 'bad[name]' }],
+}
+
 function plan(prompt: string) {
-  const batch = workbookCommandBatchSchema.parse(
-    planPrompt(prompt, { revision: 0, sheetId: 'sheet-1' }),
-  )
+  const batch = workbookCommandBatchSchema.parse({
+    dslVersion: 1,
+    transactionId: 'tx-test',
+    baseRevision: 0,
+    summary: prompt,
+    operations: PLAN_BATCHES[prompt] ?? [],
+  })
   return buildLazyChangePlan(batch, readCell, () => 'Data')
 }
 

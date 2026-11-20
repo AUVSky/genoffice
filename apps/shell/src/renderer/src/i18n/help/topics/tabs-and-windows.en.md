@@ -1,45 +1,13 @@
-# Tabs and window management
+# Tabs and windows
 
-Every open file shares one window; the tab strip at the top switches between them, browser-style.
+Every open document is a tab in the strip at the top. The start screen is not a tab: it only appears when no document is open.
 
-![The tab strip: Home plus two documents](img/tabs.png)
+- **Switch**: click a tab, or cycle forward/back with the tab shortcuts.
+- **New**: the **+** button opens a new document or a file picker.
+- **Close**: the tab's **×**, a middle click, or ⌘W/ctrl+W. Unsaved changes prompt first.
+- **Reopen**: a closed tab can be reopened from the tab menu; the closed tab list is kept for the session.
+- **Reorder**: drag a tab along the strip.
+- **Tear off**: drag a tab away from the strip to put it in its own window; drag it back over the strip to dock it.
+- **Tab menu**: right-click a tab for Save, Save As, Print, Open in New Window, Split side by side, pin, rename, duplicate, reveal in folder and close actions.
 
-## Basics
-
-- **Switch**: click a tab, or scroll the wheel over the strip to cycle.
-- **Close**: the × on the tab, or ⌘W/ctrl+W. Unsaved changes ask first.
-- **New**: the + at the right end of the strip.
-- **Activation is immediate**: pressing a tab switches as soon as it is pressed, without waiting for the click to finish.
-
-## Rename: double-click a tab
-
-**Double-click any file tab** and the title turns into an inline input: Enter commits, Escape cancels, blur commits; the Enter that confirms an IME candidate is not mistaken for a commit. The rename goes through the same safety checks as Home's row rename (illegal characters, name conflicts), renames the file on disk and refreshes the recents list.
-
-## Drag to reorder
-
-Hold and drag a tab sideways to reorder; neighbours slide aside live and the order settles on release. A 4-pixel dead zone keeps plain clicks from wiggling tabs.
-
-## Context menu
-
-Right-click a tab for **Open in New Window** — offered on every document tab that can be torn off — and **Close**, greyed out on a tab that cannot be closed. Both follow the app language.
-
-## Tear off into a window
-
-**Drag a tab out of the strip** (or use Open in new window) and it becomes its own window carrying the live document; drag it back to dock it into the strip again. A detached window is a full peer — keep editing and saving there.
-
-## The all-tabs list
-
-When tabs overflow, the small tab-bar icon at the right end of the strip opens the full list (a native menu, never covered by the content area); pick with the arrow keys.
-
-## The toolbar row inside every editor
-
-Each editor tab has a toolbar row at the top (exact layout varies a little per editor):
-
-- **Save** (⌘S/ctrl+S) and **Save As**.
-- **Undo / Redo**: multi-level; each editor keeps its own history.
-- **Find** (ctrl+F): opens that editor's find panel.
-- **AutoSave** toggle: when on, changes are written to disk on a timer; when off, only manual saves write (the unsaved marker on the tab/title reminds you).
-
-## The Home tab
-
-The leftmost Home tab cannot be closed; to get back from any editor, click it or use File ▸ **Back to Home**.
+When the last document closes, the start screen returns. **File ▸ Back to Home** goes there directly.

@@ -1,21 +1,6 @@
 import type { zh } from './zh'
 
 export const tr = {
-  // ── Withholding cells from the model ──
-  redactMenuLabel: 'Seçimi AI’dan gizle',
-  redactDialogDesc:
-    'Seçim belgede ve dosyada kalır; model bunun yerine aşağıdaki yer tutucuyu görür. Modelin neyi temsil ettiğini bilmesi için adlandırın.',
-  redactDialogScope:
-    'Gizleme bu uygulamanın AI’sını kapsar. CLI, MCP araçları ve başsız dışa aktarma dosyayı doğrudan okur ve bu sözcükleri yine görür.',
-  redactDialogPlaceholder: 'Yer tutucu adı, örn. müşteri telefonu',
-  redactCancel: 'İptal',
-  redactInsert: 'Gizle',
-  redactEnable: 'Modelden gizlemek için bir seçime sağ tıklayın.',
-  redactNeedsSavedRow:
-    'Bu satır henüz dosyada değil. Önce kaydedin, sonra içindeki bir hücreyi gizleyin.',
-  redactRecoveredFromNames:
-    'Başka bir uygulama bu dosyayı yeniden yazdı ve gizlenenlerin kaydını düşürdü. Gizli hücreler çalışma kitabındaki adlardan kurtarıldı; kaydetmek tam kaydı geri yükler.',
-
   appMergeWorkbooks: 'Çalışma Kitaplarını Birleştir',
   appMergeWorkbooksTip: 'Diğer Excel dosyalarındaki sayfaları bu çalışma kitabına ekle',
   appMergeWorkbooksPicking: 'Birleştirilecek dosyaları seçin…',
@@ -159,15 +144,11 @@ export const tr = {
   appRefresh: 'Yenile',
   appRefreshHintIn: 'Geçerli PivotTable’ı yeniden hesapla',
   appRefreshHintOut: 'Önce PivotTable alanını seçin, sonra yenileyin',
-  appAttachmentReadFailed: '{name}: okunamadı',
   appTooManyImages: 'Mesaj başına en çok {max} görsel; fazlası yok sayıldı',
-  appAppliedRevision:
-    'Uygulandı (revizyon {revision}) — ⌘Z ile geri alın, ⌘S ile dosyaya kaydedin.',
   appCannotReadImage: 'Görsel dosyası okunamıyor.',
   appTableNotDeletable:
     '"{name}" tablosu yok veya bu oturumda oluşturulmadı — dosyada zaten bulunan tablolar henüz silinemez.',
   appImageNotLoaded: 'Görsel yüklenemedi: {path}',
-  appApplyFailed: '⚠️ Uygulanamadı: {reason}',
   appPivotChartNeedsFile: 'Önce bir XLSX dosyası açın — PivotChart dosyaya yazılır.',
   appCursorNotInPivot:
     'İmleç bir PivotTable içinde değil — önce PivotTable çıktısında bir hücre seçin.',
@@ -307,16 +288,7 @@ export const tr = {
   appSavedTwoPhase: 'Kaydedildi.',
   appSaveSecondFailed:
     'Yapı kaydedildi ancak ikinci aşama (PivotTable’lar/tablolar/tanımlı adlar) başarısız oldu: {reason}',
-  appReadyInitial: 'Yerel, belirlenimci bir AI komutu için hazır.',
-  appAiThinking: 'AI düşünüyor…',
-  appAiDone: 'AI tamamladı',
-  appAiTurnLimit:
-    '(Bu istek için araç çağrısı tur sınırına ulaşıldı; yukarıdaki yanıt şu ana kadar okunanlara dayanır ve eksik olabilir.)',
-  appAiTruncatedNote: '(Yanıt uzunluk sınırı nedeniyle kesildi ve eksik olabilir.)',
-  appAiStopped: '(durduruldu)',
-  appAiNoSummary: 'AI özet vermeden tamamladı.',
-  appAiNoAction:
-    'AI hiçbir değişiklik yapmadı ve yanıt vermedi. Yeniden deneyin veya farklı ifade edin.',
+  appReadyInitial: 'Hazır.',
   appNewConversation: 'Yeni sohbet başlatıldı.',
   appPivotCellNoEdit: 'Bu hücre bir PivotTable’ın parçası — düzenlenmesi henüz desteklenmiyor.',
   appAreaStreaming: 'O alan hâlâ akışla yükleniyor — birazdan yeniden düzenlemeyi deneyin.',
@@ -360,16 +332,8 @@ export const tr = {
   appDvListOptions: 'Liste: {items}',
   appDvListFromRange: 'Liste ({range} aralığından)',
   appRuleBrokenRef: 'Bozuk başvuru (#REF!) — bu kural hiçbir zaman uygulanamaz',
-  appCellStreaming: 'O hücre hâlâ akışla yükleniyor — birazdan yeniden deneyin.',
-  appPreviewCreated: 'Önizleme oluşturuldu — siz uygulayana kadar hiçbir şey değişmez.',
-  appPreviewCreatedDemo: 'Önizleme oluşturuldu. Çalışma kitabı durumu değişmedi.',
-  appPreviewFailed: 'Önizleme oluşturulamıyor.',
   appApplyTxFailed: 'İşlem uygulanamıyor.',
   appTxCommitted: 'İşlem {revision} revizyonunda işlendi.',
-  appPreviewOtherWorkbook: 'Önizleme farklı bir çalışma kitabına aitti — yenisini oluşturun.',
-  appPreviewSheetGone: 'Önizlenen sayfa artık yok — yeni bir önizleme oluşturun.',
-  appWorkbookChangedSincePreview:
-    'Çalışma kitabı önizlemeden sonra değişti — yeni bir önizleme oluşturun.',
   appAppliedJournaled: 'Uygulandı — değişiklikler günlüğe alındı; ⌘S ile kaydedin.',
   appUndoCommitted: 'Geri alma {revision} revizyonu olarak işlendi.',
   appUndoFailed: 'Geri alınamıyor.',
@@ -651,8 +615,6 @@ export const tr = {
   appShowCommentsTitle: 'Seçili hücrenin açıklama balonunu sabitle/çöz',
   appStructuralShiftBlocked:
     'Bu sayfadaki bir grafik veya tablo etkilenen satırlara/sütunlara bağlı olduğundan kaydırılamazlar; yapısal değişiklik kaydedilmedi. Geri alıp (Cmd+Z) yeniden kaydedin.',
-  appAiChangesNotSaved:
-    'AI değişiklikleri uygulandı (kaydedilmedi). Cmd+Z ile geri alın; Cmd+S ile dosyaya kaydedin.',
   appChartUpdated: 'Grafik güncellendi.',
   appChartNotEditable: 'Bu grafik düzenlenemez.',
   appChartEditRecorded: 'Grafik düzenlemesi kaydedildi — ⌘S ile kaydedin.',
@@ -736,7 +698,6 @@ export const tr = {
   appRibbonExpand: 'Şeridi Genişlet',
   appRibbonCompact: 'Sıkışık Şerit (yalnızca simgeler)',
   appTabView: 'Görünüm',
-  appTabAi: 'AI',
   appTabChartDesign: 'Grafik Tasarımı',
   appAutoSave: 'Otomatik Kaydet',
   appAutoSaveTitle: 'Otomatik Kaydet yalnızca bulut dosyaları için kullanılabilir',
@@ -744,7 +705,6 @@ export const tr = {
   appExportPdfTitle: 'PDF olarak dışa aktar',
   appSaveTitle: 'Kaydet (⌘S)',
   appSaveAs: 'Farklı Kaydet',
-  aiNameFile: 'AI ile adlandır',
   appUndo: 'Geri Al',
   appRedo: 'Yinele',
   appUnsavedEditOne: '● {count} kaydedilmemiş düzenleme',
@@ -754,8 +714,6 @@ export const tr = {
   appRevisionChip: 'Revizyon {revision}',
   appOpenWorkbookTitle: 'Çalışma Kitabı Aç (⌘O)',
   appOpenXlsx: 'XLSX Aç',
-  appHideAi: 'AI’yı Gizle',
-  appShowAi: 'AI’yı Göster',
   appCategoryAxisTitle: 'Kategori Ekseni Başlığı',
   appValueAxisTitle: 'Değer Ekseni Başlığı',
   appTitleText: 'Başlık metni',
@@ -824,10 +782,6 @@ export const tr = {
   appFormatPaneDetail: 'Eksen, boşluk genişliği, ayırma',
   appGroupChartActions: 'Grafik eylemleri',
   appRemoveFromSheet: 'Sayfadan kaldır',
-  appGroupAiAssistant: 'AI asistanı',
-  appAiOpenPanelDetail: 'Sohbet kenar çubuğu',
-  appGroupAiStarters: 'Hızlı başlangıç',
-  appAiStarterDetail: 'AI paneline gönder',
   appGroupTables: 'Tablolar',
   appFromSelection: 'Seçimden',
   appEditPivotTable: 'PivotTable’ı Düzenle',
@@ -1330,11 +1284,7 @@ export const tr = {
   appGroupProofing: 'Yazım',
   appWorkbookStatsLabel: 'Çalışma Kitabı İstatistikleri',
   appSheetsCellsFormulas: 'Sayfalar, hücreler, formüller',
-  appTranslate: 'Çevir',
   appGroupLanguage: 'Dil',
-  appTranslateTitle: 'Seçimi AI ile çevir',
-  appTranslatePrompt:
-    'Seçili aralıktaki metni {language} diline çevir ve çevirileri aynı hücrelere geri yaz.',
   appNewCommentDetail: 'Ekle veya düzenle',
   appDeleteLabel: 'Sil',
   appNoteAtSelection: 'Seçimdeki not',

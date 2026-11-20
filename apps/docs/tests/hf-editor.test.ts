@@ -35,7 +35,6 @@ function mount(value: HeaderFooter, onCommit: (next: HeaderFooter) => void = () 
     value,
     pageNo: '3',
     pageTotal: '9',
-    spellcheck: false,
     onCommit,
     onExit: () => host.remove(),
   })

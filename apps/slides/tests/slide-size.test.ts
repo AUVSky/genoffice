@@ -67,9 +67,9 @@ describe('defaultNewSlideSize', () => {
   })
 
   it('ignores a corrupt or out-of-range entry', () => {
-    localStorage.setItem('ai-slides-default-size', '{not json')
+    localStorage.setItem('slides-default-size', '{not json')
     expect(defaultNewSlideSize()).toBeNull()
-    localStorage.setItem('ai-slides-default-size', JSON.stringify({ cx: 10, cy: 7560000 }))
+    localStorage.setItem('slides-default-size', JSON.stringify({ cx: 10, cy: 7560000 }))
     expect(defaultNewSlideSize()).toBeNull()
   })
 })

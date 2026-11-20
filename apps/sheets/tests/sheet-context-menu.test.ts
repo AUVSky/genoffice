@@ -111,7 +111,7 @@ describe('sheet context menu action', () => {
     })
   })
 
-  it('ignores right-clicks outside the spreadsheet (ribbon, AI panel)', () => {
+  it('ignores right-clicks outside the spreadsheet (ribbon, dialogs)', () => {
     const ribbon = el('button', 'header|class=excel-header')
     expect(sheetContextMenuAction(ribbon)).toEqual({
       statsMenu: false,

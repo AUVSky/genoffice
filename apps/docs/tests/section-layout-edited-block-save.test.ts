@@ -10,7 +10,7 @@ import {
 } from '@genoffice/docx-engine'
 import { buildDocx } from '../../../packages/docx-engine/tests/helpers/build-docx'
 import { blocksToPmDoc, pmDocToSavePlan, type PmNode } from '../src/renderer/editor/convert'
-import { executeTool } from '../src/renderer/ai/tools'
+import { executeOps } from '../src/renderer/doc-core/ops'
 import { applySectPrRewrites } from '../src/renderer/sectpr-rewrite'
 
 /**
@@ -19,8 +19,6 @@ import { applySectPrRewrites } from '../src/renderer/sectpr-rewrite'
  * rawPPr. A Layout / set_page_setup change on that section must still reach
  * the file, whether or not the paragraph itself was edited in the same session.
  */
-
-const NUM_IDS = { bullet: null, ordered: null }
 
 const SECTION_P =
   '<w:p><w:pPr><w:sectPr><w:type w:val="nextPage"/><w:pgSz w:w="12240" w:h="15840"/>' +
@@ -46,8 +44,8 @@ async function saveWithLayoutChange(ops: unknown[]) {
   })
   editor.commands.setContent(blocksToPmDoc(parsed.blocks) as never)
   if (ops.length > 0) {
-    const exec = await executeTool(editor, { id: 't', name: 'apply_ops', input: { ops } }, NUM_IDS)
-    expect(exec.isError).toBeFalsy()
+    const exec = executeOps(editor, ops)
+    expect(exec.ok).toBe(true)
   }
   const plan = pmDocToSavePlan(editor.getJSON() as PmNode, parsed.blocks)
   editor.destroy()

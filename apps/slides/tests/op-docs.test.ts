@@ -1,6 +1,6 @@
 /**
  * Op docs ↔ registry coverage: the markdown docs (prompts/ops/*.md, parsed
- * into OP_DOCS) are the single source the AI surfaces consume, so they must
+ * into OP_DOCS) are the single source the edit surfaces consume, so they must
  * track the registry exactly — a new op without a doc block (or a block for a
  * removed op) fails here, not in production.
  */

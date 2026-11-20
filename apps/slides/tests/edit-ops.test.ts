@@ -419,7 +419,7 @@ describe('media bytes over JSON (base64 / data URL)', () => {
     'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
   const offset = { x: 0, y: 0, cx: 914400, cy: 914400 }
 
-  it('addPicture accepts a base64 string (the AI tool channel cannot carry binary)', () => {
+  it('addPicture accepts a base64 string (the insert channel cannot carry binary)', () => {
     const r = runTxn(opened, {
       ops: [{ op: 'addPicture', target: { slide: 0 }, bytes: PNG_B64, ext: 'png', offset }],
     })
@@ -559,7 +559,7 @@ describe('per_op isolation and dry-run', () => {
 })
 
 describe('setText on a shape that has no text body', () => {
-  /** Strip the <p:txBody> the insert helper writes: AI/converter output and shapes
+  /** Strip the <p:txBody> the insert helper writes: converter output and shapes
    *  whose text was deleted elsewhere reach us with no text body at all. */
   const stripTxBody = (xml: string) => xml.replace(/<p:txBody>[\s\S]*<\/p:txBody>/, '')
 

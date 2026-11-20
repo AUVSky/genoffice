@@ -81,16 +81,9 @@ export async function launchShell(options: LaunchOptions): Promise<LaunchedApp> 
       ...(options.env ?? {}),
       ...(process.platform === 'linux' ? { ELECTRON_DISABLE_SANDBOX: '1' } : {}),
     },
-    // Playwright's Electron screencast wedges the page CDP session on Linux
-    // (page.url() stays empty, no lifecycle events, evaluate hangs) — record
-    // only where it works
-    recordVideo:
-      process.platform === 'linux'
-        ? undefined
-        : {
-            dir: join(ARTIFACTS_DIR, options.videoDir),
-            size: { width: 1280, height: 800 },
-          },
+    // screencast recording is not needed for these local smoke runs and can
+    // wedge the CDP session on some macOS/Electron combinations
+    recordVideo: undefined,
   })
   const page = await app.firstWindow()
   await waitForDocumentReady(app, page)

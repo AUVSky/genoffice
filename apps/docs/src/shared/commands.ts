@@ -21,7 +21,6 @@ export const COMMANDS = {
   'open-path': {},
   save: { menuKey: 'menuSave', accelerator: 'CmdOrCtrl+S' },
   'save-as': { menuKey: 'menuSaveAs', accelerator: 'Shift+CmdOrCtrl+S' },
-  'name-with-ai': {},
   undo: { menuKey: 'menuUndo', accelerator: 'CmdOrCtrl+Z' },
   redo: { menuKey: 'menuRedo', accelerator: 'Shift+CmdOrCtrl+Z' },
   // the menu shows it as Redo, Repeat or Can't Repeat, by what it would do
@@ -66,7 +65,6 @@ export const COMMANDS = {
   'toggle-navigation': { menuKey: 'menuNavigation', toggle: true },
   'split-view': {},
   'new-window': {},
-  'toggle-ai': { menuKey: 'menuAiSidebar', toggle: true },
   'toggle-dark': { menuKey: 'menuDarkMode', toggle: true },
   'insert-table': { menuKey: 'menuInsertTable' },
   'insert-image': { menuKey: 'menuInsertImage' },
@@ -126,12 +124,6 @@ export const COMMANDS = {
   'insert-link': { menuKey: 'menuInsertLink', accelerator: 'CmdOrCtrl+K' },
   'insert-equation': { menuKey: 'menuInsertEquation' },
   'insert-comment': { menuKey: 'menuComment' },
-  'tools-spelling': { menuKey: 'menuSpellingDialog', accelerator: 'Alt+CmdOrCtrl+L' },
-  'toggle-spellcheck': {},
-  // the same switch as toggle-spellcheck, ticked while checking is off, as Word words it
-  'tools-hide-spelling': { menuKey: 'menuHideSpellingErrors', toggle: true },
-  // there is no grammar checking whose marks could be hidden
-  'tools-hide-grammar': { menuKey: 'menuHideGrammarErrors', planned: true },
   'delete-comment': {},
   'comment-resolve': {},
   'comment-reply': {},
@@ -153,12 +145,7 @@ export const COMMANDS = {
   'review-pane': { menuKey: 'menuReviewing', toggle: true },
   'compare-documents': { menuKey: 'menuCompareDocuments' },
   'protect-document': { menuKey: 'menuProtectDocument' },
-  'tools-reset-ignored': { menuKey: 'menuResetIgnoredWords' },
-  'tools-thesaurus': { menuKey: 'menuThesaurus' },
   'tools-hyphenation': { menuKey: 'menuHyphenation' },
-  'tools-translate-selection': { menuKey: 'menuTranslateSelection' },
-  'tools-translate-document': { menuKey: 'menuTranslateDocument' },
-  'tools-translation-language': { menuKey: 'menuSetTranslationLanguage' },
   'tools-language': { menuKey: 'menuLanguage' },
   'tools-combine-documents': { menuKey: 'menuCombineDocuments' },
   'tools-envelopes': { menuKey: 'menuEnvelopes' },
@@ -254,7 +241,6 @@ export const COMMANDS = {
   'list-style-delete': {},
   'list-dialog': {},
   'apply-style': {},
-  'ai-preset': {},
   numbering: {},
   'direction-ltr': {},
   'direction-rtl': {},
@@ -352,7 +338,6 @@ export const COMMANDS = {
   'table-style': {},
   'table-look': {},
   'table-preset': {},
-  'ai-proofread': { menuKey: 'menuAiProofread' },
   shortcuts: { menuKey: 'menuShortcuts', accelerator: 'CmdOrCtrl+/' },
 } as const satisfies Record<string, CommandDef>
 

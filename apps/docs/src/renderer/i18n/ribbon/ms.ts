@@ -26,9 +26,6 @@ export const ms = {
   ribbonLangVietnamese: 'Vietnam',
   ribbonLangTurkish: 'Turki',
   ribbonLangHungarian: 'Hungary',
-  ribbonAiCreditNote: 'Menggunakan AI dan menggunakan kredit',
-  ribbonAiRewriteConfirm:
-    'Tindakan ini memanggil AI: menggunakan kredit dan mungkin menulis semula keseluruhan kandungan. Teruskan? (Tidak akan ditanya lagi.)',
   ribbonTabHome: 'Laman Utama',
   ribbonTabDraw: 'Lukis',
   ribbonTabLayout: 'Tataletak',
@@ -86,7 +83,6 @@ export const ms = {
   ribbonOpen: 'Buka…',
   ribbonSave: 'Simpan',
   ribbonSaveAs: 'Simpan Sebagai…',
-  ribbonNameWithAi: 'Namakan dengan AI…',
   ribbonConvert: 'Tukar',
   ribbonConvertTip: 'Tukar kepada PDF, HTML, Markdown atau imej',
   ribbonConvertPdf: 'Tukar kepada PDF…',
@@ -161,7 +157,6 @@ export const ms = {
   ribbonIcons: 'Ikon',
   ribbonDateTime: 'Tarikh & Masa',
   ribbonNumber: 'Nombor',
-  ribbonThesaurus: 'Tesaurus',
   ribbonWordCount: 'Kiraan Perkataan',
   ribbonProofingLanguage: 'Bahasa',
   ribbonProofingNoCheck: 'Jangan semak ejaan atau tatabahasa',
@@ -306,7 +301,6 @@ export const ms = {
   ribbonReplaceTip: 'Cari dan ganti teks',
   ribbonSelectAll: 'Pilih Semua',
   ribbonSelectAllTip: 'Pilih seluruh dokumen',
-  ribbonAiAssistantTip: 'Buka pembantu AI',
   ribbonRemoveTableStyleTip: 'Alih keluar gaya jadual',
   ribbonNoStyle: 'Tiada Gaya',
   ribbonApplyTableStyleTip: 'Gunakan gaya jadual {name}',
@@ -840,23 +834,10 @@ export const ms = {
   ribbonSourceJournalName: 'Nama Jurnal',
   ribbonSourceSiteName: 'Nama Laman',
   ribbonSourcePublisher: 'Penerbit',
-  ribbonEditorBtn: 'Editor',
-  ribbonEditorTip: 'AI menyemak ejaan, tatabahasa dan tanda baca',
-  ribbonEditorPrompt:
-    'Semak keseluruhan dokumen: betulkan kesalahan taip, tanda baca dan tatabahasa tanpa mengubah maksud asal dan struktur perenggan.',
   ribbonGroupProofing: 'Pembacaan Pruf',
   ribbonSpellcheckBtn: 'Ejaan',
   ribbonSpellcheckTip:
     'Semak ejaan semasa menaip — menggariskan merah perkataan yang mungkin salah eja',
-  ribbonTranslate: 'Terjemah',
-  ribbonTranslateTip: 'AI menterjemah dokumen',
-  ribbonTranslatePrompt:
-    'Terjemahkan keseluruhan dokumen ke {lang}, sambil mengekalkan struktur perenggan dan aras tajuk.',
-  ribbonTranslateSelectionPrompt:
-    'Terjemahkan kandungan yang dipilih ke {lang}, sambil mengekalkan struktur perenggan.',
-  ribbonEditorSelectionPrompt:
-    'Semak kandungan yang dipilih: betulkan kesalahan taip, tanda baca dan tatabahasa tanpa mengubah maksud asal dan struktur perenggan.',
-  ribbonTranslateTo: 'Terjemah kepada {lang}',
   ribbonGroupLanguage: 'Bahasa',
   ribbonNewComment: 'Komen Baharu',
   ribbonNewCommentTip: 'Tambah komen pada pilihan',
@@ -873,16 +854,6 @@ export const ms = {
   ribbonPrevCommentTip: 'Pergi ke komen sebelumnya',
   ribbonNextComment: 'Seterusnya',
   ribbonNextCommentTip: 'Pergi ke komen seterusnya',
-  ribbonAiComments: 'Komen dengan AI',
-  ribbonAiRevisions: 'Ringkasan semakan AI',
-  ribbonAiRevisionsTip:
-    'AI membaca {count} semakan tertunda, meringkaskan perubahan mengikut bahagian dan menandakan risiko',
-  ribbonAiRevisionsPrompt:
-    'Ringkaskan semua semakan tertunda dalam dokumen: mulakan dengan statistik keseluruhan (bilangan sisipan/pemadaman, pengarang, julat tarikh), kemudian terangkan perubahan bahagian demi bahagian (nyatakan indeks blok), dan akhiri dengan senarai perkara yang perlu diberi perhatian (kewajipan atau syarat yang dipadamkan, nombor/tarikh/amaun yang diubah). Ringkaskan sahaja — jangan ubah dokumen atau terima/tolak sebarang semakan.',
-  ribbonAiCommentsTip:
-    'AI memproses {count} komen yang belum selesai: ubah, balas, kemudian selesaikan',
-  ribbonAiCommentsPrompt:
-    'Uruskan semua komen yang belum selesai dalam dokumen: bagi setiap satu, buat perubahan yang diminta, balas dengan menerangkan perubahan, kemudian tandakan selesai; jika komen berupa soalan atau kabur, balas sahaja tanpa mengubah dokumen.',
   ribbonShowCommentsTip: 'Tunjukkan komen ({count})',
   ribbonShowCommentsContextual: 'Kontekstual',
   ribbonShowCommentsList: 'Senarai',
@@ -1268,8 +1239,6 @@ export const ms = {
   ribbonColWidthSpacing: 'Lebar dan jarak',
   ribbonColNo: 'No. lajur',
   ribbonColStartNew: 'Mulakan lajur baharu',
-  ribbonTranslationLanguageTitle: 'Tetapkan Bahasa Terjemahan Dokumen',
-  ribbonTranslationLanguageLabel: 'Terjemah kepada',
   ribbonAddTextNone: 'Jangan Tunjukkan dalam Jadual Kandungan',
   ribbonLnRestartPage: 'Mula Semula Setiap Halaman',
   ribbonLnRestartSection: 'Mula Semula Setiap Seksyen',

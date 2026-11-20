@@ -1,16 +1,6 @@
 import type { zh } from './zh'
 
 export const tr = {
-  redactMenuLabel: 'Seçimi AI’dan gizle',
-  redactDialogDesc:
-    'Seçim belgede ve dosyada kalır; model bunun yerine aşağıdaki yer tutucuyu görür. Modelin neyi temsil ettiğini bilmesi için adlandırın.',
-  redactDialogScope:
-    'Gizleme bu uygulamanın AI’sını kapsar. CLI, MCP araçları ve başsız dışa aktarma dosyayı doğrudan okur ve bu sözcükleri yine görür.',
-  redactDialogPlaceholder: 'Yer tutucu adı, örn. müşteri telefonu',
-  redactCancel: 'İptal',
-  redactInsert: 'Gizle',
-  redactEnable: 'Bir seçimi modelden gizlemek için sağ tıklayın.',
-
   appPhPromptTitle: 'Başlık eklemek için tıklayın',
   appPhPromptSubtitle: 'Alt başlık eklemek için tıklayın',
   appPhPromptBody: 'Metin eklemek için tıklayın',
@@ -266,8 +256,6 @@ export const tr = {
   appNotesPlaceholder: 'Konuşmacı notu eklemek için tıklayın (.pptx içine kaydedilir)',
   appNotesShow: 'Notları göster',
   appNotesHide: 'Notları gizle',
-  appAiRailExpand: 'AI asistanı genişlet',
-  appAiRailText: 'AI',
   appStatusBarSlide: 'Slayt {current} / {total}',
   appStatusBarReady: 'Hazır',
   appMediaCloseTitle: 'Kapat (Esc)',
@@ -283,14 +271,7 @@ export const tr = {
   appStatusRecordSaved: 'Anlatım {count} slayta kaydedildi (PowerPoint de oynatır)',
   appStatusRecordFailed: 'Kayıt kaydedilemedi',
   appStatusNarrationCleared: 'Anlatım temizlendi',
-  appSettingsTitle: 'AI Ayarları',
-  appSettingsAccount: 'Genspark Hesabı',
   appSettingsChecking: 'Denetleniyor…',
-  appSettingsLoggedIn: 'Oturum açıldı',
-  appSettingsLoggedInEmail: 'Oturum açıldı: {email}',
-  appSettingsLoggedOut: 'Oturum açılmadı (AI özellikleri Genspark hesabı gerektirir)',
-  appSettingsLoginPending: 'Tarayıcıda oturum açma bekleniyor…',
-  appSettingsLogin: 'Genspark’a giriş yap',
   appSettingsModel: 'Model',
   appSettingsCancel: 'İptal',
   appSettingsSave: 'Kaydet',

@@ -51,7 +51,7 @@ export function notesDraftIndex(
 }
 
 /**
- * The draft after the deck was replaced under it (AI batch, restore): dropped
+ * The draft after the deck was replaced under it (batch replace, restore): dropped
  * when its slide is gone or the stored notes changed since typing began,
  * re-indexed when the slide moved, otherwise unchanged.
  */

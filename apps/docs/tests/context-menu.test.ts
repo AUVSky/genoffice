@@ -12,7 +12,6 @@ import {
   ParagraphDialog,
 } from '../src/renderer/components/ContextMenu'
 import { insertTableAt } from '../src/renderer/components/ribbon-tabs'
-import { TRANSLATE_LANGS } from '../src/renderer/components/translate-langs'
 
 function createEditor(paraAttrs: Record<string, unknown> = {}): Editor {
   return new Editor({
@@ -135,38 +134,6 @@ describe('EditorContextMenu', () => {
     expect(onClose).toHaveBeenCalled()
     act(() => byLabel('Font…').click())
     expect(onCommand).toHaveBeenLastCalledWith('font-dialog')
-    unmount()
-    editor.destroy()
-  })
-
-  it('sends the selected text to the AI panel for Synonyms', () => {
-    const editor = createEditor()
-    select(editor, 1, 4)
-    const onCommand = vi.fn()
-    const { container, unmount } = render(
-      createElement(EditorContextMenu, menuProps(editor, { onCommand })),
-    )
-    const synonym = [...container.querySelectorAll<HTMLButtonElement>('.ctx-item')].find(
-      (b) => b.querySelector('.ctx-label')?.textContent === 'Synonyms',
-    )!
-    expect(synonym.disabled).toBe(false)
-    act(() => synonym.click())
-    expect(onCommand).toHaveBeenCalledOnce()
-    expect(onCommand.mock.calls[0][0]).toBe('ai-preset')
-    expect(String(onCommand.mock.calls[0][1])).toContain('EVs')
-    unmount()
-    editor.destroy()
-  })
-
-  it('marks AI-backed items (Synonyms/Translate) with the copilot badge', () => {
-    const editor = createEditor()
-    select(editor, 1, 4)
-    const { container, unmount } = render(createElement(EditorContextMenu, menuProps(editor)))
-    const badged = [...container.querySelectorAll<HTMLButtonElement>('.ctx-item')]
-      .filter((b) => b.querySelector('.copilot-badge'))
-      .map((b) => b.querySelector('.ctx-label')?.textContent)
-    expect(badged).toContain('Synonyms')
-    expect(badged).toContain('Translate')
     unmount()
     editor.destroy()
   })
@@ -459,32 +426,6 @@ describe('EditorContextMenu — Word hyperlink / field / spelling items', () => 
     unmount()
     editor.destroy()
   })
-
-  it('lists Ignore All before Add to Dictionary and routes it to the session skip list', async () => {
-    const editor = createEditor()
-    const spellIgnoreWord = vi.fn(() => Promise.resolve(true))
-    const spellAddWord = vi.fn(() => Promise.resolve(true))
-    Object.assign(window.desktop, { spellIgnoreWord, spellAddWord })
-    const onRespell = vi.fn()
-    const { container, unmount } = render(
-      createElement(
-        EditorContextMenu,
-        menuProps(editor, {
-          menu: { x: 10, y: 10, pos: 2, spell: { word: 'EVs', suggestions: ['Eve'] } },
-          onRespell,
-        }),
-      ),
-    )
-    const names = labels(container)
-    expect(names.slice(0, 3)).toEqual(['Eve', 'Ignore All', 'Add to Dictionary'])
-    act(() => byLabel(container, 'Ignore All')!.click())
-    expect(spellIgnoreWord).toHaveBeenCalledWith('EVs')
-    expect(spellAddWord).not.toHaveBeenCalled()
-    await act(async () => {})
-    expect(onRespell).toHaveBeenCalled()
-    unmount()
-    editor.destroy()
-  })
 })
 
 describe('EditorContextMenu \u2014 table items run the shared table commands', () => {
@@ -514,104 +455,6 @@ describe('EditorContextMenu \u2014 table items run the shared table commands', (
     act(() => byLabel('Table Properties').click())
     expect(onCommand).toHaveBeenLastCalledWith('table-properties')
     unmount()
-    editor.destroy()
-  })
-})
-
-describe('EditorContextMenu — submenu viewport fit (genoffice translate menu)', () => {
-  const byLabel = (container: Element, label: string) =>
-    [...container.querySelectorAll<HTMLButtonElement>('.ctx-item')].find(
-      (b) => b.querySelector('.ctx-label')?.textContent === label,
-    )!
-
-  function openTranslate(container: HTMLElement) {
-    const translate = byLabel(container, 'Translate')
-    act(() => {
-      // React synthesizes onMouseEnter from bubbling mouseover
-      translate.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }))
-      translate.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }))
-    })
-    return container.querySelector<HTMLDivElement>('.ctx-submenu')!
-  }
-
-  it('opens the Translate submenu with every language, scrollable', () => {
-    const editor = createEditor()
-    select(editor, 1, 4)
-    const { container, unmount } = render(createElement(EditorContextMenu, menuProps(editor)))
-    const submenu = openTranslate(container)
-    expect(submenu).not.toBeNull()
-    const langs = submenu.querySelectorAll('.ctx-item').length
-    expect(langs).toBe(TRANSLATE_LANGS.length)
-    // the fit logic caps the box and scrolls the rest
-    expect(submenu.classList.contains('ctx-submenu-scroll')).toBe(true)
-    unmount()
-    editor.destroy()
-  })
-
-  it('shifts a submenu up when the opening item sits near the window bottom', () => {
-    const editor = createEditor()
-    select(editor, 1, 4)
-    const realRect = HTMLElement.prototype.getBoundingClientRect
-    HTMLElement.prototype.getBoundingClientRect = function () {
-      if (this instanceof Element && this.classList.contains('ctx-submenu')) {
-        // opens 600px down, 200px tall: the bottom edge (800) passes the 768px window
-        return {
-          top: 600,
-          bottom: 800,
-          height: 200,
-          left: 0,
-          right: 200,
-          width: 200,
-          x: 0,
-          y: 600,
-          toJSON: () => ({}),
-        } as DOMRect
-      }
-      return realRect.call(this)
-    }
-    try {
-      const { container, unmount } = render(createElement(EditorContextMenu, menuProps(editor)))
-      const submenu = openTranslate(container)
-      // bottom-aligned to the window edge (760): top = 760 - 200 - 600 - 5
-      expect(submenu.style.top).toBe('-45px')
-      unmount()
-    } finally {
-      HTMLElement.prototype.getBoundingClientRect = realRect
-    }
-    editor.destroy()
-  })
-
-  it('anchors a taller-than-the-window submenu to the top and scrolls it', () => {
-    const editor = createEditor()
-    select(editor, 1, 4)
-    const realRect = HTMLElement.prototype.getBoundingClientRect
-    HTMLElement.prototype.getBoundingClientRect = function () {
-      if (this instanceof Element && this.classList.contains('ctx-submenu')) {
-        return {
-          top: 500,
-          bottom: 5000,
-          height: 4500,
-          left: 0,
-          right: 200,
-          width: 200,
-          x: 0,
-          y: 500,
-          toJSON: () => ({}),
-        } as DOMRect
-      }
-      return realRect.call(this)
-    }
-    try {
-      const { container, unmount } = render(createElement(EditorContextMenu, menuProps(editor)))
-      const submenu = openTranslate(container)
-      // rising any further would poke out the top: anchored at the 8px margin,
-      // the rest scrolls (maxHeight = window 768 - top margin 8 - bottom margin 8)
-      expect(submenu.style.top).toBe('-497px')
-      expect(submenu.style.maxHeight).toBe('752px')
-      unmount()
-    } finally {
-      HTMLElement.prototype.getBoundingClientRect = realRect
-    }
     editor.destroy()
   })
 })

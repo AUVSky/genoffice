@@ -1,16 +1,6 @@
 import type { zh } from './zh'
 
 export const nl = {
-  redactMenuLabel: 'Selectie verbergen voor de AI',
-  redactDialogDesc:
-    'De selectie blijft in het document en het bestand; het model ziet alleen de placeholder. Geef hem een naam.',
-  redactDialogScope:
-    'Verbergen geldt alleen voor de AI in deze app. De CLI, MCP-tools en de export zonder venster lezen het bestand rechtstreeks en zien deze woorden nog steeds.',
-  redactDialogPlaceholder: 'Naam van placeholder, bv. telefoonnummer klant',
-  redactCancel: 'Annuleren',
-  redactInsert: 'Verbergen',
-  redactEnable: 'Rechtsklik op een selectie om die voor het model te verbergen.',
-
   appPhPromptTitle: 'Klik om een titel toe te voegen',
   appPhPromptSubtitle: 'Klik om een ondertitel toe te voegen',
   appPhPromptBody: 'Klik om tekst toe te voegen',
@@ -280,8 +270,6 @@ export const nl = {
   appNotesPlaceholder: 'Klik om sprekersnotities toe te voegen (opgeslagen in het .pptx-bestand)',
   appNotesShow: 'Notities weergeven',
   appNotesHide: 'Notities verbergen',
-  appAiRailExpand: 'AI-assistent uitvouwen',
-  appAiRailText: 'AI',
   appStatusBarSlide: 'Dia {current} van {total}',
   appStatusBarReady: 'Gereed',
   appMediaCloseTitle: 'Sluiten (Esc)',
@@ -298,14 +286,7 @@ export const nl = {
     'Gesproken tekst opgeslagen op {count} dia’s (PowerPoint speelt die ook af)',
   appStatusRecordFailed: 'De opname kan niet worden opgeslagen',
   appStatusNarrationCleared: 'Gesproken tekst gewist',
-  appSettingsTitle: 'AI-instellingen',
-  appSettingsAccount: 'Genspark-account',
   appSettingsChecking: 'Controleren…',
-  appSettingsLoggedIn: 'Aangemeld',
-  appSettingsLoggedInEmail: 'Aangemeld: {email}',
-  appSettingsLoggedOut: 'Niet aangemeld (AI-functies vereisen een Genspark-account)',
-  appSettingsLoginPending: 'Wachten op aanmelding in de browser…',
-  appSettingsLogin: 'Aanmelden bij Genspark',
   appSettingsModel: 'Model',
   appSettingsCancel: 'Annuleren',
   appSettingsSave: 'Opslaan',

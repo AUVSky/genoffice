@@ -789,7 +789,6 @@ export function helpMenuTemplate(
     submenu: [
       ...extraItems,
       ...(extraItems.length > 0 ? [{ type: 'separator' } as const] : []),
-      checkUpdatesMenuItem(labels),
       aboutMenuItem(labels),
     ],
   }

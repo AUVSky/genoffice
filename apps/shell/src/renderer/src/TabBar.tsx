@@ -124,21 +124,6 @@ function MarkdownIcon() {
   )
 }
 
-function HtmlIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 240 240" fill="none" aria-hidden="true">
-      <rect width="240" height="240" rx="48" fill="#0FA3A3" />
-      <path
-        d="M92 72L44 120L92 168M148 72L196 120L148 168"
-        stroke="#fff"
-        strokeWidth="20"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
-
 const KIND_ICON: Record<TabSummary['kind'], ReactElement> = {
   home: <HomeIcon />,
   docs: <DocIcon />,
@@ -146,7 +131,6 @@ const KIND_ICON: Record<TabSummary['kind'], ReactElement> = {
   slides: <SlideIcon />,
   pdf: <PdfIcon />,
   markdown: <MarkdownIcon />,
-  html: <HtmlIcon />,
   help: <HelpIcon />,
 }
 
@@ -174,7 +158,7 @@ export function renamedFileName(currentPath: string, typedName: string): string 
   return ext ? `${typedName}.${ext}` : typedName
 }
 
-export function TabBar() {
+export function TabBar({ onOpenSettings }: { onOpenSettings: () => void }) {
   const { t } = useI18n()
   const [tabs, setTabs] = useState<TabSummary[]>([])
   const stripRef = useRef<HTMLDivElement>(null)
@@ -639,31 +623,12 @@ export function TabBar() {
         </button>
       </div>
       <button
-        className="tab-overflow-btn"
-        title={t('tabList')}
-        aria-label={t('tabList')}
-        onClick={(event) => {
-          const rect = event.currentTarget.getBoundingClientRect()
-          void window.aiOfficeTabs.showMenu(Math.round(rect.left), Math.round(rect.bottom))
-        }}
+        className="tab-settings-btn"
+        title={t('settings')}
+        aria-label={t('settings')}
+        onClick={onOpenSettings}
       >
-        {/* window-with-tab-bar glyph: slanted tab cells above a full-width
-            header divider (from design asset tab.svg) */}
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path
-            d="M21 4H3C2.44772 4 2 4.44772 2 5V19C2 19.5523 2.44772 20 3 20H21C21.5523 20 22 19.5523 22 19V5C22 4.44772 21.5523 4 21 4Z"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M11.5 9.5H22M11.5 9.5L9.5 4M17.5 9.5L15.5 4M2 19V8.5M22 19V8.5M4.5 20H19.5"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        <span className="tab-settings-label">{t('settings')}</span>
       </button>
       <div className="tab-bar-caption-spacer" />
     </div>

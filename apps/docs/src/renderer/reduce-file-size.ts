@@ -18,7 +18,7 @@ export async function reduceFileSize(
   options: ReduceOptions,
 ): Promise<ReduceResult> {
   let outcome: ReduceOutcome | null = null
-  const saved = await save(ctx, false, false, undefined, undefined, async (bytes) => {
+  const saved = await save(ctx, false, false, undefined, async (bytes) => {
     const reduced = await reducePictures(bytes, options)
     outcome = reduced.outcome
     return reduced.bytes

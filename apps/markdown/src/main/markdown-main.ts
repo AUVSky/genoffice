@@ -14,10 +14,7 @@ import {
 } from 'electron'
 import type { WebContents } from 'electron'
 import {
-  MAX_REMOTE_IMAGE_BYTES,
   configuredDefaultSaveDir,
-  fetchRemoteImage,
-  readBodyCapped,
   saveImageFromUrl,
   contextMenuLabels,
   installContextMenu,
@@ -31,7 +28,6 @@ import {
   rendererUrl,
 } from '@genoffice/electron-utils'
 import { createI18n, getUiLang } from '@genoffice/i18n'
-import { generateImageTool, documentMediaRoots } from '@genoffice/ai-search'
 import { ImageExportSessions } from './image-export'
 import { printMarkdownPdf } from './print-pdf'
 import { atomicWriteFile } from './atomic-write'
@@ -58,7 +54,6 @@ import { createMarkdownConversionSession, writeMarkdownConversion } from './conv
 import { normalizeMarkdownTheme, type MarkdownTheme } from '../shared/markdown-theme'
 import { MARKDOWN_CHANNELS, MAX_PASTED_IMAGE_BYTES } from '../shared/ipc'
 import type {
-  ImageHostConfig,
   WikiBacklink,
   WikiCreateNoteRequest,
   WikiCreateNoteResult,
@@ -75,12 +70,7 @@ import { createWikiNote } from './wiki-create'
 import { wikiHeads } from './wiki-heads'
 import { nodeVaultFs, warmWikiIndex, wikiBacklinks, wikiGraph, wikiTags } from './wiki-index'
 import { rememberWikiFragment, takeWikiFragment } from './wiki-fragment'
-import { isImageHostUsable, normalizeImageHostConfig, uploadImageToHost } from './image-host'
-import {
-  EXPORT_IMAGE_EXTS,
-  EXPORT_IMAGE_MIME_BY_EXT,
-  remoteExportImageMime,
-} from '../shared/export-image-mime'
+import { EXPORT_IMAGE_EXTS, EXPORT_IMAGE_MIME_BY_EXT } from '../shared/export-image-mime'
 import type {
   ExportDocxRequest,
   ExportFormat,
@@ -688,7 +678,7 @@ async function writeTextAtomic(path: string, text: string): Promise<void> {
 }
 
 /**
- * A file-name stem from an untrusted source (a model's answer, or a heading).
+ * A file-name stem from untrusted document content (a heading or opening words).
  *
  * The answer is a bare string from outside the app, so it goes through the same
  * filter whichever name it is destined for: a stem carrying a separator, a
@@ -705,25 +695,14 @@ function fileNameStem(raw: string | undefined): string {
 async function resolveSaveTarget(
   e: Electron.IpcMainInvokeEvent,
   mode: SaveMode,
-  suggestedName?: string,
   defaultName?: string,
 ): Promise<string | null | 'canceled'> {
   const current = savePathByWc.get(e.sender.id)
   if (mode === 'save' && current) return current
-  // AI auto-naming: silent first save of an untitled document
-  if (mode === 'save' && !current && suggestedName) {
-    const base = fileNameStem(suggestedName)
-    if (base) {
-      const dir = configuredDefaultSaveDir(app)
-      let target = join(dir, `${base}.md`)
-      for (let n = 1; existsSync(target); n++) target = join(dir, `${base}-${n}.md`)
-      return target
-    }
-  }
   const win =
     BrowserWindow.fromWebContents(e.sender) ?? BrowserWindow.getFocusedWindow() ?? undefined
-  // A name proposed by the model (or the document's first heading) prefills the
-  // dialog rather than replacing it: the reader still chooses the location, and
+  // A document name derived from the document content prefills the dialog
+  // rather than replacing it: the reader still chooses the location, and
   // cancelling still cancels. Without one, the dialog opens on the file's own
   // name, or on the untitled default for a document that has never been saved.
   const proposed = fileNameStem(defaultName)
@@ -747,24 +726,6 @@ async function resolveSaveTarget(
 }
 
 const DISPLAY_IMAGE_EXTS = new Set(Object.keys(EXPORT_IMAGE_MIME_BY_EXT))
-
-/**
- * `![x](https://…)` for the DOCX export: downloaded here so the renderer's
- * origin restrictions do not apply; the SSRF guard keeps the model-writable
- * URL off private hosts.
- */
-async function readRemoteImage(url: string): Promise<ImageData | null> {
-  try {
-    const resp = await fetchRemoteImage(url)
-    if (!resp?.ok) return null
-    const bytes = await readBodyCapped(resp, MAX_REMOTE_IMAGE_BYTES)
-    const mime = remoteExportImageMime(bytes, resp.headers.get('content-type'), url)
-    if (!mime) return null
-    return { base64: Buffer.from(bytes).toString('base64'), mime }
-  } catch {
-    return null
-  }
-}
 
 /**
  * Serves authored image paths to the editor DOM. A plain file:// <img> URL is
@@ -952,11 +913,9 @@ function registerMarkdownIpc(): void {
         ? await pendingOwnedAssetsForDocument(pathAtRequest)
         : []
       try {
-        const suggestedName =
-          typeof request.suggestedName === 'string' ? request.suggestedName : undefined
         const defaultName =
           typeof request.defaultName === 'string' ? request.defaultName : undefined
-        const target = await resolveSaveTarget(e, mode, suggestedName, defaultName)
+        const target = await resolveSaveTarget(e, mode, defaultName)
         if (target === 'canceled') return done({ ok: true, canceled: true })
         if (!target) return done({ ok: false, error: 'markdown: no save target' })
         const currentPath = pathAtRequest
@@ -1058,63 +1017,12 @@ function registerMarkdownIpc(): void {
     },
   )
 
-  // markdown-owned (like docs:ai-generate-image): the shared ai:* handlers are
-  // shell-registered, but image generation is gated per app
-  ipcMain.handle(
-    MARKDOWN_CHANNELS.aiGenerateImage,
-    (e, op: { prompt?: unknown; aspectRatio?: unknown }) =>
-      generateImageTool(
-        join(app.getPath('userData'), 'ai-settings.json'),
-        {
-          prompt: String(op?.prompt ?? ''),
-          aspectRatio: op?.aspectRatio ? String(op.aspectRatio) : undefined,
-        },
-        // markdown keeps pasted/picked images as doc-relative assets, so the
-        // open document's own directory is the media root
-        { mediaRoots: documentMediaRoots(markdownFilePath(e.sender.id), undefined) },
-      ),
-  )
-
-  // ---- image host (genoffice#388): bring-your-own storage for pasted images,
-  // with the local assets/ copy kept as the renderer's fallback ----
-  const imageHostConfigPath = (): string => join(app.getPath('userData'), 'markdown-settings.json')
-
-  const readImageHostConfig = async (): Promise<ImageHostConfig | null> => {
-    try {
-      const raw = JSON.parse(await readFile(imageHostConfigPath(), 'utf8'))
-      return normalizeImageHostConfig(raw?.imageHost ?? null)
-    } catch {
-      return null
-    }
-  }
-
-  ipcMain.handle(MARKDOWN_CHANNELS.getImageHost, async (): Promise<ImageHostConfig | null> => {
-    return readImageHostConfig()
-  })
-
-  ipcMain.handle(
-    MARKDOWN_CHANNELS.setImageHost,
-    async (_e, config: unknown): Promise<ImageHostConfig | null> => {
-      // null clears the host: pastes return to the local-assets behaviour
-      const normalized = normalizeImageHostConfig(config)
-      // an incomplete form is rejected without touching the stored host
-      if (normalized === null && config !== null) return null
-      let file: Record<string, unknown>
-      try {
-        file = JSON.parse(await readFile(imageHostConfigPath(), 'utf8'))
-      } catch {
-        file = {}
-      }
-      file.imageHost = normalized
-      await atomicWriteFile(imageHostConfigPath(), Buffer.from(JSON.stringify(file, null, 2)))
-      return normalized
-    },
-  )
+  const markdownSettingsPath = (): string => join(app.getPath('userData'), 'markdown-settings.json')
 
   // ---- document paper theme (rendered via data-markdown-theme) ----
   ipcMain.handle(MARKDOWN_CHANNELS.getMarkdownTheme, async (): Promise<MarkdownTheme> => {
     try {
-      const raw = JSON.parse(await readFile(imageHostConfigPath(), 'utf8'))
+      const raw = JSON.parse(await readFile(markdownSettingsPath(), 'utf8'))
       return normalizeMarkdownTheme(raw?.markdownTheme)
     } catch {
       return 'default'
@@ -1127,34 +1035,13 @@ function registerMarkdownIpc(): void {
       const normalized = normalizeMarkdownTheme(theme)
       let file: Record<string, unknown>
       try {
-        file = JSON.parse(await readFile(imageHostConfigPath(), 'utf8'))
+        file = JSON.parse(await readFile(markdownSettingsPath(), 'utf8'))
       } catch {
         file = {}
       }
       file.markdownTheme = normalized
-      await atomicWriteFile(imageHostConfigPath(), Buffer.from(JSON.stringify(file, null, 2)))
+      await atomicWriteFile(markdownSettingsPath(), Buffer.from(JSON.stringify(file, null, 2)))
       return normalized
-    },
-  )
-
-  ipcMain.handle(
-    MARKDOWN_CHANNELS.uploadImage,
-    async (
-      _e,
-      data: { base64?: unknown; ext?: unknown; name?: unknown },
-    ): Promise<{ ok: boolean; url?: string; error?: string }> => {
-      const ext = String(data?.ext ?? '').toLowerCase()
-      if (!EXPORT_IMAGE_EXTS.includes(ext)) return { ok: false, error: 'unsupported image type' }
-      if (typeof data?.base64 !== 'string' || !data.base64)
-        return { ok: false, error: 'missing image data' }
-      if (data.base64.length > Math.ceil(MAX_PASTED_IMAGE_BYTES / 3) * 4)
-        return { ok: false, error: 'image too large' }
-      const config = await readImageHostConfig()
-      if (!isImageHostUsable(config)) return { ok: false, error: 'no usable image host configured' }
-      return uploadImageToHost(config, {
-        bytes: Buffer.from(data.base64, 'base64'),
-        ext,
-      })
     },
   )
 
@@ -1171,7 +1058,7 @@ function registerMarkdownIpc(): void {
     MARKDOWN_CHANNELS.readImage,
     async (e, src: unknown): Promise<ImageData | null> => {
       if (typeof src !== 'string') return null
-      if (/^https?:/i.test(src)) return readRemoteImage(src)
+      if (/^https?:/i.test(src)) return null
       const docPath = savePathByWc.get(e.sender.id)
       if (!docPath || /^[a-z][a-z0-9+.-]*:/i.test(src)) return null
       const target = await resolveSafeRelativeImagePath(docPath, src)

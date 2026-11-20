@@ -88,13 +88,6 @@ The Formulas tab, button by button:
 - **On a sheet tab at the bottom**: add / rename / delete / color / hide sheets (Univer's tab menu).
 - The top tab strip's context menu is covered in [Tabs and window management](help://tabs-and-windows).
 
-## AI
-
-- The side AI panel: select a range and instruct in plain language (reformat, generate data, write formulas).
-- Attach files to a prompt with the 📎 button, or drag them onto the panel; they travel with the question and images come back as thumbnails.
-- An answer can cite a cell — click the reference and the grid jumps there.
-- AI edits can be rolled back from the panel.
-
 ## Saving and export
 
 - Saves .xlsx (formulas and formats preserved); Save As; Export to PDF follows print pagination.

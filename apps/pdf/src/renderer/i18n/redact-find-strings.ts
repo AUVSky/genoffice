@@ -16,7 +16,6 @@ const redactFindStrings = {
   redactFoundNone: 'No matching sensitive information found',
   redactFoundCapped: 'Only the first {count} areas were marked (redaction limit reached)',
   redactFoundRotated: '{count} match(es) on rotated text were skipped; mark them by hand',
-  aiToolFindSensitive: 'Find sensitive info ({count} hits)',
 }
 
 const localizedRedactFindStrings: Record<string, Partial<typeof redactFindStrings>> = {
@@ -34,7 +33,6 @@ const localizedRedactFindStrings: Record<string, Partial<typeof redactFindString
     redactFoundNone: '未找到匹配的敏感信息',
     redactFoundCapped: '仅标记了前 {count} 个区域（已达涂黑数量上限）',
     redactFoundRotated: '有 {count} 处位于旋转文字上，已跳过，请手动标记',
-    aiToolFindSensitive: '查找敏感信息（{count} 处）',
   },
   'zh-TW': {
     redactFind: '尋找敏感資訊',
@@ -50,7 +48,6 @@ const localizedRedactFindStrings: Record<string, Partial<typeof redactFindString
     redactFoundNone: '找不到相符的敏感資訊',
     redactFoundCapped: '僅標記了前 {count} 個區域（已達塗黑數量上限）',
     redactFoundRotated: '有 {count} 處位於旋轉文字上，已略過，請手動標記',
-    aiToolFindSensitive: '尋找敏感資訊（{count} 處）',
   },
   vi: {
     redactFind: 'Tìm thông tin nhạy cảm',
@@ -66,7 +63,6 @@ const localizedRedactFindStrings: Record<string, Partial<typeof redactFindString
     redactFoundNone: 'Không tìm thấy thông tin nhạy cảm phù hợp',
     redactFoundCapped: 'Chỉ đánh dấu {count} vùng đầu tiên (đã đạt giới hạn)',
     redactFoundRotated: 'Đã bỏ qua {count} kết quả trên chữ xoay; hãy đánh dấu thủ công',
-    aiToolFindSensitive: 'Tìm thông tin nhạy cảm ({count} kết quả)',
   },
   ja: {
     redactFind: '機密情報を検索',
@@ -84,7 +80,6 @@ const localizedRedactFindStrings: Record<string, Partial<typeof redactFindString
     redactFoundCapped: '最初の {count} 領域のみマークしました（上限に達しました）',
     redactFoundRotated:
       '回転したテキスト上の {count} 件はスキップしました。手動でマークしてください',
-    aiToolFindSensitive: '機密情報を検索（{count} 件）',
   },
   ko: {
     redactFind: '민감한 정보 찾기',
@@ -100,7 +95,6 @@ const localizedRedactFindStrings: Record<string, Partial<typeof redactFindString
     redactFoundNone: '일치하는 민감한 정보가 없습니다',
     redactFoundCapped: '처음 {count}개 영역만 표시했습니다(한도 도달)',
     redactFoundRotated: '회전된 텍스트의 {count}개 항목은 건너뛰었습니다. 직접 표시하세요',
-    aiToolFindSensitive: '민감한 정보 찾기({count}개)',
   },
   fr: {
     redactFind: 'Rechercher les infos sensibles',
@@ -118,7 +112,6 @@ const localizedRedactFindStrings: Record<string, Partial<typeof redactFindString
     redactFoundCapped: 'Seules les {count} premières zones ont été marquées (limite atteinte)',
     redactFoundRotated:
       '{count} occurrence(s) sur du texte pivoté ignorée(s) ; marquez-les manuellement',
-    aiToolFindSensitive: 'Rechercher les infos sensibles ({count} résultats)',
   },
   de: {
     redactFind: 'Sensible Daten suchen',
@@ -135,7 +128,6 @@ const localizedRedactFindStrings: Record<string, Partial<typeof redactFindString
     redactFoundNone: 'Keine passenden sensiblen Daten gefunden',
     redactFoundCapped: 'Nur die ersten {count} Bereiche wurden markiert (Limit erreicht)',
     redactFoundRotated: '{count} Treffer in gedrehtem Text übersprungen; bitte manuell markieren',
-    aiToolFindSensitive: 'Sensible Daten suchen ({count} Treffer)',
   },
   es: {
     redactFind: 'Buscar información sensible',
@@ -152,7 +144,6 @@ const localizedRedactFindStrings: Record<string, Partial<typeof redactFindString
     redactFoundNone: 'No se encontró información sensible coincidente',
     redactFoundCapped: 'Solo se marcaron las primeras {count} áreas (límite alcanzado)',
     redactFoundRotated: 'Se omitieron {count} coincidencia(s) en texto girado; márquelas a mano',
-    aiToolFindSensitive: 'Buscar información sensible ({count} resultados)',
   },
   th: {
     redactFind: 'ค้นหาข้อมูลอ่อนไหว',
@@ -168,7 +159,6 @@ const localizedRedactFindStrings: Record<string, Partial<typeof redactFindString
     redactFoundNone: 'ไม่พบข้อมูลอ่อนไหวที่ตรงกัน',
     redactFoundCapped: 'ทำเครื่องหมายเฉพาะ {count} พื้นที่แรก (ถึงขีดจำกัดแล้ว)',
     redactFoundRotated: 'ข้าม {count} รายการบนข้อความที่หมุน โปรดทำเครื่องหมายเอง',
-    aiToolFindSensitive: 'ค้นหาข้อมูลอ่อนไหว ({count} รายการ)',
   },
   id: {
     redactFind: 'Cari info sensitif',
@@ -184,7 +174,6 @@ const localizedRedactFindStrings: Record<string, Partial<typeof redactFindString
     redactFoundNone: 'Tidak ditemukan info sensitif yang cocok',
     redactFoundCapped: 'Hanya {count} area pertama yang ditandai (batas tercapai)',
     redactFoundRotated: '{count} kecocokan pada teks yang diputar dilewati; tandai secara manual',
-    aiToolFindSensitive: 'Cari info sensitif ({count} hasil)',
   },
   ru: {
     redactFind: 'Найти конфиденциальные данные',
@@ -200,7 +189,6 @@ const localizedRedactFindStrings: Record<string, Partial<typeof redactFindString
     redactFoundNone: 'Подходящие конфиденциальные данные не найдены',
     redactFoundCapped: 'Отмечены только первые {count} областей (достигнут лимит)',
     redactFoundRotated: 'Пропущено совпадений в повёрнутом тексте: {count}; отметьте их вручную',
-    aiToolFindSensitive: 'Поиск конфиденциальных данных ({count})',
   },
   ar: {
     redactFind: 'البحث عن المعلومات الحساسة',
@@ -216,7 +204,6 @@ const localizedRedactFindStrings: Record<string, Partial<typeof redactFindString
     redactFoundNone: 'لم يتم العثور على معلومات حساسة مطابقة',
     redactFoundCapped: 'تم تحديد أول {count} منطقة فقط (تم بلوغ الحد)',
     redactFoundRotated: 'تم تخطي {count} تطابق في نص مُدار؛ حدّدها يدويًا',
-    aiToolFindSensitive: 'البحث عن المعلومات الحساسة ({count})',
   },
   pt: {
     redactFind: 'Localizar informações sensíveis',
@@ -232,7 +219,6 @@ const localizedRedactFindStrings: Record<string, Partial<typeof redactFindString
     redactFoundNone: 'Nenhuma informação sensível correspondente encontrada',
     redactFoundCapped: 'Apenas as primeiras {count} áreas foram marcadas (limite atingido)',
     redactFoundRotated: '{count} ocorrência(s) em texto girado foram ignoradas; marque-as à mão',
-    aiToolFindSensitive: 'Localizar informações sensíveis ({count} resultados)',
   },
   it: {
     redactFind: 'Trova dati sensibili',
@@ -249,7 +235,6 @@ const localizedRedactFindStrings: Record<string, Partial<typeof redactFindString
     redactFoundNone: 'Nessun dato sensibile corrispondente trovato',
     redactFoundCapped: 'Solo le prime {count} aree sono state contrassegnate (limite raggiunto)',
     redactFoundRotated: '{count} corrispondenza/e su testo ruotato saltate; contrassegnale a mano',
-    aiToolFindSensitive: 'Trova dati sensibili ({count} risultati)',
   },
   pl: {
     redactFind: 'Znajdź dane wrażliwe',
@@ -266,7 +251,6 @@ const localizedRedactFindStrings: Record<string, Partial<typeof redactFindString
     redactFoundNone: 'Nie znaleziono pasujących danych wrażliwych',
     redactFoundCapped: 'Oznaczono tylko pierwsze {count} obszarów (osiągnięto limit)',
     redactFoundRotated: 'Pominięto trafienia w obróconym tekście: {count}; oznacz je ręcznie',
-    aiToolFindSensitive: 'Znajdź dane wrażliwe ({count})',
   },
   cs: {
     redactFind: 'Najít citlivé údaje',
@@ -282,7 +266,6 @@ const localizedRedactFindStrings: Record<string, Partial<typeof redactFindString
     redactFoundNone: 'Nebyly nalezeny žádné odpovídající citlivé údaje',
     redactFoundCapped: 'Označeno jen prvních {count} oblastí (dosažen limit)',
     redactFoundRotated: 'Přeskočeno shod v otočeném textu: {count}; označte je ručně',
-    aiToolFindSensitive: 'Najít citlivé údaje ({count})',
   },
   nl: {
     redactFind: 'Gevoelige gegevens zoeken',
@@ -299,7 +282,6 @@ const localizedRedactFindStrings: Record<string, Partial<typeof redactFindString
     redactFoundNone: 'Geen overeenkomende gevoelige gegevens gevonden',
     redactFoundCapped: 'Alleen de eerste {count} gebieden zijn gemarkeerd (limiet bereikt)',
     redactFoundRotated: '{count} treffer(s) in gedraaide tekst overgeslagen; markeer ze handmatig',
-    aiToolFindSensitive: 'Gevoelige gegevens zoeken ({count} treffers)',
   },
   ms: {
     redactFind: 'Cari maklumat sensitif',
@@ -315,7 +297,6 @@ const localizedRedactFindStrings: Record<string, Partial<typeof redactFindString
     redactFoundNone: 'Tiada maklumat sensitif yang sepadan ditemui',
     redactFoundCapped: 'Hanya {count} kawasan pertama ditandakan (had dicapai)',
     redactFoundRotated: '{count} padanan pada teks berputar dilangkau; tandakan secara manual',
-    aiToolFindSensitive: 'Cari maklumat sensitif ({count} hasil)',
   },
   tr: {
     redactFind: 'Hassas bilgileri bul',
@@ -332,7 +313,6 @@ const localizedRedactFindStrings: Record<string, Partial<typeof redactFindString
     redactFoundNone: 'Eşleşen hassas bilgi bulunamadı',
     redactFoundCapped: 'Yalnızca ilk {count} alan işaretlendi (sınıra ulaşıldı)',
     redactFoundRotated: 'Döndürülmüş metindeki {count} eşleşme atlandı; elle işaretleyin',
-    aiToolFindSensitive: 'Hassas bilgileri bul ({count} sonuç)',
   },
   hu: {
     redactFind: 'Bizalmas adatok keresése',
@@ -350,7 +330,6 @@ const localizedRedactFindStrings: Record<string, Partial<typeof redactFindString
     redactFoundNone: 'Nem található egyező bizalmas információ',
     redactFoundCapped: 'Csak az első {count} terület lett megjelölve (a kitakarási korlát elérve)',
     redactFoundRotated: '{count} egyezés az elforgatott szövegen kimaradt; jelöld meg őket kézzel',
-    aiToolFindSensitive: 'Bizalmas adatok keresése ({count} találat)',
   },
   he: {
     redactFind: 'איתור מידע רגיש',
@@ -366,7 +345,6 @@ const localizedRedactFindStrings: Record<string, Partial<typeof redactFindString
     redactFoundNone: 'לא נמצא מידע רגיש תואם',
     redactFoundCapped: 'סומנו רק {count} האזורים הראשונים (הגעתם למגבלה)',
     redactFoundRotated: 'דולגו {count} התאמות בטקסט מסובב; סמנו אותן ידנית',
-    aiToolFindSensitive: 'איתור מידע רגיש ({count})',
   },
   hi: {
     redactFind: 'संवेदनशील जानकारी खोजें',
@@ -383,7 +361,6 @@ const localizedRedactFindStrings: Record<string, Partial<typeof redactFindString
     redactFoundNone: 'कोई मेल खाती संवेदनशील जानकारी नहीं मिली',
     redactFoundCapped: 'केवल पहले {count} क्षेत्र चिह्नित किए गए (सीमा पूरी)',
     redactFoundRotated: 'घुमाए गए टेक्स्ट पर {count} मिलान छोड़े गए; इन्हें हाथ से चिह्नित करें',
-    aiToolFindSensitive: 'संवेदनशील जानकारी खोजें ({count})',
   },
 }
 

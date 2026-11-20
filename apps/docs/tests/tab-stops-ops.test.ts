@@ -5,9 +5,8 @@ import { mergeStyleXml, parseDocx, saveDocx } from '@genoffice/docx-engine'
 import { buildDocx } from '../../../packages/docx-engine/tests/helpers/build-docx'
 import { editorExtensions } from '../src/renderer/editor/extensions'
 import { blocksToPmDoc, pmDocToSavePlan, type PmNode } from '../src/renderer/editor/convert'
-import { executeOps } from '../src/renderer/ai/ops'
-import { executeTool } from '../src/renderer/ai/tools'
-import { parseHtmlFragment } from '../src/renderer/ai/protocol'
+import { executeOps } from '../src/renderer/doc-core/ops'
+import { insertBlocksAfter, parseHtmlFragment } from '../src/renderer/doc-core/protocol'
 
 const NUM_IDS = { bullet: null, ordered: null }
 const editors = new Set<Editor>()
@@ -137,16 +136,12 @@ describe('tab character in restricted HTML', () => {
     expect(selfClosing[0].content?.map((n) => n.text).join('')).toBe('Doe v. Roe\t12')
 
     const { editor, parsed } = await openEditor('<w:p><w:r><w:t>Body</w:t></w:r></w:p>')
-    const exec = await executeTool(
+    const inserted = insertBlocksAfter(
       editor,
-      {
-        id: 't',
-        name: 'insert_content',
-        input: { html: '<p>Doe v. Roe<span data-tab></span>12</p>', afterBlockIndex: 0 },
-      },
-      NUM_IDS,
+      0,
+      parseHtmlFragment('<p>Doe v. Roe<span data-tab></span>12</p>', NUM_IDS),
     )
-    expect(exec.isError).toBeFalsy()
+    expect(inserted).toBe(true)
     const xml = await saveXml(editor, parsed)
     expect(xml).toContain('Doe v. Roe</w:t><w:tab/><w:t xml:space="preserve">12</w:t>')
   })

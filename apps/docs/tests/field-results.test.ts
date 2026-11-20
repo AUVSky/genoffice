@@ -10,7 +10,7 @@ import {
 import { afterEach, describe, expect, it } from 'vitest'
 import { buildDocx } from '../../../packages/docx-engine/tests/helpers/build-docx'
 import { allowDirtyFields } from '../../../packages/docx-engine/tests/helpers/dirty-fields'
-import { executeOps } from '../src/renderer/ai/ops'
+import { executeOps } from '../src/renderer/doc-core/ops'
 import { blocksToPmDoc, pmDocToSavePlan, type PmNode } from '../src/renderer/editor/convert'
 import { editorExtensions } from '../src/renderer/editor/extensions'
 import { collectFields, setFieldInstr } from '../src/renderer/editor/field-codes'

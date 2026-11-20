@@ -15,7 +15,6 @@ import {
   hyphenPieces,
 } from '../editor/hyphenation-static'
 import { HyphenatedText } from './HyphenatedText'
-import { spellcheckEnabled } from '../spellcheck-pref'
 import {
   hfCellGeometry,
   hfAnchoredImgStyle,
@@ -218,7 +217,6 @@ export function HeaderFooterArea({
       pageNo: String(pn ?? 1),
       pageTotal: String(pt ?? 1),
       sectionPages: String(sp ?? pt ?? 1),
-      spellcheck: spellcheckEnabled(),
       onCommit: (next) => latest.current.onCommit(next),
       onExit: () => {
         latest.current.onEditingChange?.(false, null)

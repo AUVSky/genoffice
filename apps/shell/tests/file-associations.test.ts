@@ -63,8 +63,9 @@ describe('packaged file associations', () => {
     for (const ext of ['txt', 'json', 'doc', 'dot', 'ppt']) {
       expect(winExts, `.${ext} must not become a Windows default opener`).not.toContain(ext)
     }
-    for (const ext of ['docx', 'xlsx', 'pptx', 'pdf', 'md', 'html']) {
+    for (const ext of ['docx', 'xlsx', 'pptx', 'pdf', 'md']) {
       expect(winExts, `.${ext} missing from the Windows associations`).toContain(ext)
     }
+    expect(winExts, '.html must not become a Windows default opener').not.toContain('html')
   })
 })

@@ -14,7 +14,7 @@
  */
 
 /** Editor module that owns a given input extension. */
-export type HeadlessExportModule = 'docs' | 'sheets' | 'slides' | 'markdown' | 'html'
+export type HeadlessExportModule = 'docs' | 'sheets' | 'slides' | 'markdown'
 
 /** Conversion targets the headless entry accepts; see HEADLESS_TARGETS for which module renders which. */
 export type HeadlessExportFormat = 'pdf' | 'docx' | 'html' | 'md'
@@ -25,7 +25,6 @@ export const HEADLESS_TARGETS: Record<HeadlessExportModule, readonly HeadlessExp
   sheets: ['pdf'],
   slides: ['pdf'],
   markdown: ['pdf'],
-  html: ['pdf', 'docx'],
 }
 
 const ALL_TARGETS: readonly HeadlessExportFormat[] = ['pdf', 'docx', 'html', 'md']
@@ -76,7 +75,6 @@ const MODULE_BY_EXTENSION: ReadonlyArray<readonly [RegExp, HeadlessExportModule]
   [/\.(xlsx|xlsm|xls|csv|tsv)$/i, 'sheets'],
   [/\.pptx$/i, 'slides'],
   [/\.(md|markdown)$/i, 'markdown'],
-  [/\.(html|htm)$/i, 'html'],
 ]
 
 /** Which editor module can render this input, or null when the extension is unsupported. */

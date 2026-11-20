@@ -1,16 +1,6 @@
 import type { zh } from './zh'
 
 export const pl = {
-  redactMenuLabel: 'Ukryj zaznaczenie przed AI',
-  redactDialogDesc:
-    'Zaznaczona zawartość zostaje w dokumencie i w pliku; model widzi tylko symbol. Nadaj mu nazwę, by wiedział, co oznacza.',
-  redactDialogScope:
-    'Ukrywanie dotyczy tylko AI w tej aplikacji. CLI, narzędzia MCP i eksport bez okienka czytują plik bezpośrednio i nadal widzą te słowa.',
-  redactDialogPlaceholder: 'Nazwa symbolu, np. telefon klienta',
-  redactCancel: 'Anuluj',
-  redactInsert: 'Ukryj',
-  redactEnable: 'Kliknij prawym na zaznaczeniu, aby ukryć je przed modelem.',
-
   appPhPromptTitle: 'Kliknij, aby dodać tytuł',
   appPhPromptSubtitle: 'Kliknij, aby dodać podtytuł',
   appPhPromptBody: 'Kliknij, aby dodać tekst',
@@ -274,8 +264,6 @@ export const pl = {
   appNotesPlaceholder: 'Kliknij, aby dodać notatki prelegenta (zapisywane w pliku .pptx)',
   appNotesShow: 'Pokaż notatki',
   appNotesHide: 'Ukryj notatki',
-  appAiRailExpand: 'Rozwiń asystenta AI',
-  appAiRailText: 'AI',
   appStatusBarSlide: 'Slajd {current} z {total}',
   appStatusBarReady: 'Gotowe',
   appMediaCloseTitle: 'Zamknij (Esc)',
@@ -291,14 +279,7 @@ export const pl = {
   appStatusRecordSaved: 'Zapisano narrację na slajdach: {count} (odtwarza ją także PowerPoint)',
   appStatusRecordFailed: 'Nie udało się zapisać nagrania',
   appStatusNarrationCleared: 'Wyczyszczono narrację',
-  appSettingsTitle: 'Ustawienia AI',
-  appSettingsAccount: 'Konto Genspark',
   appSettingsChecking: 'Sprawdzanie…',
-  appSettingsLoggedIn: 'Zalogowano',
-  appSettingsLoggedInEmail: 'Zalogowano: {email}',
-  appSettingsLoggedOut: 'Nie zalogowano (funkcje AI wymagają konta Genspark)',
-  appSettingsLoginPending: 'Oczekiwanie na logowanie w przeglądarce…',
-  appSettingsLogin: 'Zaloguj się do Genspark',
   appSettingsModel: 'Model',
   appSettingsCancel: 'Anuluj',
   appSettingsSave: 'Zapisz',

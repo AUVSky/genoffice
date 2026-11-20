@@ -1,4 +1,4 @@
-export type TabKind = 'home' | 'docs' | 'sheets' | 'slides' | 'pdf' | 'markdown' | 'html' | 'help'
+export type TabKind = 'home' | 'docs' | 'sheets' | 'slides' | 'pdf' | 'markdown' | 'help'
 
 /** a tab that holds a document — every kind except the Home screen and the in-app manual */
 export type DocumentTabKind = Exclude<TabKind, 'home' | 'help'>
@@ -38,15 +38,9 @@ export interface TabsApi {
   activate(id: string): Promise<void>
   close(id: string): Promise<void>
   /**
-   * pop up the native "all tabs" list menu at (x, y) in window CSS coordinates.
-   * Native because the content area below the strip is a WebContentsView that
-   * would cover any DOM dropdown rendered by the shell.
-   */
-  showMenu(x: number, y: number): Promise<void>
-  /**
    * pop up the native "+" new-file menu (new doc/sheet/slides, open local
-   * file) at (x, y) in window CSS coordinates. Native for the same reason
-   * as showMenu.
+   * file) at (x, y) in window CSS coordinates. Native because the content area
+   * below the strip is a WebContentsView that would cover any DOM dropdown.
    */
   showNewMenu(x: number, y: number): Promise<void>
   /**
@@ -109,7 +103,6 @@ export const TABS_CHANNELS = {
   list: 'tabs:list',
   activate: 'tabs:activate',
   close: 'tabs:close',
-  showMenu: 'tabs:show-menu',
   showNewMenu: 'tabs:show-new-menu',
   showTabMenu: 'tabs:show-tab-menu',
   detach: 'tabs:detach',

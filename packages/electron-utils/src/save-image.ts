@@ -85,6 +85,10 @@ async function fetchImageBytes(url: string): Promise<{ bytes: Buffer; mime: stri
     if (!decoded) throw new Error('malformed or oversized data URL')
     return decoded
   }
+  // Air-gapped build: http(s) images embedded in a document are refused rather
+  // than fetched; local app schemes and file URLs still go through the app's
+  // own protocol handlers.
+  if (/^https?:/i.test(url)) throw new Error('remote images are disabled')
   const { net } = await import('electron')
   const res = await net.fetch(url)
   if (!res.ok) throw new Error(`fetch failed: HTTP ${res.status}`)

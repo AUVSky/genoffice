@@ -38,7 +38,6 @@ function makeHost(over: Partial<CommandHost> = {}): CommandHost {
     openFile: vi.fn(),
     openRecent: vi.fn(),
     save: vi.fn(),
-    nameWithAi: vi.fn(),
     exportPdf: vi.fn(),
     exportHtml: vi.fn(),
     exportMarkdown: vi.fn(),
@@ -47,7 +46,6 @@ function makeHost(over: Partial<CommandHost> = {}): CommandHost {
     stepZoom: vi.fn(),
     setZoom: vi.fn(),
     zoomFit: vi.fn(),
-    toggleAi: vi.fn(),
     toggleDark: vi.fn(),
     toggleMarks: vi.fn(),
     toggleStylesPane: vi.fn(),
@@ -60,17 +58,13 @@ function makeHost(over: Partial<CommandHost> = {}): CommandHost {
     addListStyle: vi.fn(),
     deleteListStyle: vi.fn(),
     applyStyle: vi.fn(),
-    aiPreset: vi.fn(),
     openDialog: vi.fn(),
     openChartDialog: vi.fn(),
     openTableDialog: vi.fn(),
     findStep: vi.fn(),
     openMailMerge: vi.fn(),
     pagesOf: vi.fn(() => null),
-    checkSpelling: vi.fn(),
-    thesaurus: vi.fn(),
     applyHeadingLevel: vi.fn(),
-    translate: vi.fn(),
     pickMergeDataSource: vi.fn(),
     toggleMergePreview: vi.fn(),
     hasMergeSource: false,
@@ -157,8 +151,6 @@ function makeHost(over: Partial<CommandHost> = {}): CommandHost {
     },
     review: {
       revisionDisplay: 'all',
-      toggleSpellcheck: vi.fn(),
-      resetIgnoredWords: vi.fn(),
       deleteComment: vi.fn(),
       openHighlightChanges: vi.fn(),
       resolveComment: vi.fn(),
@@ -190,7 +182,6 @@ function makeHost(over: Partial<CommandHost> = {}): CommandHost {
     insertBlankPage: vi.fn(),
     newComment: vi.fn(),
     wordCount: vi.fn(),
-    aiProofread: vi.fn(),
     toggleTableGridlines: vi.fn(),
     tableSectionWidthPx: 600,
     notInTable: vi.fn(),
@@ -205,7 +196,6 @@ const ROUTES: [ActionCommandId, string | undefined, keyof CommandHost, unknown[]
   ['open-path', '/tmp/a.docx', 'openRecent', ['/tmp/a.docx']],
   ['save', undefined, 'save', [false]],
   ['save-as', undefined, 'save', [true]],
-  ['name-with-ai', undefined, 'nameWithAi', []],
   ['zoom-in', undefined, 'stepZoom', [1]],
   ['zoom-out', undefined, 'stepZoom', [-1]],
   ['zoom-100', undefined, 'setZoom', [100]],
@@ -213,13 +203,11 @@ const ROUTES: [ActionCommandId, string | undefined, keyof CommandHost, unknown[]
   ['zoom-page-width', undefined, 'zoomFit', ['width']],
   ['zoom-whole-page', undefined, 'zoomFit', ['page']],
   ['zoom-multi-page', undefined, 'zoomFit', ['multi']],
-  ['toggle-ai', undefined, 'toggleAi', []],
   ['toggle-dark', undefined, 'toggleDark', []],
   ['show-marks', undefined, 'toggleMarks', []],
   ['list-dialog', 'number', 'openListDialog', ['number', undefined]],
   ['list-dialog', 'bullet#2', 'openListDialog', ['bullet', 2]],
   ['list-dialog', 'style', 'openListDialog', ['style', undefined]],
-  ['ai-preset', 'Summarize this', 'aiPreset', ['Summarize this']],
   ['styles-pane', undefined, 'toggleStylesPane', []],
   ['font-dialog', undefined, 'openDialog', ['font']],
   ['paragraph-dialog', undefined, 'openDialog', ['paragraph']],
@@ -236,7 +224,6 @@ const ROUTES: [ActionCommandId, string | undefined, keyof CommandHost, unknown[]
   ['export-images', undefined, 'exportImages', []],
   ['print', undefined, 'printDoc', []],
   ['word-count', undefined, 'wordCount', []],
-  ['ai-proofread', undefined, 'aiProofread', []],
   ['table-gridlines', undefined, 'toggleTableGridlines', []],
 ]
 
@@ -271,7 +258,6 @@ const NEEDS_DOC: ActionCommandId[] = [
   'goto',
   'print',
   'word-count',
-  'ai-proofread',
 ]
 
 describe('menu command handlers', () => {
@@ -941,14 +927,6 @@ describe('menu command handlers', () => {
   it('the Tools, Mailings and References placeholders that now run reach the app', () => {
     const editor = makeEditor()
     const host = makeHost({ editor })
-    runMenuCommand(host, 'tools-thesaurus')
-    expect(host.thesaurus).toHaveBeenCalledTimes(1)
-    runMenuCommand(host, 'tools-translate-selection')
-    expect(host.translate).toHaveBeenLastCalledWith('selection')
-    runMenuCommand(host, 'tools-translate-document')
-    expect(host.translate).toHaveBeenLastCalledWith('document')
-    runMenuCommand(host, 'tools-translation-language')
-    expect(host.openDialog).toHaveBeenLastCalledWith('translationLanguage')
     runMenuCommand(host, 'mailings-select-recipients')
     expect(host.pickMergeDataSource).toHaveBeenCalledTimes(1)
     // Preview Results asks for a list when there is none, and toggles once there is one
@@ -972,17 +950,8 @@ describe('menu command handlers', () => {
 
     // none of them runs without a document, except Customize Keyboard
     const closed = makeHost({ editor, hasDoc: false })
-    for (const id of [
-      'tools-thesaurus',
-      'tools-translate-selection',
-      'tools-translate-document',
-      'tools-translation-language',
-      'mailings-select-recipients',
-      'mailings-finish-merge',
-    ] as const)
+    for (const id of ['mailings-select-recipients', 'mailings-finish-merge'] as const)
       runMenuCommand(closed, id)
-    expect(closed.thesaurus).not.toHaveBeenCalled()
-    expect(closed.translate).not.toHaveBeenCalled()
     expect(closed.pickMergeDataSource).not.toHaveBeenCalled()
     expect(closed.openMailMerge).not.toHaveBeenCalled()
     expect(closed.openDialog).not.toHaveBeenCalled()
@@ -996,8 +965,6 @@ describe('menu command handlers', () => {
     const host = makeHost({ editor })
     runMenuCommand(host, 'view-ribbon')
     expect(host.view.toggleRibbon).toHaveBeenCalledTimes(1)
-    runMenuCommand(host, 'tools-reset-ignored')
-    expect(host.review.resetIgnoredWords).toHaveBeenCalledTimes(1)
     runMenuCommand(host, 'file-properties')
     expect(host.openDialog).toHaveBeenLastCalledWith('properties')
     runMenuCommand(host, 'file-always-read-only')
@@ -1023,7 +990,6 @@ describe('menu command handlers', () => {
     // the ribbon folds with no document open; the rest wait for one
     const closed = makeHost({ editor, hasDoc: false, hasMergeSource: true })
     for (const id of [
-      'tools-reset-ignored',
       'file-properties',
       'file-always-read-only',
       'mailings-edit-recipients',
@@ -1031,7 +997,6 @@ describe('menu command handlers', () => {
       'update-index',
     ] as const)
       runMenuCommand(closed, id)
-    expect(closed.review.resetIgnoredWords).not.toHaveBeenCalled()
     expect(closed.openDialog).not.toHaveBeenCalled()
     expect(closed.toggleReadOnlyRecommended).not.toHaveBeenCalled()
     expect(closed.noNotes).not.toHaveBeenCalled()
@@ -2416,7 +2381,6 @@ describe('menu command handlers', () => {
         value: { text: '', paras: [{ align: 'left', runs: [{ text: 'Header' }] }] },
         pageNo: '1',
         pageTotal: '1',
-        spellcheck: false,
         onCommit: (next) => commits.push(next),
         onExit: () => el.remove(),
       })

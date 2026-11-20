@@ -37,8 +37,6 @@ const flags = (
 const base = {
   isEditable: false,
   selectionText: '',
-  misspelledWord: '',
-  dictionarySuggestions: [] as string[],
   editFlags: flags(),
 }
 
@@ -61,31 +59,6 @@ describe('buildContextMenuItems', () => {
     )
     expect(items).toContainEqual({ action: 'cut', label: 'Cut', enabled: false })
     expect(items).toContainEqual({ action: 'paste', label: 'Paste', enabled: false })
-  })
-
-  it('prepends spelling suggestions when a word is misspelled', () => {
-    const items = buildContextMenuItems(
-      {
-        ...base,
-        isEditable: true,
-        misspelledWord: 'helo',
-        dictionarySuggestions: ['hello', 'halo'],
-      },
-      labels,
-    )
-    expect(items.slice(0, 3)).toEqual([
-      { action: 'replaceMisspelling', label: 'hello' },
-      { action: 'replaceMisspelling', label: 'halo' },
-      { type: 'separator' },
-    ])
-  })
-
-  it('skips the suggestion block when there are no suggestions', () => {
-    const items = buildContextMenuItems(
-      { ...base, isEditable: true, misspelledWord: 'zqx' },
-      labels,
-    )
-    expect(items[0]).toEqual({ action: 'cut', label: 'Cut', enabled: true })
   })
 
   it('offers copy/select-all for non-editable selections', () => {

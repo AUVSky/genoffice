@@ -285,14 +285,6 @@ export const SHORTCUTS: readonly ShortcutDef[] = [
     labelKey: 'appWordCountTitle',
     keys: '⇧⌘G',
   },
-  {
-    id: 'tools-spelling',
-    cmd: 'tools-spelling',
-    group: 'review',
-    labelKey: 'appSpellingTitle',
-    keys: '⌥⌘L',
-  },
-  { id: 'proofread', cmd: 'ai-proofread', group: 'review', labelKey: 'appScProofread', keys: 'F7' },
   { id: 'update-fields', group: 'review', labelKey: 'appUpdateField', keys: 'F9' },
   { id: 'toggle-field-codes', group: 'review', labelKey: 'appToggleFieldCodes', keys: '⌥F9' },
 

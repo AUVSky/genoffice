@@ -29,13 +29,6 @@ export const SAVE_EDITS_CHUNK_JSON_MAX = 256_000_000
 /// and the preload validator, like MAX_SAVE_EDITS above).
 export const MAX_CSV_EXPORT_CHARS = 64_000_000
 
-/// AI create_document caps (shared by the zod schema and the preload
-/// validator). xlsx/csv content carries a worksheet's serialized CSV and is
-/// bounded by MAX_CSV_EXPORT_CHARS instead; docx/pdf/md content is
-/// AI-authored HTML/Markdown and mirrors the docs/pdf apps' 2M cap.
-export const MAX_CREATE_DOCUMENT_TITLE_CHARS = 200
-export const MAX_CREATE_DOCUMENT_CONTENT_CHARS = 2_000_000
-
 /// One PDF-export header/footer template (shared by the zod schema and the
 /// preload validator). `&G` pictures ride along as base64 data URLs — the
 /// sidecar skips pictures over 2 MiB, so three slots fit under this cap.
@@ -51,7 +44,7 @@ export const IPC_CHANNELS = {
   updateWorkbookPassword: 'workbook:update-password',
   /** Multi-file picker + sidecar sessions for merging into the current workbook */
   selectWorkbooksForMerge: 'workbook:select-for-merge',
-  /** Open explicit paths (chat attachments) as merge-source sessions — no dialog */
+  /** Open explicit paths as merge-source sessions — no dialog */
   openWorkbooksForMerge: 'workbook:open-for-merge',
   readWorkbookRange: 'workbook:read-range',
   readWorkbookFormulas: 'workbook:read-formulas',
@@ -90,8 +83,6 @@ export const IPC_CHANNELS = {
   readPivotDefinition: 'workbook:read-pivot-definition',
   /** Slicer/timeline controls the file carries (xl/slicers, xl/timelines) */
   readSlicerState: 'workbook:read-slicer-state',
-  /** The cells the reader withheld from the model (xl/gxRedactions.json) */
-  readWorkbookRedactions: 'workbook:read-redactions',
   /** Data › Queries & Connections: the workbook's connections, read-only (xl/connections.xml) */
   readWorkbookQueries: 'workbook:read-queries',
   readLocalImage: 'shell:read-local-image',
@@ -110,7 +101,6 @@ export const IPC_CHANNELS = {
   /** Main found a newer recovery copy while opening; renderer shows the styled prompt */
   recoveryPrompt: 'workbook:recovery-prompt',
   recoveryPromptReply: 'workbook:recovery-prompt-reply',
-  autoRenameWorkbook: 'workbook:auto-rename',
   workbookRenamed: 'workbook:renamed',
   pendingEditsChanged: 'workbook:pending-edits',
   closeSaveRequest: 'workbook:close-save-request',
@@ -120,40 +110,13 @@ export const IPC_CHANNELS = {
   listPrinters: 'workbook:list-printers',
   exportCsv: 'workbook:export-csv',
   csvSaveConfirm: 'workbook:csv-save-confirm',
-  /** AI create_document: new standalone file in the default folder (no dialog) */
-  createDocument: 'workbook:create-document',
   openExternal: 'shell:open-external',
   menuAction: 'menu:action',
   userDisplayName: 'user:display-name',
-  aiGetSettings: 'ai:get-settings',
-  aiSetSettings: 'ai:set-settings',
-  aiSettingsChanged: 'ai:settings-changed',
-  aiOpenModelSettings: 'ai:open-model-settings',
-  aiChat: 'ai:chat',
-  aiStream: 'ai:stream',
-  aiStreamCancel: 'ai:stream-cancel',
-  aiStreamChunk: 'ai:stream-chunk',
-  aiGskStatus: 'ai:gsk-status',
-  aiGskLogin: 'ai:gsk-login',
-  aiGskLoginLanded: 'ai:gsk-login-landed',
-  aiImageSearch: 'ai:image-search',
-  aiFetchImage: 'ai:fetch-image',
-  // sheets: prefix — slides' ai:generate-image only registers once a slides view exists
-  aiGenerateImage: 'sheets:ai-generate-image',
-  // MCP visible-grid bridge: shell pushes one command, the renderer that owns
-  // the Univer workbook executes it with the built-in AI's executors
-  mcpCommand: 'sheets:mcp-command',
-  mcpResult: 'sheets:mcp-result',
-  mcpReady: 'sheets:mcp-ready',
-  // Chat attachments (sheets: prefix — docs already registers global files:* in
-  // the shell; avoids collisions)
+  // Screen capture (sheets: prefix — avoids collisions with the shell's own
+  // capture channels)
   captureScreenSources: 'sheets:capture-screen-sources',
   captureScreenSource: 'sheets:capture-screen-source',
-  filesPick: 'sheets:files-pick',
-  filesAdd: 'sheets:files-add',
-  filesAddPastedImage: 'sheets:files-add-pasted-image',
-  filesRead: 'sheets:files-read',
-  filesReadImage: 'sheets:files-read-image',
   /** Windows clipboard helper: append the copied range's EMF rendering */
   appendCopyEmf: 'sheets:append-copy-emf',
   copyEmfAvailable: 'sheets:copy-emf-available',

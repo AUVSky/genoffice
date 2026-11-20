@@ -17,15 +17,11 @@ import { GapCursor } from '@tiptap/pm/gapcursor'
 import { history } from '@tiptap/pm/history'
 import type { ResolvedPos } from '@tiptap/pm/model'
 import { NodeSelection, Selection } from '@tiptap/pm/state'
-import { suggestFileName } from '@genoffice/ui'
-import { modelTextOf, type RedactableNode } from './ai/redact-view'
 import {
   applyPageNumType,
   applySectionSettings,
   applyTitlePg,
   applySectionStartType,
-  BLANK_BULLET_NUM_ID,
-  BLANK_ORDERED_NUM_ID,
   buildBlankDocx,
   docxAsTemplate,
   paperSizeForLocale,
@@ -65,7 +61,7 @@ import {
   type WrittenFontConversion,
 } from '@genoffice/docx-engine'
 import type { Dispatch, SetStateAction } from 'react'
-import type { AiDocContent, OpenDocxResult } from '../shared/ipc'
+import type { OpenDocxResult } from '../shared/ipc'
 import { twipsToPx } from './units'
 import {
   hfVariantsFromParsed,
@@ -122,8 +118,7 @@ import {
   type InkTool,
 } from './editor/ink'
 import { t, getLang } from './i18n/locale'
-import { isBlankDocument, parseHtmlFragment, replaceBlockRange } from './ai/protocol'
-import { carryDocSeen } from './ai/tools'
+import { isBlankDocument } from './doc-core/protocol'
 import { loadDesignDefault, type DesignDefault } from './design-default'
 import { marginsFitPage } from './components/MarginDialog'
 import { isDocDirty, resetCrossDocEditState } from './doc-dirty'
@@ -145,7 +140,7 @@ import type { PdfInternalLink } from '../shared/ipc'
 import type { SaveAsExportFormat } from '../shared/save-as-format'
 import { showToast } from './components/toast-bus'
 import { buildStandaloneHtml } from './html-export'
-import { aiPanelInitiallyOpen, shortFileError } from '@genoffice/ui'
+import { shortFileError } from '@genoffice/ui'
 
 /** An export waiting for the pagination preview to mount; resolve settles the caller's exportPdf promise. */
 export type PendingPdfExport = {
@@ -173,16 +168,12 @@ export interface FileActionContext {
   setShowPrintDialog: (show: boolean) => void
   setStatus: (status: string) => void
   setRecent: (paths: string[]) => void
-  setShowAi: (show: boolean) => void
   setDoc: Dispatch<SetStateAction<DocState | null>>
-  setAiPanelKey: Dispatch<SetStateAction<number>>
   setDocCss: (css: string) => void
   /** true while a phased open streams the document tail (editor stays read-only) */
   setDocLoading: (loading: boolean) => void
   /** Read Mode toggle: a very large document opens in it */
   setReadMode: (readMode: boolean) => void
-  /** a large document opens with check-as-you-type spelling off */
-  setLargeDocSpellOff: (off: boolean) => void
   setShowPagePreview: (show: boolean) => void
   section: SectionSettings | null
   sectionDirty: boolean
@@ -486,11 +477,10 @@ function applyDocLayoutSettings(editor: Editor, parsed: ParsedDocFull): void {
  */
 export type LoadFileOutcome = 'ok' | 'canceled' | 'password' | 'failed' | 'superseded'
 
-/** appends a streamed tail chunk at the document end, outside undo history and the AI freshness baseline */
+/** appends a streamed tail chunk at the document end, outside undo history */
 export function appendStreamedNodes(editor: Editor, nodes: PmNode[]): void {
-  const before = editor.state.doc
   const tr = editor.state.tr.insert(
-    before.content.size,
+    editor.state.doc.content.size,
     nodes.map((n) => editor.schema.nodeFromJSON(n)),
   )
   tr.setMeta('addToHistory', false)
@@ -499,7 +489,6 @@ export function appendStreamedNodes(editor: Editor, nodes: PmNode[]): void {
   tr.setMeta(TRACK_IGNORE, true)
   tr.setMeta(TABLE_TRAILING_SKIP, true)
   editor.view.dispatch(tr)
-  carryDocSeen(editor, before)
 }
 
 /** binds the phased content streamer to the editor and App state behind ctx */
@@ -661,7 +650,6 @@ export async function loadFile(
     // Done here, not in the main process's loadDocx — Review > Compare also
     // opens files without replacing the current document.
     discardStalePasswordIntents()
-    ctx.setAiPanelKey((k) => k + 1)
     ctx.setDocCss(docStyleCss(parsed))
     ctx.setSection(readSectionSettings(parsed))
     ctx.setSections(readSections(parsed))
@@ -714,7 +702,6 @@ export async function loadFile(
     ctx.setCommentPanelOpen(hasUnanchoredComments(parsed.comments, parsed.blocks))
     ctx.setCommentPopup(null)
     ctx.setReadMode(tier === 'readOnly')
-    ctx.setLargeDocSpellOff(tier !== 'normal')
     ctx.setComments(parsed.comments)
     ctx.setCommentsDirty(false)
     ctx.setWatermark(parsed.watermarkText ?? null)
@@ -914,11 +901,9 @@ export async function newFile(ctx: FileActionContext): Promise<boolean | undefin
     ctx.setDoc({ parsed, filePath: null, fileName: t('appUntitledDocx'), hash: '', isBlank: true })
     // a very large document opened in Read Mode must not leave it on for the new one
     ctx.setReadMode(false)
-    ctx.setLargeDocSpellOff(false)
     // a fresh blank draft starts unencrypted: drop any pending password left by
     // the previous draft (its DocState, including the encrypted flag, is gone)
     discardStalePasswordIntents()
-    ctx.setAiPanelKey((k) => k + 1)
     ctx.setDocCss(docStyleCss(parsed))
     ctx.setSection(readSectionSettings(parsed))
     ctx.setSections(readSections(parsed))
@@ -980,8 +965,6 @@ export async function newFile(ctx: FileActionContext): Promise<boolean | undefin
     ctx.onWriteProtectionLoaded(null)
     ctx.dirtyRef.current = false
     // same rule as the first render, so the "open in new documents" setting holds for Cmd+N too
-    ctx.setShowAi(aiPanelInitiallyOpen('aidocs.showAi'))
-    ctx.setStatus(t('appNewDocCreated'))
     return true
   } catch (err) {
     if (generation !== openGeneration) return
@@ -1028,48 +1011,6 @@ function deriveAutoFileName(editor: Editor): string | null {
     if (base) return `${base}.docx`
   }
   return null
-}
-
-/** The document's own text, as the model may read it. Never the raw document. */
-function modelTextOfDocument(editor: Editor): string {
-  // A name is read off the opening of a document; 8k characters is far past
-  // anything a stem could name, and bounds the walk on the UI thread.
-  return modelTextOf(editor.getJSON() as RedactableNode, { maxChars: 8000 })
-}
-
-/**
- * A file name from a bare stem, in the shape the save path expects.
- *
- * The stem is an untrusted string — a model's answer, or nothing at all — so it
- * goes through the same sanitizer as a heading: a name carrying a separator, a
- * control character or a reserved Windows device word would otherwise become a
- * path the save silently refuses, or worse, writes somewhere else.
- */
-function docxNameFromStem(stem: string): string | null {
-  const base = sanitizeFileBaseName(stem)
-  return base ? `${base}.docx` : null
-}
-
-/**
- * Ask the model to name this document, on request.
- *
- * The result is the file name offered in the Save As dialog rather than a
- * rename: moving a file that may be open elsewhere, referenced from a note, or
- * synced is not something to do behind the reader's back. The dialog is the
- * confirmation. Returns '' when there is nothing usable, which leaves the
- * dialog on the name the document already has.
- *
- * The text handed over is `modelTextOf`, never the editor's document. A selection
- * the reader hid from the model stays hidden from this call too — the file name
- * is the one thing that reaches them after the model has seen the rest of the
- * document, so a leak here would survive the redaction it was meant to outlive.
- */
-export async function suggestedSaveAsName(ctx: FileActionContext): Promise<string> {
-  const { editor } = ctx
-  if (!editor) return ''
-  const stem = await suggestFileName({ content: modelTextOfDocument(editor) })
-  // a full file name, extension and all, because this is what the save dialog takes
-  return docxNameFromStem(stem) ?? ''
 }
 
 /**
@@ -1414,7 +1355,6 @@ export function save(
   saveAs: boolean,
   auto = false,
   newDocName?: string,
-  explicitTarget?: ExplicitSaveTarget,
   transform?: SaveTransform,
 ): Promise<boolean> {
   // A save arriving mid-flight waits for the current one instead of failing.
@@ -1425,9 +1365,9 @@ export function save(
   // the retry can no longer create a duplicate file.
   const generation = docGeneration
   const exportRequest: SaveAsExportRequest = {}
-  // an explicit MCP target or a transform must always write, never reuse an earlier pass
+  // a transform must always write, never reuse an earlier pass
   const nothingLeft = (from: FileActionContext) =>
-    !saveAs && !explicitTarget && !transform && !from.saveIncompleteRef.current && !isDocDirty(from)
+    !saveAs && !transform && !from.saveIncompleteRef.current && !isDocDirty(from)
   return runSerializedSave(
     async () => {
       const settled = await contextAfterReload(ctx)
@@ -1436,7 +1376,7 @@ export function save(
       // what is left to write is judged on the context that reload produced,
       // which the queue's own check (on the captured one) could not see yet.
       if (ctx.doc && supersededParsed.has(ctx.doc.parsed) && nothingLeft(settled)) return true
-      return saveOnce(settled, saveAs, auto, newDocName, explicitTarget, exportRequest, transform)
+      return saveOnce(settled, saveAs, auto, newDocName, exportRequest, transform)
     },
     () => nothingLeft(ctx),
   ).then(async (saved) => {
@@ -1465,78 +1405,11 @@ interface SaveAsExportRequest {
   target?: { format: SaveAsExportFormat; path: string }
 }
 
-/** an MCP-driven explicit output target: write to this absolute path, no dialog */
-export interface ExplicitSaveTarget {
-  path: string
-  overwrite: boolean
-  /** receives the main process's reason when the write is refused */
-  onError?: (message: string) => void
-}
-
-/** the parsed fragment flags every node aiChanged (yellow highlight); a boot-time fill is not a reviewable AI edit */
-function stripAiChanged(node: PmNode): PmNode {
-  const next: PmNode = { ...node }
-  if (next.attrs && 'aiChanged' in next.attrs) next.attrs = { ...next.attrs, aiChanged: false }
-  if (next.content) next.content = next.content.map(stripAiChanged)
-  return next
-}
-
-/**
- * Parse queued create_document content into blocks. The docs chat validates
- * the fragment before queueing, but the pdf chat cannot (the parser lives
- * here), so unparseable HTML falls back to plain-text paragraphs instead of
- * silently dropping the content.
- */
-export function aiDocContentNodes(html: string): PmNode[] {
-  const numIds = { bullet: BLANK_BULLET_NUM_ID, ordered: BLANK_ORDERED_NUM_ID }
-  try {
-    const nodes = parseHtmlFragment(html, numIds)
-    if (nodes.length > 0) return nodes.map(stripAiChanged)
-  } catch {
-    /* fall through to the plain-text salvage */
-  }
-  try {
-    // textContent glues adjacent blocks in minified markup — reinsert the
-    // block structure as blank lines (and cell gaps as spaces) before parsing
-    const spaced = html
-      .replace(/<\/(?:td|th)>/gi, ' $&')
-      .replace(/<\/(?:p|h[1-6]|li|div|pre|blockquote|tr)>/gi, '$&\n\n')
-    const text = new DOMParser().parseFromString(spaced, 'text/html').body.textContent ?? ''
-    if (!text.trim()) return []
-    return parseHtmlFragment(text, numIds).map(stripAiChanged)
-  } catch {
-    return []
-  }
-}
-
-/**
- * Boot-time half of the AI create_document tool: fill the fresh blank
- * document with the queued content (same restricted-HTML pipeline as
- * insert_content), then silently save it under the tool-provided title.
- * The save runs even when nothing could be parsed — the tool already
- * reported the document as created, so an unsaved untitled tab would lie.
- */
-export async function applyAiDocContent(
-  ctx: FileActionContext,
-  content: AiDocContent,
-): Promise<void> {
-  const { editor, doc } = ctx
-  if (!editor || !doc) return
-  const nodes = aiDocContentNodes(content.html)
-  if (nodes.length > 0) {
-    replaceBlockRange(editor, 0, editor.state.doc.childCount - 1, nodes)
-    // the document is born with this content: undo must not reach back to empty
-    resetEditorHistory(editor)
-  }
-  await save(ctx, false, true, `${content.title}.docx`)
-}
-
 async function saveOnce(
   ctx: FileActionContext,
   saveAs: boolean,
   auto: boolean,
   newDocName?: string,
-  explicitTarget?: ExplicitSaveTarget,
   exportRequest?: SaveAsExportRequest,
   transform?: SaveTransform,
 ): Promise<boolean> {
@@ -1573,27 +1446,7 @@ async function saveOnce(
     let savedPath = doc.filePath ?? pathlessDocSavedPath
     let passwordIntentPending = false
     let fullBytes: Uint8Array | undefined
-    if (explicitTarget) {
-      // MCP-driven explicit output: no dialog, no derived name — always write to
-      // the caller's path (overwrite policy is enforced in the main process).
-      const result = await window.desktop.saveDocxTo(
-        explicitTarget.path,
-        buffer,
-        explicitTarget.overwrite,
-      )
-      if (!result.ok) {
-        console.error('[docs] save failed', result.error)
-        const detail = shortFileError(result.error ?? '')
-        ctx.setStatus(t('appSaveFailed', { error: detail }))
-        showToast(t('appSaveFailed', { error: detail }), 'error')
-        explicitTarget.onError?.(result.error ?? '')
-        return false
-      }
-      savedPath = result.path!
-      passwordIntentPending = result.passwordIntentPending === true
-      if (result.dataUrl) fullBytes = await fetchDocBytes(result.dataUrl)
-      if (!doc.filePath) pathlessDocSavedPath = savedPath
-    } else if (saveAs || !savedPath) {
+    if (saveAs || !savedPath) {
       // A never-saved document still called "Untitled" gets a name derived from its
       // first heading. The model is not asked here: a name the reader never saw is
       // hard to trust, and a save must not wait on a model round-trip.

@@ -428,7 +428,6 @@ describe('picture context menu', () => {
       t('ribbonReplacePicture'),
       t('appCtxCropPicture'),
       t('appCtxRemoveBackground'),
-      t('redactMenuLabel'),
       t('appCtxSizePosition'),
       t('paneFormatTitleTyped', { type: t('paneFormatPicture') }),
     ])

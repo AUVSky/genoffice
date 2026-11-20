@@ -7,7 +7,6 @@
  */
 
 export const ribbonCommonZh = {
-  ribbonAiAssistant: 'Genspark',
   ribbonApply: '应用',
   ribbonChart: '图表',
   ribbonCollapse: '折叠功能区',
@@ -83,7 +82,6 @@ export const ribbonCommonZh = {
 }
 
 export const ribbonCommonEn = {
-  ribbonAiAssistant: 'Genspark',
   ribbonApply: 'Apply',
   ribbonChart: 'Chart',
   ribbonCollapse: 'Collapse the Ribbon',
@@ -159,7 +157,6 @@ export const ribbonCommonEn = {
 }
 
 export const ribbonCommonJa = {
-  ribbonAiAssistant: 'Genspark',
   ribbonApply: '適用',
   ribbonChart: 'グラフ',
   ribbonCollapse: 'リボンを折りたたむ',
@@ -235,7 +232,6 @@ export const ribbonCommonJa = {
 }
 
 export const ribbonCommonKo = {
-  ribbonAiAssistant: 'Genspark',
   ribbonApply: '적용',
   ribbonChart: '차트',
   ribbonCollapse: '리본 축소',
@@ -311,7 +307,6 @@ export const ribbonCommonKo = {
 }
 
 export const ribbonCommonFr = {
-  ribbonAiAssistant: 'Genspark',
   ribbonApply: 'Appliquer',
   ribbonChart: 'Graphique',
   ribbonCollapse: 'Réduire le ruban',
@@ -387,7 +382,6 @@ export const ribbonCommonFr = {
 }
 
 export const ribbonCommonDe = {
-  ribbonAiAssistant: 'Genspark',
   ribbonApply: 'Anwenden',
   ribbonChart: 'Diagramm',
   ribbonCollapse: 'Menüband reduzieren',
@@ -463,7 +457,6 @@ export const ribbonCommonDe = {
 }
 
 export const ribbonCommonEs = {
-  ribbonAiAssistant: 'Genspark',
   ribbonApply: 'Aplicar',
   ribbonChart: 'Gráfico',
   ribbonCollapse: 'Contraer la cinta de opciones',
@@ -539,7 +532,6 @@ export const ribbonCommonEs = {
 }
 
 export const ribbonCommonTh = {
-  ribbonAiAssistant: 'Genspark',
   ribbonApply: 'นำไปใช้',
   ribbonChart: 'แผนภูมิ',
   ribbonCollapse: 'ยุบ Ribbon',
@@ -615,7 +607,6 @@ export const ribbonCommonTh = {
 }
 
 export const ribbonCommonId = {
-  ribbonAiAssistant: 'Genspark',
   ribbonApply: 'Terapkan',
   ribbonChart: 'Bagan',
   ribbonCollapse: 'Ciutkan Pita',
@@ -691,7 +682,6 @@ export const ribbonCommonId = {
 }
 
 export const ribbonCommonRu = {
-  ribbonAiAssistant: 'Genspark',
   ribbonApply: 'Применить',
   ribbonChart: 'Диаграмма',
   ribbonCollapse: 'Свернуть ленту',
@@ -767,7 +757,6 @@ export const ribbonCommonRu = {
 }
 
 export const ribbonCommonAr = {
-  ribbonAiAssistant: 'Genspark',
   ribbonApply: 'تطبيق',
   ribbonChart: 'مخطط',
   ribbonCollapse: 'طي الشريط',
@@ -843,7 +832,6 @@ export const ribbonCommonAr = {
 }
 
 export const ribbonCommonPt = {
-  ribbonAiAssistant: 'Genspark',
   ribbonApply: 'Aplicar',
   ribbonChart: 'Gráfico',
   ribbonCollapse: 'Recolher a Faixa de Opções',
@@ -919,7 +907,6 @@ export const ribbonCommonPt = {
 }
 
 export const ribbonCommonIt = {
-  ribbonAiAssistant: 'Genspark',
   ribbonApply: 'Applica',
   ribbonChart: 'Grafico',
   ribbonCollapse: 'Riduci a icona la barra multifunzione',
@@ -995,7 +982,6 @@ export const ribbonCommonIt = {
 }
 
 export const ribbonCommonPl = {
-  ribbonAiAssistant: 'Genspark',
   ribbonApply: 'Zastosuj',
   ribbonChart: 'Wykres',
   ribbonCollapse: 'Zwiń Wstążkę',
@@ -1071,7 +1057,6 @@ export const ribbonCommonPl = {
 }
 
 export const ribbonCommonCs = {
-  ribbonAiAssistant: 'Genspark',
   ribbonApply: 'Použít',
   ribbonChart: 'Graf',
   ribbonCollapse: 'Sbalit pás karet',
@@ -1147,7 +1132,6 @@ export const ribbonCommonCs = {
 }
 
 export const ribbonCommonNl = {
-  ribbonAiAssistant: 'Genspark',
   ribbonApply: 'Toepassen',
   ribbonChart: 'Grafiek',
   ribbonCollapse: 'Het lint samenvouwen',
@@ -1223,7 +1207,6 @@ export const ribbonCommonNl = {
 }
 
 export const ribbonCommonMs = {
-  ribbonAiAssistant: 'Genspark',
   ribbonApply: 'Guna',
   ribbonChart: 'Carta',
   ribbonCollapse: 'Runtuhkan Reben',
@@ -1299,7 +1282,6 @@ export const ribbonCommonMs = {
 }
 
 export const ribbonCommonHe = {
-  ribbonAiAssistant: 'Genspark',
   ribbonApply: 'החל',
   ribbonChart: 'תרשים',
   ribbonCollapse: 'כווץ את רצועת הכלים',
@@ -1375,7 +1357,6 @@ export const ribbonCommonHe = {
 }
 
 export const ribbonCommonHi = {
-  ribbonAiAssistant: 'Genspark',
   ribbonApply: 'लागू करें',
   ribbonChart: 'चार्ट',
   ribbonCollapse: 'रिबन संक्षिप्त करें',
@@ -1451,7 +1432,6 @@ export const ribbonCommonHi = {
 }
 
 export const ribbonCommonzhTW = {
-  ribbonAiAssistant: 'Genspark',
   ribbonApply: '套用',
   ribbonChart: '圖表',
   ribbonCollapse: '摺疊功能區',
@@ -1527,7 +1507,6 @@ export const ribbonCommonzhTW = {
 }
 
 export const ribbonCommonVi = {
-  ribbonAiAssistant: 'Genspark',
   ribbonApply: 'Áp dụng',
   ribbonChart: 'Biểu đồ',
   ribbonCollapse: 'Thu gọn dải băng',
@@ -1603,7 +1582,6 @@ export const ribbonCommonVi = {
 }
 
 export const ribbonCommonTr = {
-  ribbonAiAssistant: 'Genspark',
   ribbonApply: 'Uygula',
   ribbonChart: 'Grafik',
   ribbonCollapse: 'Şeridi Daralt',
@@ -1679,7 +1657,6 @@ export const ribbonCommonTr = {
 }
 
 export const ribbonCommonHu = {
-  ribbonAiAssistant: 'Genspark',
   ribbonApply: 'Alkalmaz',
   ribbonChart: 'Diagram',
   ribbonCollapse: 'Menüszalag összecsukása',

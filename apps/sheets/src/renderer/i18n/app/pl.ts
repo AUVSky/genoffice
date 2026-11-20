@@ -1,21 +1,6 @@
 import type { zh } from './zh'
 
 export const pl = {
-  // ── Withholding cells from the model ──
-  redactMenuLabel: 'Ukryj zaznaczenie przed AI',
-  redactDialogDesc:
-    'Zaznaczona zawartość zostaje w dokumencie i w pliku; model widzi tylko symbol. Nadaj mu nazwę, by wiedział, co oznacza.',
-  redactDialogScope:
-    'Ukrywanie dotyczy tylko AI w tej aplikacji. CLI, narzędzia MCP i eksport bez okienka czytują plik bezpośrednio i nadal widzą te słowa.',
-  redactDialogPlaceholder: 'Nazwa symbolu, np. telefon klienta',
-  redactCancel: 'Anuluj',
-  redactInsert: 'Ukryj',
-  redactEnable: 'Kliknij prawym na zaznaczeniu, aby ukryć je przed modelem.',
-  redactNeedsSavedRow:
-    'Ten wiersz nie jest jeszcze w pliku. Zapisz najpierw, a potem ukryj komórkę.',
-  redactRecoveredFromNames:
-    'Inna aplikacja zapisała ten plik od nowa i usunęła rejestr tego, co jest ukryte. Ukryte komórki odtworzono z nazw w skoroszycie; zapisanie przywraca pełny rejestr.',
-
   appMergeWorkbooks: 'Scal skoroszyty',
   appMergeWorkbooksTip: 'Dodaj arkusze z innych plików Excel do tego skoroszytu',
   appMergeWorkbooksPicking: 'Wybierz pliki do scalenia…',
@@ -160,15 +145,11 @@ export const pl = {
   appRefresh: 'Odśwież',
   appRefreshHintIn: 'Przelicz ponownie bieżącą tabelę przestawną',
   appRefreshHintOut: 'Najpierw zaznacz obszar tabeli przestawnej, a następnie odśwież',
-  appAttachmentReadFailed: '{name}: odczyt nie powiódł się',
   appTooManyImages: 'Maksymalnie {max} obrazów na wiadomość; nadmiarowe zostały zignorowane',
-  appAppliedRevision:
-    'Zastosowano (wersja {revision}) — cofnij za pomocą ⌘Z, zapisz do pliku za pomocą ⌘S.',
   appCannotReadImage: 'Nie można odczytać pliku obrazu.',
   appTableNotDeletable:
     'Tabela „{name}” nie istnieje lub nie została utworzona w tej sesji — tabel istniejących już w pliku nie można jeszcze usuwać.',
   appImageNotLoaded: 'Nie udało się załadować obrazu: {path}',
-  appApplyFailed: '⚠️ Nie udało się zastosować: {reason}',
   appPivotChartNeedsFile: 'Najpierw otwórz plik XLSX — wykres przestawny jest zapisywany w pliku.',
   appCursorNotInPivot:
     'Kursor nie znajduje się w tabeli przestawnej — najpierw zaznacz komórkę w obszarze wyników tabeli przestawnej.',
@@ -315,16 +296,7 @@ export const pl = {
   appSavedTwoPhase: 'Zapisano.',
   appSaveSecondFailed:
     'Struktura została zapisana, ale druga faza (tabele przestawne/tabele/zdefiniowane nazwy) nie powiodła się: {reason}',
-  appReadyInitial: 'Gotowe na lokalne, deterministyczne polecenie AI.',
-  appAiThinking: 'AI myśli…',
-  appAiDone: 'AI zakończyła pracę',
-  appAiTurnLimit:
-    '(Osiągnięto limit rund wywołań narzędzi dla tego żądania; powyższa odpowiedź opiera się na dotychczas odczytanych informacjach i może być niekompletna.)',
-  appAiTruncatedNote: '(Odpowiedź została ucięta przez limit długości i może być niepełna.)',
-  appAiStopped: '(zatrzymano)',
-  appAiNoSummary: 'AI zakończyła bez podsumowania.',
-  appAiNoAction:
-    'AI nie wykonała żadnej akcji i nie udzieliła odpowiedzi. Spróbuj ponownie lub przeformułuj.',
+  appReadyInitial: 'Gotowe.',
   appNewConversation: 'Rozpoczęto nową rozmowę.',
   appPivotCellNoEdit:
     'Ta komórka jest częścią tabeli przestawnej — edycja nie jest jeszcze obsługiwana.',
@@ -374,15 +346,8 @@ export const pl = {
   appDvListOptions: 'Lista: {items}',
   appDvListFromRange: 'Lista (z zakresu {range})',
   appRuleBrokenRef: 'Uszkodzone odwołanie (#REF!) — ta reguła nigdy nie zadziała',
-  appCellStreaming: 'Ta komórka jest wciąż ładowana strumieniowo — spróbuj ponownie za chwilę.',
-  appPreviewCreated: 'Utworzono podgląd — nic się nie zmieni, dopóki nie zastosujesz.',
-  appPreviewCreatedDemo: 'Utworzono podgląd. Stan skoroszytu nie uległ zmianie.',
-  appPreviewFailed: 'Nie można utworzyć podglądu.',
   appApplyTxFailed: 'Nie można zastosować transakcji.',
   appTxCommitted: 'Transakcja zatwierdzona w wersji {revision}.',
-  appPreviewOtherWorkbook: 'Podgląd należał do innego skoroszytu — utwórz nowy.',
-  appPreviewSheetGone: 'Arkusz z podglądu już nie istnieje — utwórz nowy podgląd.',
-  appWorkbookChangedSincePreview: 'Skoroszyt zmienił się od czasu podglądu — utwórz nowy podgląd.',
   appAppliedJournaled: 'Zastosowano — zmiany zostały zarejestrowane; zapisz za pomocą ⌘S.',
   appUndoCommitted: 'Cofnięcie zatwierdzone jako wersja {revision}.',
   appUndoFailed: 'Nie można cofnąć.',
@@ -647,8 +612,6 @@ export const pl = {
   appShowCommentsTitle: 'Przypnij/odepnij dymek komentarza zaznaczonej komórki',
   appStructuralShiftBlocked:
     'Wykres lub tabela w tym arkuszu jest zakotwiczona w zmienianych wierszach/kolumnach; nie można ich przesunąć, zmiana strukturalna nie została zapisana. Cofnij ją (⌘Z) i zapisz ponownie.',
-  appAiChangesNotSaved:
-    'Zmiany AI zastosowane (niezapisane). Cofnij za pomocą ⌘Z; zapisz plikiem ⌘S.',
   appChartUpdated: 'Zaktualizowano wykres.',
   appChartNotEditable: 'Tego wykresu nie można edytować.',
   appChartEditRecorded: 'Zarejestrowano edycję wykresu — zapisz za pomocą ⌘S.',
@@ -731,7 +694,6 @@ export const pl = {
   appRibbonExpand: 'Rozwiń Wstążkę',
   appRibbonCompact: 'Zwinięta Wstążka (tylko ikony)',
   appTabView: 'Widok',
-  appTabAi: 'AI',
   appTabChartDesign: 'Projekt wykresu',
   appAutoSave: 'Autozapis',
   appAutoSaveTitle: 'Autozapis jest dostępny tylko dla plików w chmurze',
@@ -739,7 +701,6 @@ export const pl = {
   appExportPdfTitle: 'Eksportuj jako PDF',
   appSaveTitle: 'Zapisz (⌘S)',
   appSaveAs: 'Zapisz jako',
-  aiNameFile: 'Nazwij za pomocą AI…',
   appUndo: 'Cofnij',
   appRedo: 'Wykonaj ponownie',
   appUnsavedEditOne: '● {count} niezapisana zmiana',
@@ -749,8 +710,6 @@ export const pl = {
   appRevisionChip: 'Wersja {revision}',
   appOpenWorkbookTitle: 'Otwórz skoroszyt (⌘O)',
   appOpenXlsx: 'Otwórz XLSX',
-  appHideAi: 'Ukryj AI',
-  appShowAi: 'Pokaż AI',
   appCategoryAxisTitle: 'Tytuł osi kategorii',
   appValueAxisTitle: 'Tytuł osi wartości',
   appTitleText: 'Tekst tytułu',
@@ -820,10 +779,6 @@ export const pl = {
   appFormatPaneDetail: 'Osie, szerokość przerwy, rozsunięcie',
   appGroupChartActions: 'Akcje wykresu',
   appRemoveFromSheet: 'Usuń z arkusza',
-  appGroupAiAssistant: 'Asystent AI',
-  appAiOpenPanelDetail: 'Pasek boczny czatu',
-  appGroupAiStarters: 'Szybki start',
-  appAiStarterDetail: 'Wyślij do panelu AI',
   appGroupTables: 'Tabele',
   appFromSelection: 'Z zaznaczenia',
   appEditPivotTable: 'Edytuj tabelę przestawną',
@@ -1327,11 +1282,7 @@ export const pl = {
   appGroupProofing: 'Sprawdzanie',
   appWorkbookStatsLabel: 'Statystyki skoroszytu',
   appSheetsCellsFormulas: 'Arkusze, komórki, formuły',
-  appTranslate: 'Przetłumacz',
   appGroupLanguage: 'Język',
-  appTranslateTitle: 'Przetłumacz zaznaczenie z AI',
-  appTranslatePrompt:
-    'Przetłumacz tekst z zaznaczonego zakresu na {language} i wpisz tłumaczenia do tych samych komórek.',
   appNewCommentDetail: 'Dodaj lub edytuj',
   appDeleteLabel: 'Usuń',
   appNoteAtSelection: 'Notatka w miejscu zaznaczenia',

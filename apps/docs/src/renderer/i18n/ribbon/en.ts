@@ -26,9 +26,6 @@ export const en = {
   ribbonLangVietnamese: 'Vietnamese',
   ribbonLangTurkish: 'Turkish',
   ribbonLangHungarian: 'Hungarian',
-  ribbonAiCreditNote: 'Uses AI and consumes credits',
-  ribbonAiRewriteConfirm:
-    'This action calls the AI assistant: it consumes credits and may rewrite the entire content. Continue? (You will not be asked again.)',
   ribbonTabHome: 'Home',
   ribbonTabDraw: 'Draw',
   ribbonTabLayout: 'Layout',
@@ -85,7 +82,6 @@ export const en = {
   ribbonOpen: 'Open…',
   ribbonSave: 'Save',
   ribbonSaveAs: 'Save As…',
-  ribbonNameWithAi: 'Name with AI…',
   ribbonConvert: 'Convert',
   ribbonConvertTip: 'Convert to PDF, HTML, Markdown or images',
   ribbonConvertPdf: 'Convert to PDF…',
@@ -161,7 +157,6 @@ export const en = {
   ribbonIcons: 'Icons',
   ribbonDateTime: 'Date & Time',
   ribbonNumber: 'Number',
-  ribbonThesaurus: 'Thesaurus',
   ribbonWordCount: 'Word Count',
   ribbonProofingLanguage: 'Language',
   ribbonProofingNoCheck: 'Do not check spelling or grammar',
@@ -305,7 +300,6 @@ export const en = {
   ribbonReplaceTip: 'Find and replace text',
   ribbonSelectAll: 'Select All',
   ribbonSelectAllTip: 'Select the whole document',
-  ribbonAiAssistantTip: 'Open the AI assistant',
   ribbonRemoveTableStyleTip: 'Remove table style',
   ribbonNoStyle: 'No Style',
   ribbonApplyTableStyleTip: 'Apply table style {name}',
@@ -838,22 +832,9 @@ export const en = {
   ribbonSourceJournalName: 'Journal Name',
   ribbonSourceSiteName: 'Site Name',
   ribbonSourcePublisher: 'Publisher',
-  ribbonEditorBtn: 'Editor',
-  ribbonEditorTip: 'AI checks spelling, grammar and punctuation',
-  ribbonEditorPrompt:
-    'Proofread the entire document: fix typos, punctuation and grammar errors while keeping the original meaning and paragraph structure unchanged.',
   ribbonGroupProofing: 'Proofing',
   ribbonSpellcheckBtn: 'Spelling',
   ribbonSpellcheckTip: 'Check spelling as you type — underlines possible misspellings in red',
-  ribbonTranslate: 'Translate',
-  ribbonTranslateTip: 'AI translates the document',
-  ribbonTranslatePrompt:
-    'Translate the entire document into {lang}, keeping the paragraph structure and heading levels unchanged.',
-  ribbonTranslateSelectionPrompt:
-    'Translate the selected content into {lang}, keeping the paragraph structure unchanged.',
-  ribbonEditorSelectionPrompt:
-    'Proofread the selected content: fix typos, punctuation and grammar errors while keeping the original meaning and paragraph structure unchanged.',
-  ribbonTranslateTo: 'Translate to {lang}',
   ribbonGroupLanguage: 'Language',
   ribbonNewComment: 'New Comment',
   ribbonNewCommentTip: 'Add a comment on the selection',
@@ -870,16 +851,6 @@ export const en = {
   ribbonPrevCommentTip: 'Go to the previous comment',
   ribbonNextComment: 'Next',
   ribbonNextCommentTip: 'Go to the next comment',
-  ribbonAiComments: 'AI Resolve Comments',
-  ribbonAiRevisions: 'AI Revision Summary',
-  ribbonAiRevisionsTip:
-    'AI reads the {count} pending revisions, summarizes the changes by section and flags risks',
-  ribbonAiRevisionsPrompt:
-    'Summarize all pending tracked revisions in the document: start with overall stats (insertion/deletion counts, authors, date range), then describe the changes section by section (cite block indexes), and end with a list of potential concerns (e.g. deleted obligations or qualifiers, changed numbers/dates/amounts). Summarize only — do not modify the document or accept/reject any revision.',
-  ribbonAiCommentsTip:
-    'AI works through the {count} unresolved comments: edits per comment, replies with what changed, then resolves',
-  ribbonAiCommentsPrompt:
-    'Address every unresolved comment in the document: for each one, apply the requested change, reply describing what changed, then resolve it; if a comment is a question or ambiguous, reply without modifying the document.',
   ribbonShowCommentsTip: 'Show comments ({count})',
   ribbonShowCommentsContextual: 'Contextual',
   ribbonShowCommentsList: 'List',
@@ -1260,8 +1231,6 @@ export const en = {
   ribbonColWidthSpacing: 'Width and Spacing',
   ribbonColNo: 'Col #',
   ribbonColStartNew: 'Start new column',
-  ribbonTranslationLanguageTitle: 'Set Document Translation Language',
-  ribbonTranslationLanguageLabel: 'Translate to',
   ribbonAddTextNone: 'Do Not Show in Table of Contents',
   ribbonLnRestartPage: 'Restart Each Page',
   ribbonLnRestartSection: 'Restart Each Section',

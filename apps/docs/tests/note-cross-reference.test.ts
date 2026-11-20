@@ -9,7 +9,7 @@ import { insertCrossReference, listRefTargets } from '../src/renderer/editor/cro
 import { editorExtensions } from '../src/renderer/editor/extensions'
 import { anchorPos } from '../src/renderer/editor/link-targets'
 import { fieldLinkBookmark, refreshNoteRefFields } from '../src/renderer/editor/note-ref-fields'
-import { insertNoteRef, removeNoteRefs } from '../src/renderer/ai/note-ops'
+import { insertNoteRef, removeNoteRefs } from '../src/renderer/doc-core/note-ops'
 
 const WORDS = { above: 'above', below: 'below', onPage: (n: number) => `on page ${n}` }
 

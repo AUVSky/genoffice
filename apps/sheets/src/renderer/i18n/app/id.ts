@@ -1,20 +1,6 @@
 import type { zh } from './zh'
 
 export const id = {
-  // ── Withholding cells from the model ──
-  redactMenuLabel: 'Sembunyikan pilihan dari AI',
-  redactDialogDesc:
-    'Konten yang dipilih tetap ada di dokumen dan berkas; model hanya melihat placeholder di bawah. Beri nama agar model tahu apa yang diwakili.',
-  redactDialogScope:
-    'Penyembunyian ini hanya berlaku untuk AI di aplikasi ini. CLI, alat MCP, dan ekspor tanpa antarmuka membaca berkas secara langsung, sehingga kata-kata ini tetap terlihat olehnya.',
-  redactDialogPlaceholder: 'Nama placeholder, mis. telepon pelanggan',
-  redactCancel: 'Batal',
-  redactInsert: 'Sembunyikan',
-  redactEnable: 'Klik kanan pada teks yang dipilih untuk menyembunyikannya dari model.',
-  redactNeedsSavedRow: 'Baris ini belum ada di berkas. Simpan dulu, lalu sembunyikan selnya.',
-  redactRecoveredFromNames:
-    'Aplikasi lain menulis ulang berkas ini dan membuang catatan apa yang disembunyikan. Sel yang disembunyikan dipulihkan dari nama-nama di dalam buku kerja; menyimpan akan memulihkan catatan lengkapnya.',
-
   appMergeWorkbooks: 'Gabungkan Buku Kerja',
   appMergeWorkbooksTip: 'Tambahkan sheet dari file Excel lain ke buku kerja ini',
   appMergeWorkbooksPicking: 'Pilih file yang akan digabungkan…',
@@ -159,15 +145,11 @@ export const id = {
   appRefresh: 'Refresh',
   appRefreshHintIn: 'Hitung ulang PivotTable saat ini',
   appRefreshHintOut: 'Pilih dahulu area PivotTable, lalu refresh',
-  appAttachmentReadFailed: '{name}: gagal dibaca',
   appTooManyImages: 'Maksimal {max} gambar per pesan; kelebihannya diabaikan',
-  appAppliedRevision:
-    'Diterapkan (revisi {revision}) — urungkan dengan ⌘Z, simpan ke file dengan ⌘S.',
   appCannotReadImage: 'Tidak dapat membaca file gambar.',
   appTableNotDeletable:
     'Tabel "{name}" tidak ada atau tidak dibuat pada sesi ini — tabel yang sudah ada di file belum dapat dihapus.',
   appImageNotLoaded: 'Gambar gagal dimuat: {path}',
-  appApplyFailed: '⚠️ Gagal menerapkan: {reason}',
   appPivotChartNeedsFile: 'Buka file XLSX dahulu — PivotChart ditulis ke dalam file.',
   appCursorNotInPivot:
     'Kursor tidak berada di dalam PivotTable — pilih dahulu sel di area keluaran PivotTable.',
@@ -303,16 +285,7 @@ export const id = {
   appSavedTwoPhase: 'Disimpan.',
   appSaveSecondFailed:
     'Struktur sudah tersimpan, tetapi fase kedua (PivotTable/tabel/nama yang ditentukan) gagal: {reason}',
-  appReadyInitial: 'Siap untuk perintah AI lokal yang deterministik.',
-  appAiThinking: 'AI sedang berpikir…',
-  appAiDone: 'AI selesai',
-  appAiTurnLimit:
-    '(Batas putaran panggilan alat untuk permintaan ini tercapai; jawaban di atas berdasarkan yang sudah dibaca dan mungkin tidak lengkap.)',
-  appAiTruncatedNote: '(Balasan terpotong karena batas panjang dan mungkin tidak lengkap.)',
-  appAiStopped: '(dihentikan)',
-  appAiNoSummary: 'AI selesai tanpa menghasilkan ringkasan.',
-  appAiNoAction:
-    'AI tidak melakukan tindakan apa pun dan tidak memberi balasan. Coba lagi atau ubah kalimatnya.',
+  appReadyInitial: 'Siap.',
   appNewConversation: 'Percakapan baru dimulai.',
   appPivotCellNoEdit: 'Sel ini bagian dari PivotTable — pengeditannya belum didukung.',
   appAreaStreaming: 'Area itu masih dimuat secara streaming — coba lagi sebentar lagi.',
@@ -354,15 +327,8 @@ export const id = {
   appDvListOptions: 'Daftar: {items}',
   appDvListFromRange: 'Daftar (dari rentang {range})',
   appRuleBrokenRef: 'Referensi rusak (#REF!) — aturan ini tidak akan pernah berlaku',
-  appCellStreaming: 'Sel itu masih dimuat secara streaming — coba lagi sebentar lagi.',
-  appPreviewCreated: 'Pratinjau dibuat — tidak ada yang berubah sampai Anda menerapkannya.',
-  appPreviewCreatedDemo: 'Pratinjau dibuat. Status buku kerja tidak berubah.',
-  appPreviewFailed: 'Tidak dapat membuat pratinjau.',
   appApplyTxFailed: 'Tidak dapat menerapkan transaksi.',
   appTxCommitted: 'Transaksi dikomit (revisi {revision}).',
-  appPreviewOtherWorkbook: 'Pratinjau itu milik buku kerja lain — buat yang baru.',
-  appPreviewSheetGone: 'Lembar yang dipratinjau sudah tidak ada — buat pratinjau baru.',
-  appWorkbookChangedSincePreview: 'Buku kerja berubah sejak pratinjau — buat pratinjau baru.',
   appAppliedJournaled: 'Diterapkan — perubahan tercatat di jurnal; simpan dengan ⌘S.',
   appUndoCommitted: 'Pengurungan dikomit (revisi {revision}).',
   appUndoFailed: 'Tidak dapat mengurungkan.',
@@ -623,8 +589,6 @@ export const id = {
   appShowCommentsTitle: 'Sematkan/lepas sematan balon komentar sel yang dipilih',
   appStructuralShiftBlocked:
     'Bagan atau tabel di sheet ini tertaut ke baris/kolom yang terdampak sehingga tidak bisa digeser; perubahan struktur tidak disimpan. Urungkan (⌘Z) lalu simpan lagi.',
-  appAiChangesNotSaved:
-    'Perubahan AI diterapkan (belum disimpan). Urungkan dengan ⌘Z; simpan dengan ⌘S.',
   appChartUpdated: 'Bagan diperbarui.',
   appChartNotEditable: 'Bagan ini tidak dapat diedit.',
   appChartEditRecorded: 'Pengeditan bagan direkam — simpan dengan ⌘S.',
@@ -706,7 +670,6 @@ export const id = {
   appRibbonExpand: 'Perluas Pita',
   appRibbonCompact: 'Pita Ringkas (hanya ikon)',
   appTabView: 'Tampilan',
-  appTabAi: 'AI',
   appTabChartDesign: 'Desain Bagan',
   appAutoSave: 'SimpanOtomatis',
   appAutoSaveTitle: 'SimpanOtomatis hanya tersedia untuk file cloud',
@@ -714,7 +677,6 @@ export const id = {
   appExportPdfTitle: 'Ekspor sebagai PDF',
   appSaveTitle: 'Simpan (⌘S)',
   appSaveAs: 'Simpan Sebagai',
-  aiNameFile: 'Beri nama dengan AI…',
   appUndo: 'Urungkan',
   appRedo: 'Ulangi',
   appUnsavedEditOne: '● {count} pengeditan belum disimpan',
@@ -724,8 +686,6 @@ export const id = {
   appRevisionChip: 'Revisi {revision}',
   appOpenWorkbookTitle: 'Buka Buku Kerja (⌘O)',
   appOpenXlsx: 'Buka XLSX',
-  appHideAi: 'Sembunyikan AI',
-  appShowAi: 'Tampilkan AI',
   appCategoryAxisTitle: 'Judul Sumbu Kategori',
   appValueAxisTitle: 'Judul Sumbu Nilai',
   appTitleText: 'Teks judul',
@@ -794,10 +754,6 @@ export const id = {
   appFormatPaneDetail: 'Sumbu, lebar celah, pemisahan',
   appGroupChartActions: 'Tindakan bagan',
   appRemoveFromSheet: 'Hapus dari lembar',
-  appGroupAiAssistant: 'Asisten AI',
-  appAiOpenPanelDetail: 'Bilah samping obrolan',
-  appGroupAiStarters: 'Mulai cepat',
-  appAiStarterDetail: 'Kirim ke panel AI',
   appGroupTables: 'Tabel',
   appFromSelection: 'Dari pilihan',
   appEditPivotTable: 'Edit PivotTable',
@@ -1300,11 +1256,7 @@ export const id = {
   appGroupProofing: 'Pemeriksaan',
   appWorkbookStatsLabel: 'Statistik Buku Kerja',
   appSheetsCellsFormulas: 'Lembar, sel, rumus',
-  appTranslate: 'Terjemahkan',
   appGroupLanguage: 'Bahasa',
-  appTranslateTitle: 'Terjemahkan pilihan dengan AI',
-  appTranslatePrompt:
-    'Terjemahkan teks dalam rentang terpilih ke {language} dan tulis kembali ke sel yang sama.',
   appNewCommentDetail: 'Tambah atau edit',
   appDeleteLabel: 'Hapus',
   appNoteAtSelection: 'Catatan pada pilihan',

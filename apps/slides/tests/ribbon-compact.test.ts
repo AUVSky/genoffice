@@ -20,7 +20,7 @@ const css = read('src/renderer/styles.css')
 describe('slides ribbon compact density', () => {
   it('opts in: the collapse hook gets the compact labels', () => {
     expect(ribbonSrc).toMatch(
-      /useRibbonCollapse\('ai-slides-ribbon-collapsed', \{[^}]*compact: t\('ribbonCompact'\),[^}]*expandFull: t\('ribbonExpand'\),[^}]*\}\)/s,
+      /useRibbonCollapse\('slides-ribbon-collapsed', \{[^}]*compact: t\('ribbonCompact'\),[^}]*expandFull: t\('ribbonExpand'\),[^}]*\}\)/s,
     )
   })
 

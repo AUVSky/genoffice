@@ -39,7 +39,7 @@ export async function exportPdf(
       : await showSaveDialogWithMemory(dialog, parent, dialogOptions)
   if (selection.canceled || !selection.filePath) return { canceled: true }
 
-  const workDir = await mkdtemp(join(tmpdir(), 'ai-excel-pdf-'))
+  const workDir = await mkdtemp(join(tmpdir(), 'sheets-pdf-'))
   const htmlPath = join(workDir, 'print.html')
   const window = new BrowserWindow({
     show: false,
@@ -66,7 +66,7 @@ export async function printWorkbook(
   request: WorkbookExportPdfRequest,
 ): Promise<WorkbookPrintResult> {
   const owner = BrowserWindow.fromWebContents(event.sender)
-  const workDir = await mkdtemp(join(tmpdir(), 'ai-excel-print-'))
+  const workDir = await mkdtemp(join(tmpdir(), 'sheets-print-'))
   const htmlPath = join(workDir, 'print.html')
   const window = new BrowserWindow({
     show: false,

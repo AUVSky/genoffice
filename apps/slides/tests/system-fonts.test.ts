@@ -54,7 +54,7 @@ describe.runIf(mac)(
     const m = createSystemFontMetrics()
 
     it('Japanese font requests resolve to matching system faces', () => {
-      const yuSans = office ? /^Yu Gothic/ : /^Hiragino Sans$/
+      const yuSans = office ? /^Yu Gothic/ : /^(Hiragino Sans|YuGothic)$/
       expect(m.displayFamily!(style('游ゴシック'))).toMatch(yuSans)
       expect(m.displayFamily!(style('Yu Gothic'))).toMatch(yuSans)
       expect(m.displayFamily!(style('メイリオ'))).toMatch(office ? /Meiryo/ : /^Hiragino Sans$/)
@@ -69,9 +69,13 @@ describe.runIf(mac)(
 
     it('a missing Japanese sans substitutes to the plain Yu Gothic face, not the narrow-kana UI face', () => {
       const fam = m.displayFamily!(style('BIZ UDPGothic'))
-      expect(fam).toMatch(office ? /^Yu Gothic( Medium)?$|^Hiragino Sans$/ : /^Hiragino Sans$/)
+      expect(fam).toMatch(
+        office ? /^Yu Gothic( Medium)?$|^Hiragino Sans$/ : /^(Hiragino Sans|YuGothic)$/,
+      )
       expect(fam).not.toMatch(/UI/)
-      expect(m.displayFamily!(style('Yu Gothic UI'))).toMatch(office ? /Yu Gothic UI/ : /Hiragino/)
+      expect(m.displayFamily!(style('Yu Gothic UI'))).toMatch(
+        office ? /Yu Gothic UI/ : /^(Hiragino|YuGothic|Yu Gothic UI)/,
+      )
     })
 
     it('SinoType (ST*) families resolve to the matching macOS faces, not Calibri', () => {

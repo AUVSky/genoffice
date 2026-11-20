@@ -1,21 +1,6 @@
 import type { zh } from './zh'
 
 export const ko = {
-  // ── Withholding cells from the model ──
-  redactMenuLabel: '선택한 부분을 AI에서 숨기기',
-  redactDialogDesc:
-    '선택한 내용은 그대로 두고 AI에게는 아래 자리표시자만 보냅니다. 이름을 붙이면 AI가 무엇을 뜻하는지 알 수 있습니다.',
-  redactDialogScope:
-    '이 앱의 AI에만 적용됩니다. CLI, MCP 도구, 창 없는 내보내기는 파일을 직접 읽으므로 이 단어들은 여전히 보입니다.',
-  redactDialogPlaceholder: '자리표시자 이름, 예: 고객 전화',
-  redactCancel: '취소',
-  redactInsert: '숨기기',
-  redactEnable: '선택한 부분을 오른쪽 클릭해 AI에서 숨깁니다.',
-  redactNeedsSavedRow:
-    '이 행은 아직 파일에 저장되지 않았습니다. 먼저 저장한 다음 셀을 숨겨 주세요.',
-  redactRecoveredFromNames:
-    '다른 앱이 이 파일을 다시 저장하며 숨겨진 내용을 기록한 부품이 사라졌습니다. 숨겨진 셀은 통합 문서의 이름에서 복구되었습니다. 저장하면 전체 기록이 다시 기록됩니다.',
-
   appMergeWorkbooks: '통합 문서 병합',
   appMergeWorkbooksTip: '다른 Excel 파일의 시트를 현재 통합 문서에 추가합니다',
   appMergeWorkbooksPicking: '병합할 파일 선택…',
@@ -160,14 +145,11 @@ export const ko = {
   appRefreshHintIn: '현재 피벗 테이블 다시 계산',
   appRefreshHintOut: '피벗 영역을 선택한 후 새로 고치십시오',
   // App status bar / toast messages
-  appAttachmentReadFailed: '{name}: 읽기 실패',
   appTooManyImages: '메시지당 이미지는 최대 {max}개까지 보낼 수 있으며, 초과분은 무시되었습니다',
-  appAppliedRevision: '적용했습니다(리비전 {revision}) — ⌘Z로 실행 취소, ⌘S로 파일에 저장합니다.',
   appCannotReadImage: '이미지 파일을 읽을 수 없습니다.',
   appTableNotDeletable:
     '표 "{name}"이(가) 없거나 이번 세션에서 만든 표가 아닙니다. 파일에 원래 있던 표는 아직 삭제할 수 없습니다.',
   appImageNotLoaded: '이미지를 불러오지 못했습니다: {path}',
-  appApplyFailed: '⚠️ 적용 실패: {reason}',
   appPivotChartNeedsFile: '먼저 XLSX 파일을 여십시오. 피벗 차트는 파일에 기록됩니다.',
   appCursorNotInPivot:
     '커서가 피벗 테이블 안에 있지 않습니다. 먼저 피벗 테이블 출력 영역의 셀을 선택하십시오.',
@@ -302,17 +284,7 @@ export const ko = {
   appSavedTwoPhase: '저장했습니다.',
   appSaveSecondFailed:
     '구조는 저장되었지만 두 번째 단계(피벗 테이블/표/이름 범위)가 실패했습니다: {reason}',
-  // AI session / status bar
-  appReadyInitial: '준비 완료 — 로컬 결정적 AI 명령을 사용할 수 있습니다.',
-  appAiThinking: 'AI가 생각하는 중…',
-  appAiDone: 'AI가 완료되었습니다',
-  appAiTurnLimit:
-    '(요청당 도구 호출 한도에 도달하여, 지금까지 읽은 정보를 기반으로 한 답변입니다. 불완전할 수 있습니다.)',
-  appAiTruncatedNote: '(응답이 길이 제한으로 잘려 내용이 불완전할 수 있습니다.)',
-  appAiStopped: '(중지됨)',
-  appAiNoSummary: 'AI가 완료되었지만 요약은 생성되지 않았습니다.',
-  appAiNoAction:
-    'AI가 아무 작업도 수행하지 않았고 응답도 없습니다. 다시 시도하거나 다르게 표현해 보세요.',
+  appReadyInitial: '준비 완료.',
   appNewConversation: '새 대화를 시작했습니다.',
   // Streaming load / edit gating
   appPivotCellNoEdit: '이 셀은 피벗 테이블에 속해 있어 아직 편집할 수 없습니다.',
@@ -357,16 +329,8 @@ export const ko = {
   appDvListOptions: '목록: {items}',
   appDvListFromRange: '목록(범위 {range}에서)',
   appRuleBrokenRef: '참조가 유효하지 않습니다(#REF!) — 이 규칙은 적용되지 않습니다',
-  appCellStreaming: '이 셀은 아직 스트리밍 로드 중입니다 — 잠시 후 다시 시도하십시오.',
-  appPreviewCreated: '미리 보기를 만들었습니다 — 적용하기 전에는 아무것도 변경되지 않습니다.',
-  appPreviewCreatedDemo: '미리 보기를 만들었습니다. 통합 문서 상태는 변경되지 않았습니다.',
-  appPreviewFailed: '미리 보기를 만들 수 없습니다.',
   appApplyTxFailed: '이 트랜잭션을 적용할 수 없습니다.',
   appTxCommitted: '트랜잭션을 커밋했습니다(리비전 {revision}).',
-  appPreviewOtherWorkbook: '이 미리 보기는 다른 통합 문서의 것입니다 — 다시 만드십시오.',
-  appPreviewSheetGone: '미리 본 시트가 더 이상 없습니다 — 미리 보기를 다시 만드십시오.',
-  appWorkbookChangedSincePreview:
-    '미리 보기 이후 통합 문서가 변경되었습니다 — 미리 보기를 다시 만드십시오.',
   appAppliedJournaled: '적용했습니다 — 변경 내용이 기록되었습니다. ⌘S로 파일에 저장합니다.',
   appUndoCommitted: '실행 취소를 커밋했습니다(리비전 {revision}).',
   appUndoFailed: '실행 취소할 수 없습니다.',
@@ -629,9 +593,6 @@ export const ko = {
   appShowCommentsTitle: '선택한 셀의 메모 풍선 고정/고정 해제',
   appStructuralShiftBlocked:
     '이 시트의 차트나 표가 해당 행/열에 고정되어 있어 이동할 수 없으며, 구조 변경은 저장되지 않았습니다. 실행 취소(⌘Z) 후 다시 저장하세요.',
-  appAiChangesNotSaved:
-    'AI 변경 사항이 적용되었습니다(저장 안 됨). ⌘Z로 실행 취소, ⌘S로 파일에 저장하세요.',
-  // Floating objects / chart editing
   appChartUpdated: '차트를 업데이트했습니다.',
   appChartNotEditable: '이 차트는 편집할 수 없습니다.',
   appChartEditRecorded: '차트 편집을 기록했습니다 — ⌘S로 저장합니다.',
@@ -715,7 +676,6 @@ export const ko = {
   appRibbonExpand: '리본 확장',
   appRibbonCompact: '간단 리본(아이콘만)',
   appTabView: '보기',
-  appTabAi: 'AI',
   appTabChartDesign: '차트 디자인',
   // Title bar / status
   appAutoSave: '자동 저장',
@@ -724,7 +684,6 @@ export const ko = {
   appExportPdfTitle: 'PDF로 내보내기',
   appSaveTitle: '저장(⌘S)',
   appSaveAs: '다른 이름으로 저장',
-  aiNameFile: 'AI로 이름 지정…',
   appUndo: '실행 취소',
   appRedo: '다시 실행',
   appUnsavedEditOne: '● 저장되지 않은 편집 {count}개',
@@ -734,9 +693,6 @@ export const ko = {
   appRevisionChip: '리비전 {revision}',
   appOpenWorkbookTitle: '통합 문서 열기(⌘O)',
   appOpenXlsx: 'XLSX 열기',
-  appHideAi: 'AI 숨기기',
-  appShowAi: 'AI 표시',
-  // Chart text dialog
   appCategoryAxisTitle: '항목 축 제목',
   appValueAxisTitle: '값 축 제목',
   appTitleText: '제목 텍스트',
@@ -810,12 +766,6 @@ export const ko = {
   appFormatPaneDetail: '축, 간격 너비, 조각 분리',
   appGroupChartActions: '차트 작업',
   appRemoveFromSheet: '시트에서 제거',
-  // AI Tab
-  appGroupAiAssistant: 'AI 도우미',
-  appAiOpenPanelDetail: '사이드바 대화',
-  appGroupAiStarters: '빠른 시작',
-  appAiStarterDetail: 'AI 패널로 보내기',
-  // Insert tab
   appGroupTables: '표',
   appFromSelection: '현재 선택 영역 기준',
   appEditPivotTable: '피벗 테이블 편집',
@@ -1321,10 +1271,7 @@ export const ko = {
   appGroupProofing: '언어 교정',
   appWorkbookStatsLabel: '통합 문서 통계',
   appSheetsCellsFormulas: '시트, 셀, 수식',
-  appTranslate: '번역',
   appGroupLanguage: '언어',
-  appTranslateTitle: 'AI로 선택 영역 번역',
-  appTranslatePrompt: '선택한 범위의 텍스트를 {language}로 번역하여 원래 셀에 다시 써 주세요.',
   appNewCommentDetail: '추가 또는 편집',
   appDeleteLabel: '삭제',
   appNoteAtSelection: '선택 위치의 노트',

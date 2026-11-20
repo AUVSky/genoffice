@@ -209,7 +209,7 @@ describe('insert actions use the measured frames', () => {
     api.addImageBytes.mockResolvedValue(result)
     api.setLink.mockResolvedValue(slides[0])
     api.beginHistoryBatch.mockResolvedValue(true)
-    api.endHistoryBatch.mockResolvedValue(null)
+    api.endHistoryBatch.mockResolvedValue(true)
     // The engine mints a GUID for every section written without an id
     api.setSections.mockImplementation(async (list: Array<{ id: string; name: string }>) =>
       list.map((sec) => ({ ...sec, id: sec.id || `{${sec.name}}` })),

@@ -278,8 +278,6 @@ export function Group({
 
 export interface Props {
   hasDoc: boolean
-  /** True when no slide has real content — the one-click AI actions grey out then */
-  deckEmpty: boolean
   /** Undo/redo stack occupancy (pushed from the main process): the QAT buttons grey out when empty */
   canUndo: boolean
   canRedo: boolean
@@ -293,8 +291,6 @@ export interface Props {
   onUndo: () => void
   onRedo: () => void
   onSaveAs: () => void
-  /** Ask the model for a name, then open Save As with it prefilled */
-  onNameWithAi: () => void
   /** Export as PDF (hidden slides skipped) */
   onExportPdf: () => void
   onPrint: () => void
@@ -309,11 +305,6 @@ export interface Props {
   onZoom: (z: number | ((current: number) => number)) => void
   showThumbs: boolean
   onToggleThumbs: () => void
-  aiOpen: boolean
-  onToggleAi: () => void
-  /** Push a preset instruction to the AI panel and expand it (autoRun executes immediately) */
-  /** slideShot: attach the current slide's rendering so the model sees the page (AI Beautify) */
-  onAiPreset: (text: string, opts?: { slideShot?: boolean }) => void
   /** Shape gallery / Text Box pick: enter canvas draw mode (crosshair; click = default size, drag = custom, Esc cancels) */
   onPickShape: (kind: InsertKind) => void
   /** Open the image picker dialog and insert into the current page */
@@ -591,7 +582,6 @@ export interface Props {
 /** Ribbon locals + props handed to the extracted tab components; rebuilt every render. */
 export interface RibbonTabCtx extends Pick<
   Props,
-  | 'aiOpen'
   | 'brushMode'
   | 'canDistribute'
   | 'canPaste'
@@ -602,7 +592,6 @@ export interface RibbonTabCtx extends Pick<
   | 'curFontSizeMixed'
   | 'curFontSizePt'
   | 'currentSlide'
-  | 'deckEmpty'
   | 'editing'
   | 'formatOpen'
   | 'hasBrushFormat'
@@ -614,7 +603,6 @@ export interface RibbonTabCtx extends Pick<
   | 'onAddSection'
   | 'onAddSlide'
   | 'onAddSlideWithLayout'
-  | 'onAiPreset'
   | 'onAlign'
   | 'onDirection'
   | 'onArrange'
@@ -652,7 +640,6 @@ export interface RibbonTabCtx extends Pick<
   | 'onStrike'
   | 'onTextColor'
   | 'onTextToggle'
-  | 'onToggleAi'
   | 'onToggleFormat'
   | 'onToggleScreenRecord'
   | 'recording'

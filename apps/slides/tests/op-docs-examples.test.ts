@@ -113,7 +113,7 @@ const callable = Object.entries(OP_DOCS).filter(
 )
 
 describe('op doc examples', () => {
-  it('every AI-callable op documents at least one example', () => {
+  it('every callable op documents at least one example', () => {
     const missing = callable.filter(([, doc]) => doc.examples.length === 0).map(([n]) => n)
     expect(missing).toEqual([])
   })

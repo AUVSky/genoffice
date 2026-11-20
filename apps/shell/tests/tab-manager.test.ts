@@ -156,18 +156,6 @@ vi.mock('../../markdown/src/main/markdown-main', () => ({
   requestMarkdownClose: (...args: unknown[]) => requestMarkdownClose(...(args as [])),
 }))
 
-const createHtmlView = vi.fn(() => makeFakeView())
-const createHtmlPresentView = vi.fn(() => makeFakeView())
-const htmlIsDirty = vi.fn(() => false)
-const requestHtmlClose = vi.fn(() => Promise.resolve(true))
-
-vi.mock('../../html/src/main/html-main', () => ({
-  createHtmlView: (...args: unknown[]) => createHtmlView(...(args as [])),
-  createHtmlPresentView: (...args: unknown[]) => createHtmlPresentView(...(args as [])),
-  htmlIsDirty: (...args: unknown[]) => htmlIsDirty(...(args as [])),
-  requestHtmlClose: (...args: unknown[]) => requestHtmlClose(...(args as [])),
-}))
-
 import { TabManager } from '../src/main/tab-manager'
 import type { TabKind } from '../src/shared/tabs-api'
 
@@ -763,15 +751,6 @@ describe('file path bookkeeping', () => {
         return lastCreatedView(createMarkdownView)
       },
     },
-    {
-      kind: 'html',
-      file: '/tmp/one.html',
-      renamed: '/tmp/two.html',
-      open: () => {
-        manager.openHtmlTab('/tmp/one.html')
-        return lastCreatedView(createHtmlView)
-      },
-    },
   ]
 
   it.each(RENAMABLE)('a rename reports the $kind view', (c) => {
@@ -854,14 +833,12 @@ describe('file path bookkeeping', () => {
       return id
     }
     const markdownId = seedTab('markdown', '/real/file')
-    const htmlId = seedTab('html', '/real/file')
 
     expect(manager.findDocsTabByPath('/canonical/file')).toBe(docsId)
     expect(manager.findSheetsTabByPath('/REAL/FILE')).toBe(sheetsId)
     expect(manager.findSlidesTabByPath('/canonical/file')).toBe(slidesId)
     expect(manager.findPdfTabByPath('/REAL/FILE')).toBe(pdfId)
     expect(manager.findMarkdownTabByPath('/canonical/file')).toBe(markdownId)
-    expect(manager.findHtmlTabByPath('/REAL/FILE')).toBe(htmlId)
     expect(manager.findDocsTabByPath('/missing')).toBeUndefined()
     expect(manager.findDocsTabByPath()).toBeUndefined()
   })
@@ -936,14 +913,10 @@ describe('detach / attach (Open in New Window, tear-off, dock)', () => {
     const slides = manager.openSlidesTab()
     const pdf = manager.openPdfTab('/tmp/scan.pdf')
     const markdown = manager.openMarkdownTab()
-    const html = manager.openHtmlTab()
-    const present = manager.openHtmlPresentTab({ id: 999 } as never, 'Preview')
-    for (const id of [docs, sheets, slides, pdf, markdown, html])
+    for (const id of [docs, sheets, slides, pdf, markdown])
       expect(manager.canDetachTab(id)).toBe(true)
     expect(manager.canDetachTab('home')).toBe(false)
-    expect(manager.canDetachTab(present)).toBe(false)
     expect(manager.canDetachTab('nope')).toBe(false)
-    expect(manager.detachTab(present)).toBeNull()
   })
 
   it('attaches a view back as a new, active tab at the requested slot', () => {

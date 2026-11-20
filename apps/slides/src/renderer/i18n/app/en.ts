@@ -1,16 +1,6 @@
 import type { zh } from './zh'
 
 export const en = {
-  redactMenuLabel: 'Hide the selection from AI',
-  redactDialogDesc:
-    'The selection stays in the document and in the file; the model sees the placeholder below instead. Name it so the model knows what it stands for.',
-  redactDialogScope:
-    "Hiding covers this app's AI. The CLI, MCP tools and headless export read the file directly, and they still see these words.",
-  redactDialogPlaceholder: 'Placeholder name, e.g. client phone',
-  redactCancel: 'Cancel',
-  redactInsert: 'Hide',
-  redactEnable: 'Right-click a selection to hide it from the model.',
-
   appPhPromptTitle: 'Click to add title',
   appPhPromptSubtitle: 'Click to add subtitle',
   appPhPromptBody: 'Click to add text',
@@ -263,8 +253,6 @@ export const en = {
   appNotesPlaceholder: 'Click to add speaker notes (saved into the .pptx)',
   appNotesShow: 'Show notes',
   appNotesHide: 'Hide notes',
-  appAiRailExpand: 'Expand AI assistant',
-  appAiRailText: 'AI',
   appStatusBarSlide: 'Slide {current} of {total}',
   appStatusBarReady: 'Ready',
   appMediaCloseTitle: 'Close (Esc)',
@@ -280,14 +268,7 @@ export const en = {
   appStatusRecordSaved: 'Narration saved on {count} slides (PowerPoint plays it too)',
   appStatusRecordFailed: 'The recording could not be saved',
   appStatusNarrationCleared: 'Narration cleared',
-  appSettingsTitle: 'AI Settings',
-  appSettingsAccount: 'Genspark Account',
   appSettingsChecking: 'Checking…',
-  appSettingsLoggedIn: 'Signed in',
-  appSettingsLoggedInEmail: 'Signed in: {email}',
-  appSettingsLoggedOut: 'Not signed in (AI features require a Genspark account)',
-  appSettingsLoginPending: 'Waiting for browser sign-in…',
-  appSettingsLogin: 'Sign in to Genspark',
   appSettingsModel: 'Model',
   appSettingsCancel: 'Cancel',
   appSettingsSave: 'Save',

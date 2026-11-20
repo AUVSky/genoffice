@@ -3,7 +3,6 @@ import iconXlsx from './assets/file-xlsx.svg'
 import iconPptx from './assets/file-pptx.svg'
 import iconPdf from './assets/file-pdf.svg'
 import iconMd from './assets/file-md.svg'
-import iconHtml from './assets/file-html.svg'
 
 const FILE_ICONS: Record<string, string> = {
   docx: iconDocx,
@@ -21,8 +20,6 @@ const FILE_ICONS: Record<string, string> = {
   pdf: iconPdf,
   md: iconMd,
   markdown: iconMd,
-  html: iconHtml,
-  htm: iconHtml,
 }
 
 export function FileBadge({ ext, size }: { ext: string; size: number }) {

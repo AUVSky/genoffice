@@ -1,16 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto'
 import { handOffBytes } from './byte-handoff'
-import {
-  appendFileSync,
-  existsSync,
-  mkdirSync,
-  readdirSync,
-  readFileSync,
-  renameSync,
-  statSync,
-  unlinkSync,
-  writeFileSync,
-} from 'node:fs'
+import { existsSync, readFileSync, renameSync, statSync, unlinkSync } from 'node:fs'
 import {
   copyFile,
   mkdir,
@@ -23,7 +13,7 @@ import {
   writeFile,
 } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { basename, dirname, extname, isAbsolute, join } from 'node:path'
+import { basename, dirname, join } from 'node:path'
 import { moveFile, renamedDocPath } from './doc-move'
 import { pathToFileURL } from 'node:url'
 import {
@@ -35,32 +25,25 @@ import {
   dialog,
   ipcMain,
   nativeImage,
-  net,
   screen,
-  session,
   shell,
   webContents,
 } from 'electron'
 import {
-  abortOnDestroyed,
   appMenuLabels,
   appMenuTemplate,
-  buildPrintableHtml,
   configuredDefaultSaveDir,
   contextMenuLabels,
-  fetchRemoteImage,
   installContextMenu,
   setContextMenuInterceptor,
   installNavigationGuard,
   isHeadlessMode,
-  printHtmlToPdf,
   safeExternalUrl,
   saveAsSuggestion,
   saveImageFromUrl,
   showOpenDialogWithMemory,
   showSaveDialogWithMemory,
   aboutMenuItem,
-  checkUpdatesMenuItem,
   toggleDevToolsItem,
   settingsMenuItem,
   windowMenuTemplate,
@@ -69,10 +52,7 @@ import {
   installRendererProtocol,
   registerRendererScheme,
   rendererUrl,
-  MAX_REMOTE_IMAGE_BYTES,
-  readBodyCapped,
   writeJsonAtomic,
-  restrictFileToOwner,
   recoveryCopyDiskNewer,
   readLegacyImportSkip,
   writeLegacyImportSkip,
@@ -84,7 +64,6 @@ import {
   familyVerticalMetrics,
 } from '@genoffice/font-metrics'
 import { createI18n, getUiLang, normalizeLang, setUiLang } from '@genoffice/i18n'
-import { ProjectStore } from '@genoffice/project-store'
 import type {
   IpcMainInvokeEvent,
   MenuItem,
@@ -93,68 +72,14 @@ import type {
   SaveDialogOptions,
   WebContents,
 } from 'electron'
-import { parseFileToText } from '@genoffice/file-parse'
 import { convertLegacyDocToDocx } from '../../../../packages/doc2docx/src'
 import { convertHtmlToDocx } from '../../../../packages/html2docx/src'
 import { ElectronBrowserDriver } from '../../../../packages/html2docx/src/drivers/electron'
 import { convertOdtToDocx } from '../../../../packages/odf2ooxml/src'
 import { convertHwpToDocx } from '../../../../packages/hwp2docx/src'
-import {
-  AiCreditsError,
-  AiTimeoutError,
-  isAiNetworkError,
-  isAiOverloadedError,
-  isAiRegionBlockedError,
-  chatForProvider,
-  defaultAiSettings,
-  activeProvider,
-  testMediaProvider,
-  type AiMediaProviderConfig,
-  type AiMediaProviderId,
-  type AiSearchProviderId,
-  resolveAiSettings,
-  maxOutputTokensOf,
-  sanitizeAiSettings,
-  sanitizeCliPath,
-  setAiUserAgent,
-  setRescueFetch,
-  resolveProfileCredential,
-  streamForProvider,
-  type AiChatRequest,
-  type AiSettings,
-  type AiStreamChunk,
-  type AiStreamRequest,
-  type GenSparkAccountStatus,
-  type LegacyAiSettings,
-} from '@genoffice/ai-provider'
-import { listCodexModels, shutdownCodexAppServers } from '@genoffice/ai-provider/codex-app-server'
-import { startAiTrace } from '@genoffice/ai-provider/trace'
-import { listCustomModelsForIpc } from '@genoffice/ai-provider/custom-models'
-import {
-  ensureGenofficeLogin,
-  noteGskCallFailure,
-  setGenofficeLoginOpener,
-  gskApiKey,
-  generateImageTool,
-  testSearchProvider,
-  gskLoginInfo,
-  hasGskAuth,
-  webSearchTool,
-  imageSearchTool,
-  analyzeMediaTool,
-  documentMediaRoots,
-} from '@genoffice/ai-search'
 import type {
-  AiDocContent,
   DocFileInfo,
   DocMoveResult,
-  AttachmentAddResult,
-  AttachmentImageResult,
-  AttachmentMeta,
-  AttachmentReadResult,
-  ContextMenuRequest,
-  CreateDocumentRequest,
-  CreateDocumentResult,
   DecryptOpenResult,
   DocsTabInfo,
   MenuCommand,
@@ -162,11 +87,10 @@ import type {
   OpenDocxResult,
   OrganizerFileResult,
   PickDocxResult,
-  SpellLanguages,
   TemplateEntry,
   TemplatePreviewRect,
 } from '../shared/ipc'
-import { ATTACHMENT_IMAGE_EXTS, MARKDOWN_MEDIA_DIR_TOKEN, type MarkdownImage } from '../shared/ipc'
+import { MARKDOWN_MEDIA_DIR_TOKEN, type MarkdownImage } from '../shared/ipc'
 import {
   COMMANDS,
   toCommandMenuState,
@@ -249,7 +173,6 @@ import {
   toggleStarredItem,
   writeStarredItems,
 } from './starred-files'
-import { initDocsAutoUpdater } from './updater'
 import { registerZoteroIpc, teardownZoteroIpc } from './zotero-ipc'
 
 /**
@@ -263,6 +186,8 @@ const isDev = !!process.env.ELECTRON_RENDERER_URL
 
 const tMain = createI18n({
   zh: {
+    errTooLarge: '超过 {mb}MB 上限',
+    errUnreadable: '无法读取',
     dlgOpenDoc: '打开文档',
     filterWord: 'Word 文档',
     odtImportMsg: '转换 .{ext} 文档？',
@@ -296,28 +221,11 @@ const tMain = createI18n({
     filterImages: '图片',
     dlgMergeDataSource: '选择收件人列表',
     filterMergeDataSource: 'Excel 或 CSV',
-    dlgAddAttachment: '添加附件',
-    filterSupported: '支持的文件',
-    filterAll: '所有文件',
     dlgExportPdf: '导出为 PDF',
     dlgExportHtml: '导出为 HTML',
     dlgExportMarkdown: '导出为 Markdown',
     dlgPickExportDir: '选择导出目录',
-    errUnsupportedExt: '暂不支持 .{ext} 类型',
-    errNotFile: '不是文件',
-    errTooLarge: '超过 {mb}MB 上限',
     errTemplateProtected: '此模板受密码保护，请通过“文件 > 打开”打开',
-    errImageTooLarge: '图片超过 5MB 上限',
-    errUnreadable: '无法读取',
-    errFileTooLarge: '文件超过大小上限',
-    errParseFailed: '文件解析失败',
-    errImageNoText: '图片附件不提供文本,已作为图像随用户消息发送,直接看图即可',
-    errNotImage: '不是支持的图片类型',
-    errGskNotLoggedIn: '未登录 Genspark:请点击下方「登录 Genspark」完成登录后重试',
-    errNoApiKey: '未配置 {provider} 的 API Key',
-    errAiRegion: '该模型的厂商不向当前地区提供服务，请换一个模型或切换网络',
-    errAiBusy: 'AI 服务当前繁忙，请稍后重试',
-    errNoModel: '未配置模型名称',
     menuFile: '文件',
     menuNewDoc: '新建文档',
     menuNewWindow: '新建窗口',
@@ -392,7 +300,6 @@ const tMain = createI18n({
     menuPageWidth: '页宽',
     menuWholePage: '整页',
     menuMultiPage: '多页',
-    menuAiSidebar: 'AI 侧栏',
     menuDarkMode: '深色模式',
     menuFullscreen: '进入全屏',
     menuInsert: '插入',
@@ -522,16 +429,10 @@ const tMain = createI18n({
     menuAutoCorrect: '自动更正选项…',
     menuSpellingAndGrammar: '拼写和语法',
     menuSpellingDialog: '拼写和语法…',
-    menuEditor: '编辑器',
     menuHideSpellingErrors: '隐藏拼写错误',
     menuHideGrammarErrors: '隐藏语法错误',
     menuResetIgnoredWords: '重置忽略的单词和语法',
-    menuThesaurus: '同义词库…',
     menuHyphenation: '断字…',
-    menuTranslate: '翻译',
-    menuTranslateSelection: '翻译所选内容',
-    menuTranslateDocument: '翻译文档',
-    menuSetTranslationLanguage: '设置文档翻译语言…',
     menuLanguage: '语言…',
     menuTrackChanges: '修订',
     menuHighlightChanges: '突出显示修订…',
@@ -542,12 +443,13 @@ const tMain = createI18n({
     menuLabels: '标签…',
     menuCustomizeKeyboard: '自定义键盘…',
     menuPreferences: '偏好设置…',
-    menuAiProofread: 'AI 校对',
     menuWindow: '窗口',
     menuHelp: '帮助',
     menuShortcuts: '键盘快捷键',
   },
   en: {
+    errTooLarge: 'exceeds the {mb}MB limit',
+    errUnreadable: 'cannot be read',
     dlgOpenDoc: 'Open Document',
     filterWord: 'Word Documents',
     odtImportMsg: 'Convert this .{ext} document?',
@@ -583,30 +485,11 @@ const tMain = createI18n({
     filterImages: 'Images',
     dlgMergeDataSource: 'Select Recipient List',
     filterMergeDataSource: 'Excel or CSV',
-    dlgAddAttachment: 'Add Attachments',
-    filterSupported: 'Supported Files',
-    filterAll: 'All Files',
     dlgExportPdf: 'Export as PDF',
     dlgExportHtml: 'Export as HTML',
     dlgExportMarkdown: 'Export as Markdown',
     dlgPickExportDir: 'Choose Export Folder',
-    errUnsupportedExt: '.{ext} files are not supported',
-    errNotFile: 'not a file',
-    errTooLarge: 'exceeds the {mb}MB limit',
     errTemplateProtected: 'this template is password protected; open it with File > Open',
-    errImageTooLarge: 'image exceeds the 5MB limit',
-    errUnreadable: 'cannot be read',
-    errFileTooLarge: 'File exceeds the size limit',
-    errParseFailed: 'Failed to parse file',
-    errImageNoText: 'Image attachments have no text; the image is sent along with the user message',
-    errNotImage: 'not a supported image type',
-    errGskNotLoggedIn:
-      'Not signed in to Genspark: click “Sign in to Genspark” below, sign in, then retry',
-    errNoApiKey: 'No API key configured for {provider}',
-    errAiRegion:
-      "This model's provider does not serve your current region — pick another model or change your network",
-    errAiBusy: 'The AI service is busy right now — please try again in a moment',
-    errNoModel: 'No model name configured',
     menuFile: 'File',
     menuNewDoc: 'New Document',
     menuNewWindow: 'New Window',
@@ -681,7 +564,6 @@ const tMain = createI18n({
     menuPageWidth: 'Page Width',
     menuWholePage: 'Whole Page',
     menuMultiPage: 'Multiple Pages',
-    menuAiSidebar: 'AI Sidebar',
     menuDarkMode: 'Dark Mode',
     menuFullscreen: 'Enter Full Screen',
     menuInsert: 'Insert',
@@ -811,16 +693,10 @@ const tMain = createI18n({
     menuAutoCorrect: 'AutoCorrect Options…',
     menuSpellingAndGrammar: 'Spelling and Grammar',
     menuSpellingDialog: 'Spelling and Grammar…',
-    menuEditor: 'Editor',
     menuHideSpellingErrors: 'Hide Spelling Errors',
     menuHideGrammarErrors: 'Hide Grammar Errors',
     menuResetIgnoredWords: 'Reset Ignored Words and Grammar',
-    menuThesaurus: 'Thesaurus…',
     menuHyphenation: 'Hyphenation…',
-    menuTranslate: 'Translate',
-    menuTranslateSelection: 'Translate Selection',
-    menuTranslateDocument: 'Translate Document',
-    menuSetTranslationLanguage: 'Set Document Translation Language…',
     menuLanguage: 'Language…',
     menuTrackChanges: 'Track Changes',
     menuHighlightChanges: 'Highlight Changes…',
@@ -831,12 +707,13 @@ const tMain = createI18n({
     menuLabels: 'Labels…',
     menuCustomizeKeyboard: 'Customize Keyboard…',
     menuPreferences: 'Preferences…',
-    menuAiProofread: 'AI Proofread',
     menuWindow: 'Window',
     menuHelp: 'Help',
     menuShortcuts: 'Keyboard Shortcuts',
   },
   vi: {
+    errTooLarge: 'vượt quá giới hạn {mb}MB',
+    errUnreadable: 'không thể đọc được',
     dlgOpenDoc: 'Mở tài liệu',
     filterWord: 'Tài liệu Word',
     odtImportMsg: 'Chuyển đổi tài liệu .{ext} này?',
@@ -872,31 +749,11 @@ const tMain = createI18n({
     filterImages: 'Hình ảnh',
     dlgMergeDataSource: 'Chọn danh sách người nhận',
     filterMergeDataSource: 'Excel hoặc CSV',
-    dlgAddAttachment: 'Thêm tệp đính kèm',
-    filterSupported: 'Các tệp được hỗ trợ',
-    filterAll: 'Tất cả các tệp',
     dlgExportPdf: 'Xuất dưới dạng PDF',
     dlgExportHtml: 'Xuất dưới dạng HTML',
     dlgExportMarkdown: 'Xuất dưới dạng Markdown',
     dlgPickExportDir: 'Chọn thư mục xuất',
-    errUnsupportedExt: 'Tệp .{ext} không được hỗ trợ',
-    errNotFile: 'không phải là tệp',
-    errTooLarge: 'vượt quá giới hạn {mb}MB',
     errTemplateProtected: 'mẫu này được bảo vệ bằng mật khẩu; hãy mở bằng Tệp > Mở',
-    errImageTooLarge: 'hình ảnh vượt quá giới hạn 5MB',
-    errUnreadable: 'không thể đọc được',
-    errFileTooLarge: 'Tệp vượt quá giới hạn kích thước',
-    errParseFailed: 'Không thể phân tích tệp',
-    errImageNoText:
-      'Tệp đính kèm hình ảnh không có văn bản; hình ảnh được gửi cùng với tin nhắn của người dùng',
-    errNotImage: 'loại hình ảnh không được hỗ trợ',
-    errGskNotLoggedIn:
-      'Chưa đăng nhập vào Genspark: nhấp vào “Đăng nhập vào Genspark” bên dưới, đăng nhập, sau đó thử lại',
-    errNoApiKey: 'Chưa cấu hình khóa API cho {provider}',
-    errAiRegion:
-      'Nhà cung cấp của mô hình này không phục vụ khu vực hiện tại của bạn — hãy chọn mô hình khác hoặc đổi mạng',
-    errAiBusy: 'Dịch vụ AI hiện đang bận — vui lòng thử lại sau giây lát',
-    errNoModel: 'Chưa cấu hình tên mô hình',
     menuFile: 'Tệp',
     menuNewDoc: 'Tài liệu mới',
     menuNewWindow: 'Cửa sổ mới',
@@ -971,7 +828,6 @@ const tMain = createI18n({
     menuPageWidth: 'Chiều rộng trang',
     menuWholePage: 'Toàn bộ trang',
     menuMultiPage: 'Nhiều trang',
-    menuAiSidebar: 'Thanh bên AI',
     menuDarkMode: 'Chế độ tối',
     menuFullscreen: 'Vào chế độ toàn màn hình',
     menuInsert: 'Chèn',
@@ -1101,16 +957,10 @@ const tMain = createI18n({
     menuAutoCorrect: 'Tùy chọn tự sửa lỗi…',
     menuSpellingAndGrammar: 'Chính tả và Ngữ pháp',
     menuSpellingDialog: 'Chính tả và Ngữ pháp…',
-    menuEditor: 'Trình soạn thảo',
     menuHideSpellingErrors: 'Ẩn Lỗi Chính tả',
     menuHideGrammarErrors: 'Ẩn Lỗi Ngữ pháp',
     menuResetIgnoredWords: 'Đặt lại Từ và Ngữ pháp đã Bỏ qua',
-    menuThesaurus: 'Từ điển đồng nghĩa…',
     menuHyphenation: 'Gạch nối từ…',
-    menuTranslate: 'Dịch',
-    menuTranslateSelection: 'Dịch Vùng chọn',
-    menuTranslateDocument: 'Dịch Tài liệu',
-    menuSetTranslationLanguage: 'Đặt Ngôn ngữ Dịch Tài liệu…',
     menuLanguage: 'Ngôn ngữ…',
     menuTrackChanges: 'Theo dõi Thay đổi',
     menuHighlightChanges: 'Tô sáng Thay đổi…',
@@ -1121,12 +971,13 @@ const tMain = createI18n({
     menuLabels: 'Nhãn…',
     menuCustomizeKeyboard: 'Tùy chỉnh Bàn phím…',
     menuPreferences: 'Tùy chọn…',
-    menuAiProofread: 'Hiệu đính bằng AI',
     menuWindow: 'Cửa sổ',
     menuHelp: 'Trợ giúp',
     menuShortcuts: 'Phím tắt bàn phím',
   },
   tr: {
+    errTooLarge: '{mb}MB sınırını aşıyor',
+    errUnreadable: 'okunamıyor',
     dlgOpenDoc: 'Belge Aç',
     filterWord: 'Word Belgeleri',
     odtImportMsg: 'Bu .{ext} belgesi dönüştürülsün mü?',
@@ -1162,30 +1013,11 @@ const tMain = createI18n({
     filterImages: 'Resimler',
     dlgMergeDataSource: 'Alıcı Listesi Seç',
     filterMergeDataSource: 'Excel veya CSV',
-    dlgAddAttachment: 'Ek Ekle',
-    filterSupported: 'Desteklenen Dosyalar',
-    filterAll: 'Tüm Dosyalar',
     dlgExportPdf: 'PDF Olarak Dışa Aktar',
     dlgExportHtml: 'HTML Olarak Dışa Aktar',
     dlgExportMarkdown: 'Markdown Olarak Dışa Aktar',
     dlgPickExportDir: 'Dışa Aktarma Klasörünü Seç',
-    errUnsupportedExt: '.{ext} dosyaları desteklenmiyor',
-    errNotFile: 'bir dosya değil',
-    errTooLarge: '{mb}MB sınırını aşıyor',
     errTemplateProtected: 'bu şablon parola korumalı; Dosya > Aç ile açın',
-    errImageTooLarge: 'resim 5MB sınırını aşıyor',
-    errUnreadable: 'okunamıyor',
-    errFileTooLarge: 'Dosya boyut sınırını aşıyor',
-    errParseFailed: 'Dosya ayrıştırılamadı',
-    errImageNoText: 'Resim eklerinde metin yok; resim kullanıcı iletisiyle birlikte gönderilir',
-    errNotImage: 'desteklenen bir resim türü değil',
-    errGskNotLoggedIn:
-      "Genspark'a giriş yapılmadı: aşağıdaki “Genspark'a giriş yap” düğmesine tıklayın, giriş yapın ve yeniden deneyin",
-    errNoApiKey: '{provider} için API anahtarı yapılandırılmamış',
-    errAiRegion:
-      'Bu modelin sağlayıcısı bulunduğunuz bölgeye hizmet vermiyor — başka bir model seçin veya ağınızı değiştirin',
-    errAiBusy: 'AI hizmeti şu anda yoğun — lütfen biraz sonra yeniden deneyin',
-    errNoModel: 'Model adı yapılandırılmamış',
     menuFile: 'Dosya',
     menuNewDoc: 'Yeni Belge',
     menuNewWindow: 'Yeni Pencere',
@@ -1260,7 +1092,6 @@ const tMain = createI18n({
     menuPageWidth: 'Sayfa Genişliği',
     menuWholePage: 'Tüm Sayfa',
     menuMultiPage: 'Birden Çok Sayfa',
-    menuAiSidebar: 'AI Kenar Çubuğu',
     menuDarkMode: 'Koyu Mod',
     menuFullscreen: 'Tam Ekrana Geç',
     menuInsert: 'Ekle',
@@ -1390,16 +1221,10 @@ const tMain = createI18n({
     menuAutoCorrect: 'Otomatik Düzelt Seçenekleri…',
     menuSpellingAndGrammar: 'Yazım ve Dil Bilgisi',
     menuSpellingDialog: 'Yazım ve Dil Bilgisi…',
-    menuEditor: 'Düzenleyici',
     menuHideSpellingErrors: 'Yazım Hatalarını Gizle',
     menuHideGrammarErrors: 'Dil Bilgisi Hatalarını Gizle',
     menuResetIgnoredWords: 'Yoksayılan Sözcükleri ve Dil Bilgisini Sıfırla',
-    menuThesaurus: 'Eş Anlamlılar…',
     menuHyphenation: 'Heceleme…',
-    menuTranslate: 'Çevir',
-    menuTranslateSelection: 'Seçimi Çevir',
-    menuTranslateDocument: 'Belgeyi Çevir',
-    menuSetTranslationLanguage: 'Belge Çeviri Dilini Ayarla…',
     menuLanguage: 'Dil…',
     menuTrackChanges: 'Değişiklikleri İzle',
     menuHighlightChanges: 'Değişiklikleri Vurgula…',
@@ -1410,12 +1235,13 @@ const tMain = createI18n({
     menuLabels: 'Etiketler…',
     menuCustomizeKeyboard: 'Klavyeyi Özelleştir…',
     menuPreferences: 'Tercihler…',
-    menuAiProofread: 'AI Düzeltme Okuması',
     menuWindow: 'Pencere',
     menuHelp: 'Yardım',
     menuShortcuts: 'Klavye Kısayolları',
   },
   hu: {
+    errTooLarge: 'túllépi a(z) {mb}MB-os korlátot',
+    errUnreadable: 'nem olvasható',
     dlgOpenDoc: 'Dokumentum megnyitása',
     filterWord: 'Word-dokumentumok',
     odtImportMsg: 'Átalakítsuk ezt a(z) .{ext} dokumentumot?',
@@ -1452,31 +1278,11 @@ const tMain = createI18n({
     filterImages: 'Képek',
     dlgMergeDataSource: 'Címzettlista kiválasztása',
     filterMergeDataSource: 'Excel vagy CSV',
-    dlgAddAttachment: 'Mellékletek hozzáadása',
-    filterSupported: 'Támogatott fájlok',
-    filterAll: 'Minden fájl',
     dlgExportPdf: 'Exportálás PDF-ként',
     dlgExportHtml: 'Exportálás HTML-ként',
     dlgExportMarkdown: 'Exportálás Markdown-ként',
     dlgPickExportDir: 'Exportmappa kiválasztása',
-    errUnsupportedExt: 'A .{ext} fájlok nem támogatottak',
-    errNotFile: 'nem fájl',
-    errTooLarge: 'túllépi a(z) {mb}MB-os korlátot',
     errTemplateProtected: 'ez a sablon jelszóval védett; nyissa meg a Fájl > Megnyitás paranccsal',
-    errImageTooLarge: 'a kép túllépi az 5MB-os korlátot',
-    errUnreadable: 'nem olvasható',
-    errFileTooLarge: 'A fájl túllépi a méretkorlátot',
-    errParseFailed: 'Nem sikerült értelmezni a fájlt',
-    errImageNoText:
-      'A képmellékletek nem tartalmaznak szöveget; a kép a felhasználó üzenetével együtt lesz elküldve',
-    errNotImage: 'nem támogatott képtípus',
-    errGskNotLoggedIn:
-      'Nem vagy bejelentkezve a Gensparkba: kattints alább a „Bejelentkezés a Gensparkba” gombra, jelentkezz be, majd próbáld újra',
-    errNoApiKey: 'Nincs API-kulcs beállítva a következőhöz: {provider}',
-    errAiRegion:
-      'A modell szolgáltatója nem érhető el a jelenlegi régiódban — válassz másik modellt, vagy válts hálózatot',
-    errAiBusy: 'Az AI-szolgáltatás jelenleg elfoglalt — próbáld újra egy pillanat múlva',
-    errNoModel: 'Nincs modellnév megadva',
     menuFile: 'Fájl',
     menuNewDoc: 'Új dokumentum',
     menuNewWindow: 'Új ablak',
@@ -1513,7 +1319,6 @@ const tMain = createI18n({
     menuPageWidth: 'Oldalszélesség',
     menuWholePage: 'Teljes oldal',
     menuMultiPage: 'Több oldal',
-    menuAiSidebar: 'AI-oldalsáv',
     menuDarkMode: 'Sötét mód',
     menuFullscreen: 'Teljes képernyő',
     menuInsert: 'Beszúrás',
@@ -1572,7 +1377,6 @@ const tMain = createI18n({
     menuWordCount: 'Szavak száma…',
     menuAutoCorrect: 'Automatikus javítás beállításai…',
     menuPreferences: 'Beállítások…',
-    menuAiProofread: 'AI nyelvi ellenőrzés',
     menuWindow: 'Ablak',
     menuHelp: 'Súgó',
     menuShortcuts: 'Billentyűparancsok',
@@ -1686,16 +1490,10 @@ const tMain = createI18n({
     menuSelectionPane: 'Kijelöléspanel…',
     menuSpellingAndGrammar: 'Helyesírás és nyelvhelyesség',
     menuSpellingDialog: 'Helyesírás és nyelvhelyesség…',
-    menuEditor: 'Szerkesztő',
     menuHideSpellingErrors: 'Helyesírási hibák elrejtése',
     menuHideGrammarErrors: 'Nyelvhelyességi hibák elrejtése',
     menuResetIgnoredWords: 'Mellőzött szavak és nyelvhelyességi hibák visszaállítása',
-    menuThesaurus: 'Szinonimaszótár…',
     menuHyphenation: 'Elválasztás…',
-    menuTranslate: 'Fordítás',
-    menuTranslateSelection: 'Kijelölés fordítása',
-    menuTranslateDocument: 'Dokumentum fordítása',
-    menuSetTranslationLanguage: 'A dokumentum fordítási nyelvének beállítása…',
     menuLanguage: 'Nyelv…',
     menuTrackChanges: 'Változások követése',
     menuHighlightChanges: 'Változások kiemelése…',
@@ -1707,6 +1505,8 @@ const tMain = createI18n({
     menuCustomizeKeyboard: 'Billentyűzet testreszabása…',
   },
   ja: {
+    errTooLarge: '{mb}MB の上限を超えています',
+    errUnreadable: '読み取れません',
     dlgOpenDoc: '文書を開く',
     filterWord: 'Word 文書',
     odtImportMsg: 'この .{ext} 文書を変換しますか？',
@@ -1741,32 +1541,12 @@ const tMain = createI18n({
     filterImages: '画像',
     dlgMergeDataSource: '受信者リストを選択',
     filterMergeDataSource: 'Excel または CSV',
-    dlgAddAttachment: '添付ファイルの追加',
-    filterSupported: 'サポートされているファイル',
-    filterAll: 'すべてのファイル',
     dlgExportPdf: 'PDF としてエクスポート',
     dlgExportHtml: 'HTML としてエクスポート',
     dlgExportMarkdown: 'Markdown としてエクスポート',
     dlgPickExportDir: 'エクスポート先フォルダーの選択',
-    errUnsupportedExt: '.{ext} 形式には対応していません',
-    errNotFile: 'ファイルではありません',
-    errTooLarge: '{mb}MB の上限を超えています',
     errTemplateProtected:
       'このテンプレートはパスワードで保護されています。[ファイル] > [開く] で開いてください',
-    errImageTooLarge: '画像が 5MB の上限を超えています',
-    errUnreadable: '読み取れません',
-    errFileTooLarge: 'ファイルがサイズ上限を超えています',
-    errParseFailed: 'ファイルの解析に失敗しました',
-    errImageNoText:
-      '画像の添付ファイルはテキストを提供しません。画像としてユーザーメッセージと一緒に送信されるため、そのまま画像をご確認ください',
-    errNotImage: 'サポートされていない画像形式です',
-    errGskNotLoggedIn:
-      'Genspark にサインインしていません。下の「Genspark にサインイン」からサインインして再試行してください',
-    errNoApiKey: '{provider} の API キーが設定されていません',
-    errAiRegion:
-      'このモデルの提供元は現在の地域ではサービスを提供していません。別のモデルを選ぶか、ネットワークを切り替えてください',
-    errAiBusy: 'AI サービスが混み合っています。しばらくしてからもう一度お試しください',
-    errNoModel: 'モデル名が設定されていません',
     menuFile: 'ファイル',
     menuNewDoc: '新規文書',
     menuNewWindow: '新規ウィンドウ',
@@ -1841,7 +1621,6 @@ const tMain = createI18n({
     menuPageWidth: 'ページ幅',
     menuWholePage: 'ページ全体',
     menuMultiPage: '複数ページ',
-    menuAiSidebar: 'AI サイドバー',
     menuDarkMode: 'ダークモード',
     menuFullscreen: 'フルスクリーンにする',
     menuInsert: '挿入',
@@ -1971,16 +1750,10 @@ const tMain = createI18n({
     menuAutoCorrect: 'オートコレクトのオプション…',
     menuSpellingAndGrammar: 'スペル チェックと文章校正',
     menuSpellingDialog: 'スペル チェックと文章校正…',
-    menuEditor: 'エディター',
     menuHideSpellingErrors: 'スペル ミスを表示しない',
     menuHideGrammarErrors: '文章校正エラーを表示しない',
     menuResetIgnoredWords: '無視した単語と文法をリセット',
-    menuThesaurus: '類義語辞典…',
     menuHyphenation: 'ハイフネーション…',
-    menuTranslate: '翻訳',
-    menuTranslateSelection: '選択範囲の翻訳',
-    menuTranslateDocument: 'ドキュメントの翻訳',
-    menuSetTranslationLanguage: 'ドキュメントの翻訳言語の設定…',
     menuLanguage: '言語…',
     menuTrackChanges: '変更履歴の記録',
     menuHighlightChanges: '変更箇所の表示…',
@@ -1991,12 +1764,13 @@ const tMain = createI18n({
     menuLabels: 'ラベル…',
     menuCustomizeKeyboard: 'キーボードのユーザー設定…',
     menuPreferences: '環境設定…',
-    menuAiProofread: 'AI 校正',
     menuWindow: 'ウィンドウ',
     menuHelp: 'ヘルプ',
     menuShortcuts: 'キーボードショートカット',
   },
   ko: {
+    errTooLarge: '{mb}MB 제한을 초과했습니다',
+    errUnreadable: '읽을 수 없습니다',
     dlgOpenDoc: '문서 열기',
     filterWord: 'Word 문서',
     odtImportMsg: '이 .{ext} 문서를 변환할까요?',
@@ -2032,31 +1806,11 @@ const tMain = createI18n({
     filterImages: '그림',
     dlgMergeDataSource: '받는 사람 목록 선택',
     filterMergeDataSource: 'Excel 또는 CSV',
-    dlgAddAttachment: '첨부 파일 추가',
-    filterSupported: '지원되는 파일',
-    filterAll: '모든 파일',
     dlgExportPdf: 'PDF로 내보내기',
     dlgExportHtml: 'HTML로 내보내기',
     dlgExportMarkdown: 'Markdown로 내보내기',
     dlgPickExportDir: '내보낼 폴더 선택',
-    errUnsupportedExt: '.{ext} 형식은 지원되지 않습니다',
-    errNotFile: '파일이 아닙니다',
-    errTooLarge: '{mb}MB 제한을 초과했습니다',
     errTemplateProtected: '이 서식 파일은 암호로 보호되어 있습니다. 파일 > 열기로 여세요',
-    errImageTooLarge: '이미지가 5MB 제한을 초과했습니다',
-    errUnreadable: '읽을 수 없습니다',
-    errFileTooLarge: '파일이 크기 제한을 초과했습니다',
-    errParseFailed: '파일을 분석하지 못했습니다',
-    errImageNoText:
-      '이미지 첨부 파일은 텍스트를 제공하지 않으며, 이미지 형태로 사용자 메시지와 함께 전송되므로 이미지를 직접 확인하면 됩니다',
-    errNotImage: '지원되지 않는 이미지 형식입니다',
-    errGskNotLoggedIn:
-      'Genspark에 로그인되어 있지 않습니다. 아래 "Genspark 로그인"을 눌러 로그인한 뒤 다시 시도하세요',
-    errNoApiKey: '{provider}의 API 키가 설정되지 않았습니다',
-    errAiRegion:
-      '이 모델의 제공업체는 현재 지역에서 서비스를 제공하지 않습니다. 다른 모델을 선택하거나 네트워크를 변경하세요',
-    errAiBusy: 'AI 서비스가 혼잡합니다. 잠시 후 다시 시도해 주세요',
-    errNoModel: '모델 이름이 설정되지 않았습니다',
     menuFile: '파일',
     menuNewDoc: '새 문서',
     menuNewWindow: '새 창',
@@ -2131,7 +1885,6 @@ const tMain = createI18n({
     menuPageWidth: '페이지 너비',
     menuWholePage: '전체 페이지',
     menuMultiPage: '여러 페이지',
-    menuAiSidebar: 'AI 사이드바',
     menuDarkMode: '다크 모드',
     menuFullscreen: '전체 화면 시작',
     menuInsert: '삽입',
@@ -2261,16 +2014,10 @@ const tMain = createI18n({
     menuAutoCorrect: '자동 고침 옵션…',
     menuSpellingAndGrammar: '맞춤법 및 문법',
     menuSpellingDialog: '맞춤법 및 문법…',
-    menuEditor: '편집기',
     menuHideSpellingErrors: '맞춤법 오류 숨기기',
     menuHideGrammarErrors: '문법 오류 숨기기',
     menuResetIgnoredWords: '무시한 단어 및 문법 다시 설정',
-    menuThesaurus: '동의어 사전…',
     menuHyphenation: '하이픈 넣기…',
-    menuTranslate: '번역',
-    menuTranslateSelection: '선택 영역 번역',
-    menuTranslateDocument: '문서 번역',
-    menuSetTranslationLanguage: '문서 번역 언어 설정…',
     menuLanguage: '언어…',
     menuTrackChanges: '변경 내용 추적',
     menuHighlightChanges: '변경 내용 강조…',
@@ -2281,12 +2028,13 @@ const tMain = createI18n({
     menuLabels: '레이블…',
     menuCustomizeKeyboard: '키보드 사용자 지정…',
     menuPreferences: '기본 설정…',
-    menuAiProofread: 'AI 교정',
     menuWindow: '창',
     menuHelp: '도움말',
     menuShortcuts: '키보드 바로 가기',
   },
   fr: {
+    errTooLarge: 'dépasse la limite de {mb} Mo',
+    errUnreadable: 'lecture impossible',
     dlgOpenDoc: 'Ouvrir un document',
     filterWord: 'Documents Word',
     odtImportMsg: 'Convertir ce document .{ext} ?',
@@ -2323,32 +2071,12 @@ const tMain = createI18n({
     filterImages: 'Images',
     dlgMergeDataSource: 'Sélectionner une liste de destinataires',
     filterMergeDataSource: 'Excel ou CSV',
-    dlgAddAttachment: 'Ajouter des pièces jointes',
-    filterSupported: 'Fichiers pris en charge',
-    filterAll: 'Tous les fichiers',
     dlgExportPdf: 'Exporter au format PDF',
     dlgExportHtml: 'Exporter au format HTML',
     dlgExportMarkdown: 'Exporter au format Markdown',
     dlgPickExportDir: "Choisir le dossier d'exportation",
-    errUnsupportedExt: 'les fichiers .{ext} ne sont pas pris en charge',
-    errNotFile: "n'est pas un fichier",
-    errTooLarge: 'dépasse la limite de {mb} Mo',
     errTemplateProtected:
       'ce modèle est protégé par mot de passe ; ouvrez-le avec Fichier > Ouvrir',
-    errImageTooLarge: "l'image dépasse la limite de 5 Mo",
-    errUnreadable: 'lecture impossible',
-    errFileTooLarge: 'Le fichier dépasse la taille maximale',
-    errParseFailed: "Échec de l'analyse du fichier",
-    errImageNoText:
-      "Les pièces jointes image ne fournissent pas de texte ; l'image est envoyée avec le message de l'utilisateur, consultez-la directement",
-    errNotImage: "type d'image non pris en charge",
-    errGskNotLoggedIn:
-      'Non connecté à Genspark : cliquez sur « Se connecter à Genspark » ci-dessous, connectez-vous puis réessayez',
-    errNoApiKey: 'Aucune clé API configurée pour {provider}',
-    errAiRegion:
-      'Le fournisseur de ce modèle ne dessert pas votre région actuelle — choisissez un autre modèle ou changez de réseau',
-    errAiBusy: "Le service d'IA est actuellement surchargé — réessayez dans un instant",
-    errNoModel: 'Aucun nom de modèle configuré',
     menuFile: 'Fichier',
     menuNewDoc: 'Nouveau document',
     menuNewWindow: 'Nouvelle fenêtre',
@@ -2423,7 +2151,6 @@ const tMain = createI18n({
     menuPageWidth: 'Largeur de page',
     menuWholePage: 'Page entière',
     menuMultiPage: 'Plusieurs pages',
-    menuAiSidebar: 'Volet IA',
     menuDarkMode: 'Mode sombre',
     menuFullscreen: 'Activer le mode plein écran',
     menuInsert: 'Insertion',
@@ -2553,16 +2280,10 @@ const tMain = createI18n({
     menuAutoCorrect: 'Options de correction automatique…',
     menuSpellingAndGrammar: 'Grammaire et orthographe',
     menuSpellingDialog: 'Grammaire et orthographe…',
-    menuEditor: 'Rédacteur',
     menuHideSpellingErrors: 'Masquer les fautes d’orthographe',
     menuHideGrammarErrors: 'Masquer les fautes de grammaire',
     menuResetIgnoredWords: 'Réinitialiser les mots et la grammaire ignorés',
-    menuThesaurus: 'Dictionnaire des synonymes…',
     menuHyphenation: 'Coupure de mots…',
-    menuTranslate: 'Traduire',
-    menuTranslateSelection: 'Traduire la sélection',
-    menuTranslateDocument: 'Traduire le document',
-    menuSetTranslationLanguage: 'Définir la langue de traduction du document…',
     menuLanguage: 'Langue…',
     menuTrackChanges: 'Suivi des modifications',
     menuHighlightChanges: 'Afficher les modifications…',
@@ -2573,12 +2294,13 @@ const tMain = createI18n({
     menuLabels: 'Étiquettes…',
     menuCustomizeKeyboard: 'Personnaliser le clavier…',
     menuPreferences: 'Préférences…',
-    menuAiProofread: 'Relecture IA',
     menuWindow: 'Fenêtre',
     menuHelp: 'Aide',
     menuShortcuts: 'Raccourcis clavier',
   },
   de: {
+    errTooLarge: 'überschreitet das Limit von {mb} MB',
+    errUnreadable: 'kann nicht gelesen werden',
     dlgOpenDoc: 'Dokument öffnen',
     filterWord: 'Word-Dokumente',
     odtImportMsg: 'Dieses .{ext}-Dokument konvertieren?',
@@ -2615,31 +2337,11 @@ const tMain = createI18n({
     filterImages: 'Bilder',
     dlgMergeDataSource: 'Empfängerliste auswählen',
     filterMergeDataSource: 'Excel oder CSV',
-    dlgAddAttachment: 'Anlagen hinzufügen',
-    filterSupported: 'Unterstützte Dateien',
-    filterAll: 'Alle Dateien',
     dlgExportPdf: 'Als PDF exportieren',
     dlgExportHtml: 'Als HTML exportieren',
     dlgExportMarkdown: 'Als Markdown exportieren',
     dlgPickExportDir: 'Exportordner auswählen',
-    errUnsupportedExt: '.{ext}-Dateien werden nicht unterstützt',
-    errNotFile: 'keine Datei',
-    errTooLarge: 'überschreitet das Limit von {mb} MB',
     errTemplateProtected: 'Diese Vorlage ist kennwortgeschützt; öffnen Sie sie über Datei > Öffnen',
-    errImageTooLarge: 'Bild überschreitet das Limit von 5 MB',
-    errUnreadable: 'kann nicht gelesen werden',
-    errFileTooLarge: 'Datei überschreitet die maximale Größe',
-    errParseFailed: 'Datei konnte nicht analysiert werden',
-    errImageNoText:
-      'Bildanlagen liefern keinen Text; das Bild wird mit der Benutzernachricht gesendet und kann direkt betrachtet werden',
-    errNotImage: 'kein unterstütztes Bildformat',
-    errGskNotLoggedIn:
-      'Nicht bei Genspark angemeldet: Klicken Sie unten auf „Bei Genspark anmelden“, melden Sie sich an und versuchen Sie es erneut',
-    errNoApiKey: 'Kein API-Schlüssel für {provider} konfiguriert',
-    errAiRegion:
-      'Der Anbieter dieses Modells bedient Ihre aktuelle Region nicht — wählen Sie ein anderes Modell oder wechseln Sie das Netzwerk',
-    errAiBusy: 'Der KI-Dienst ist derzeit überlastet — bitte gleich erneut versuchen',
-    errNoModel: 'Kein Modellname konfiguriert',
     menuFile: 'Datei',
     menuNewDoc: 'Neues Dokument',
     menuNewWindow: 'Neues Fenster',
@@ -2714,7 +2416,6 @@ const tMain = createI18n({
     menuPageWidth: 'Seitenbreite',
     menuWholePage: 'Ganze Seite',
     menuMultiPage: 'Mehrere Seiten',
-    menuAiSidebar: 'KI-Seitenleiste',
     menuDarkMode: 'Dunkelmodus',
     menuFullscreen: 'Vollbild ein',
     menuInsert: 'Einfügen',
@@ -2844,16 +2545,10 @@ const tMain = createI18n({
     menuAutoCorrect: 'AutoKorrektur-Optionen…',
     menuSpellingAndGrammar: 'Rechtschreibung und Grammatik',
     menuSpellingDialog: 'Rechtschreibung und Grammatik…',
-    menuEditor: 'Editor',
     menuHideSpellingErrors: 'Rechtschreibfehler ausblenden',
     menuHideGrammarErrors: 'Grammatikfehler ausblenden',
     menuResetIgnoredWords: 'Ignorierte Wörter und Grammatik zurücksetzen',
-    menuThesaurus: 'Thesaurus…',
     menuHyphenation: 'Silbentrennung…',
-    menuTranslate: 'Übersetzen',
-    menuTranslateSelection: 'Auswahl übersetzen',
-    menuTranslateDocument: 'Dokument übersetzen',
-    menuSetTranslationLanguage: 'Übersetzungssprache für Dokument festlegen…',
     menuLanguage: 'Sprache…',
     menuTrackChanges: 'Änderungen nachverfolgen',
     menuHighlightChanges: 'Änderungen hervorheben…',
@@ -2864,12 +2559,13 @@ const tMain = createI18n({
     menuLabels: 'Etiketten…',
     menuCustomizeKeyboard: 'Tastatur anpassen…',
     menuPreferences: 'Einstellungen…',
-    menuAiProofread: 'KI-Korrektur',
     menuWindow: 'Fenster',
     menuHelp: 'Hilfe',
     menuShortcuts: 'Tastenkombinationen',
   },
   es: {
+    errTooLarge: 'supera el límite de {mb} MB',
+    errUnreadable: 'no se puede leer',
     dlgOpenDoc: 'Abrir documento',
     filterWord: 'Documentos de Word',
     odtImportMsg: '¿Convertir este documento .{ext}?',
@@ -2905,33 +2601,12 @@ const tMain = createI18n({
     filterImages: 'Imágenes',
     dlgMergeDataSource: 'Seleccionar lista de destinatarios',
     filterMergeDataSource: 'Excel o CSV',
-    dlgAddAttachment: 'Agregar datos adjuntos',
-    filterSupported: 'Archivos compatibles',
-    filterAll: 'Todos los archivos',
     dlgExportPdf: 'Exportar como PDF',
     dlgExportHtml: 'Exportar como HTML',
     dlgExportMarkdown: 'Exportar como Markdown',
     dlgPickExportDir: 'Elegir carpeta de exportación',
-    errUnsupportedExt: 'los archivos .{ext} no son compatibles',
-    errNotFile: 'no es un archivo',
-    errTooLarge: 'supera el límite de {mb} MB',
     errTemplateProtected:
       'esta plantilla está protegida con contraseña; ábrala con Archivo > Abrir',
-    errImageTooLarge: 'la imagen supera el límite de 5 MB',
-    errUnreadable: 'no se puede leer',
-    errFileTooLarge: 'El archivo supera el tamaño máximo',
-    errParseFailed: 'No se pudo analizar el archivo',
-    errImageNoText:
-      'Las imágenes adjuntas no proporcionan texto; la imagen se envía junto con el mensaje del usuario, puedes verla directamente',
-    errNotImage: 'no es un tipo de imagen compatible',
-    errGskNotLoggedIn:
-      'No has iniciado sesión en Genspark: pulsa «Iniciar sesión en Genspark» abajo, inicia sesión y vuelve a intentarlo',
-    errNoApiKey: 'No hay clave de API configurada para {provider}',
-    errAiRegion:
-      'El proveedor de este modelo no da servicio en tu región actual — elige otro modelo o cambia de red',
-    errAiBusy:
-      'El servicio de IA está saturado en este momento; inténtalo de nuevo en unos instantes',
-    errNoModel: 'No se ha configurado el nombre del modelo',
     menuFile: 'Archivo',
     menuNewDoc: 'Nuevo documento',
     menuNewWindow: 'Nueva ventana',
@@ -3006,7 +2681,6 @@ const tMain = createI18n({
     menuPageWidth: 'Ancho de página',
     menuWholePage: 'Página completa',
     menuMultiPage: 'Varias páginas',
-    menuAiSidebar: 'Barra lateral de IA',
     menuDarkMode: 'Modo oscuro',
     menuFullscreen: 'Usar pantalla completa',
     menuInsert: 'Insertar',
@@ -3136,16 +2810,10 @@ const tMain = createI18n({
     menuAutoCorrect: 'Opciones de autocorrección…',
     menuSpellingAndGrammar: 'Ortografía y gramática',
     menuSpellingDialog: 'Ortografía y gramática…',
-    menuEditor: 'Editor',
     menuHideSpellingErrors: 'Ocultar errores de ortografía',
     menuHideGrammarErrors: 'Ocultar errores gramaticales',
     menuResetIgnoredWords: 'Restablecer palabras y gramática omitidas',
-    menuThesaurus: 'Sinónimos…',
     menuHyphenation: 'Guiones…',
-    menuTranslate: 'Traducir',
-    menuTranslateSelection: 'Traducir selección',
-    menuTranslateDocument: 'Traducir documento',
-    menuSetTranslationLanguage: 'Establecer idioma de traducción del documento…',
     menuLanguage: 'Idioma…',
     menuTrackChanges: 'Control de cambios',
     menuHighlightChanges: 'Resaltar cambios…',
@@ -3156,12 +2824,13 @@ const tMain = createI18n({
     menuLabels: 'Etiquetas…',
     menuCustomizeKeyboard: 'Personalizar teclado…',
     menuPreferences: 'Preferencias…',
-    menuAiProofread: 'Corrección con IA',
     menuWindow: 'Ventana',
     menuHelp: 'Ayuda',
     menuShortcuts: 'Atajos de teclado',
   },
   th: {
+    errTooLarge: 'เกินขีดจำกัด {mb}MB',
+    errUnreadable: 'ไม่สามารถอ่านได้',
     dlgOpenDoc: 'เปิดเอกสาร',
     filterWord: 'เอกสาร Word',
     odtImportMsg: 'แปลงเอกสาร .{ext} นี้ไหม?',
@@ -3196,31 +2865,11 @@ const tMain = createI18n({
     filterImages: 'รูปภาพ',
     dlgMergeDataSource: 'เลือกรายชื่อผู้รับ',
     filterMergeDataSource: 'Excel หรือ CSV',
-    dlgAddAttachment: 'เพิ่มสิ่งที่แนบ',
-    filterSupported: 'ไฟล์ที่รองรับ',
-    filterAll: 'ไฟล์ทั้งหมด',
     dlgExportPdf: 'ส่งออกเป็น PDF',
     dlgExportHtml: 'ส่งออกเป็น HTML',
     dlgExportMarkdown: 'ส่งออกเป็น Markdown',
     dlgPickExportDir: 'เลือกโฟลเดอร์ส่งออก',
-    errUnsupportedExt: 'ไม่รองรับไฟล์ .{ext}',
-    errNotFile: 'ไม่ใช่ไฟล์',
-    errTooLarge: 'เกินขีดจำกัด {mb}MB',
     errTemplateProtected: 'เทมเพลตนี้มีรหัสผ่านป้องกัน โปรดเปิดด้วย ไฟล์ > เปิด',
-    errImageTooLarge: 'รูปภาพเกินขีดจำกัด 5MB',
-    errUnreadable: 'ไม่สามารถอ่านได้',
-    errFileTooLarge: 'ไฟล์เกินขนาดสูงสุด',
-    errParseFailed: 'แยกวิเคราะห์ไฟล์ไม่สำเร็จ',
-    errImageNoText:
-      'สิ่งที่แนบเป็นรูปภาพไม่มีข้อความ รูปจะถูกส่งไปพร้อมข้อความของผู้ใช้ ดูรูปได้โดยตรง',
-    errNotImage: 'ไม่ใช่ชนิดรูปภาพที่รองรับ',
-    errGskNotLoggedIn:
-      'ยังไม่ได้ลงชื่อเข้าใช้ Genspark: แตะ “ลงชื่อเข้าใช้ Genspark” ด้านล่าง แล้วลองอีกครั้ง',
-    errNoApiKey: 'ยังไม่ได้ตั้งค่า API Key ของ {provider}',
-    errAiRegion:
-      'ผู้ให้บริการของโมเดลนี้ไม่ให้บริการในภูมิภาคปัจจุบันของคุณ — โปรดเลือกโมเดลอื่นหรือเปลี่ยนเครือข่าย',
-    errAiBusy: 'บริการ AI มีผู้ใช้งานจำนวนมากในขณะนี้ โปรดลองอีกครั้งในอีกสักครู่',
-    errNoModel: 'ยังไม่ได้ตั้งค่าชื่อโมเดล',
     menuFile: 'ไฟล์',
     menuNewDoc: 'เอกสารใหม่',
     menuNewWindow: 'หน้าต่างใหม่',
@@ -3295,7 +2944,6 @@ const tMain = createI18n({
     menuPageWidth: 'ความกว้างของหน้า',
     menuWholePage: 'ทั้งหน้า',
     menuMultiPage: 'หลายหน้า',
-    menuAiSidebar: 'แถบข้าง AI',
     menuDarkMode: 'โหมดมืด',
     menuFullscreen: 'เข้าสู่โหมดเต็มหน้าจอ',
     menuInsert: 'แทรก',
@@ -3425,16 +3073,10 @@ const tMain = createI18n({
     menuAutoCorrect: 'ตัวเลือกการแก้ไขอัตโนมัติ…',
     menuSpellingAndGrammar: 'การสะกดและไวยากรณ์',
     menuSpellingDialog: 'การสะกดและไวยากรณ์…',
-    menuEditor: 'ตัวแก้ไข',
     menuHideSpellingErrors: 'ซ่อนข้อผิดพลาดการสะกด',
     menuHideGrammarErrors: 'ซ่อนข้อผิดพลาดไวยากรณ์',
     menuResetIgnoredWords: 'รีเซ็ตคำและไวยากรณ์ที่ละเว้น',
-    menuThesaurus: 'อรรถาภิธาน…',
     menuHyphenation: 'การใส่ยัติภังค์…',
-    menuTranslate: 'แปล',
-    menuTranslateSelection: 'แปลส่วนที่เลือก',
-    menuTranslateDocument: 'แปลเอกสาร',
-    menuSetTranslationLanguage: 'ตั้งค่าภาษาการแปลเอกสาร…',
     menuLanguage: 'ภาษา…',
     menuTrackChanges: 'ติดตามการเปลี่ยนแปลง',
     menuHighlightChanges: 'เน้นการเปลี่ยนแปลง…',
@@ -3445,12 +3087,13 @@ const tMain = createI18n({
     menuLabels: 'ป้ายผนึก…',
     menuCustomizeKeyboard: 'กำหนดคีย์บอร์ดเอง…',
     menuPreferences: 'การตั้งค่า…',
-    menuAiProofread: 'พิสูจน์อักษรด้วย AI',
     menuWindow: 'หน้าต่าง',
     menuHelp: 'วิธีใช้',
     menuShortcuts: 'แป้นพิมพ์ลัด',
   },
   id: {
+    errTooLarge: 'melebihi batas {mb}MB',
+    errUnreadable: 'tidak dapat dibaca',
     dlgOpenDoc: 'Buka Dokumen',
     filterWord: 'Dokumen Word',
     odtImportMsg: 'Konversi dokumen .{ext} ini?',
@@ -3486,30 +3129,11 @@ const tMain = createI18n({
     filterImages: 'Gambar',
     dlgMergeDataSource: 'Pilih daftar penerima',
     filterMergeDataSource: 'Excel atau CSV',
-    dlgAddAttachment: 'Tambahkan Lampiran',
-    filterSupported: 'File yang Didukung',
-    filterAll: 'Semua File',
     dlgExportPdf: 'Ekspor sebagai PDF',
     dlgExportHtml: 'Ekspor sebagai HTML',
     dlgExportMarkdown: 'Ekspor sebagai Markdown',
     dlgPickExportDir: 'Pilih Folder Ekspor',
-    errUnsupportedExt: 'file .{ext} tidak didukung',
-    errNotFile: 'bukan file',
-    errTooLarge: 'melebihi batas {mb}MB',
     errTemplateProtected: 'templat ini dilindungi kata sandi; buka melalui File > Buka',
-    errImageTooLarge: 'gambar melebihi batas 5MB',
-    errUnreadable: 'tidak dapat dibaca',
-    errFileTooLarge: 'File melebihi batas ukuran',
-    errParseFailed: 'Gagal mengurai file',
-    errImageNoText:
-      'Lampiran gambar tidak menyediakan teks; gambar dikirim bersama pesan pengguna dan dapat dilihat langsung',
-    errNotImage: 'bukan jenis gambar yang didukung',
-    errGskNotLoggedIn: 'Belum masuk ke Genspark: klik “Masuk ke Genspark” di bawah, lalu coba lagi',
-    errNoApiKey: 'API Key untuk {provider} belum dikonfigurasi',
-    errAiRegion:
-      'Penyedia model ini tidak melayani wilayah Anda saat ini — pilih model lain atau ganti jaringan',
-    errAiBusy: 'Layanan AI sedang sibuk — silakan coba lagi sebentar lagi',
-    errNoModel: 'Nama model belum dikonfigurasi',
     menuFile: 'File',
     menuNewDoc: 'Dokumen Baru',
     menuNewWindow: 'Jendela Baru',
@@ -3584,7 +3208,6 @@ const tMain = createI18n({
     menuPageWidth: 'Lebar Halaman',
     menuWholePage: 'Seluruh Halaman',
     menuMultiPage: 'Beberapa halaman',
-    menuAiSidebar: 'Bilah Samping AI',
     menuDarkMode: 'Mode Gelap',
     menuFullscreen: 'Masuk Layar Penuh',
     menuInsert: 'Sisipkan',
@@ -3714,16 +3337,10 @@ const tMain = createI18n({
     menuAutoCorrect: 'Opsi Koreksi Otomatis…',
     menuSpellingAndGrammar: 'Ejaan dan Tata Bahasa',
     menuSpellingDialog: 'Ejaan dan Tata Bahasa…',
-    menuEditor: 'Editor',
     menuHideSpellingErrors: 'Sembunyikan Kesalahan Ejaan',
     menuHideGrammarErrors: 'Sembunyikan Kesalahan Tata Bahasa',
     menuResetIgnoredWords: 'Atur Ulang Kata dan Tata Bahasa yang Diabaikan',
-    menuThesaurus: 'Tesaurus…',
     menuHyphenation: 'Pemenggalan Kata…',
-    menuTranslate: 'Terjemahkan',
-    menuTranslateSelection: 'Terjemahkan Pilihan',
-    menuTranslateDocument: 'Terjemahkan Dokumen',
-    menuSetTranslationLanguage: 'Atur Bahasa Terjemahan Dokumen…',
     menuLanguage: 'Bahasa…',
     menuTrackChanges: 'Lacak Perubahan',
     menuHighlightChanges: 'Sorot Perubahan…',
@@ -3734,12 +3351,13 @@ const tMain = createI18n({
     menuLabels: 'Label…',
     menuCustomizeKeyboard: 'Kustomisasi Keyboard…',
     menuPreferences: 'Preferensi…',
-    menuAiProofread: 'Koreksi AI',
     menuWindow: 'Jendela',
     menuHelp: 'Bantuan',
     menuShortcuts: 'Pintasan Papan Ketik',
   },
   ru: {
+    errTooLarge: 'превышает лимит {mb} МБ',
+    errUnreadable: 'не удается прочитать',
     dlgOpenDoc: 'Открыть документ',
     filterWord: 'Документы Word',
     odtImportMsg: 'Преобразовать этот документ .{ext}?',
@@ -3775,31 +3393,11 @@ const tMain = createI18n({
     filterImages: 'Изображения',
     dlgMergeDataSource: 'Выбрать список получателей',
     filterMergeDataSource: 'Excel или CSV',
-    dlgAddAttachment: 'Добавить вложения',
-    filterSupported: 'Поддерживаемые файлы',
-    filterAll: 'Все файлы',
     dlgExportPdf: 'Экспорт в PDF',
     dlgExportHtml: 'Экспорт в HTML',
     dlgExportMarkdown: 'Экспорт в Markdown',
     dlgPickExportDir: 'Выбор папки для экспорта',
-    errUnsupportedExt: 'файлы .{ext} не поддерживаются',
-    errNotFile: 'не является файлом',
-    errTooLarge: 'превышает лимит {mb} МБ',
     errTemplateProtected: 'этот шаблон защищён паролем; откройте его через «Файл > Открыть»',
-    errImageTooLarge: 'изображение превышает лимит 5 МБ',
-    errUnreadable: 'не удается прочитать',
-    errFileTooLarge: 'Файл превышает максимальный размер',
-    errParseFailed: 'Не удалось разобрать файл',
-    errImageNoText:
-      'Вложенные изображения не содержат текста; изображение отправляется вместе с сообщением пользователя, смотрите его напрямую',
-    errNotImage: 'неподдерживаемый тип изображения',
-    errGskNotLoggedIn:
-      'Вы не вошли в Genspark: нажмите «Войти в Genspark» ниже, войдите и повторите попытку',
-    errNoApiKey: 'API-ключ для {provider} не настроен',
-    errAiRegion:
-      'Поставщик этой модели не обслуживает ваш текущий регион — выберите другую модель или смените сеть',
-    errAiBusy: 'Сервис ИИ сейчас перегружен — повторите попытку чуть позже',
-    errNoModel: 'Не указано имя модели',
     menuFile: 'Файл',
     menuNewDoc: 'Создать документ',
     menuNewWindow: 'Новое окно',
@@ -3874,7 +3472,6 @@ const tMain = createI18n({
     menuPageWidth: 'По ширине страницы',
     menuWholePage: 'Страница целиком',
     menuMultiPage: 'Несколько страниц',
-    menuAiSidebar: 'Боковая панель ИИ',
     menuDarkMode: 'Темный режим',
     menuFullscreen: 'Перейти в полноэкранный режим',
     menuInsert: 'Вставка',
@@ -4004,16 +3601,10 @@ const tMain = createI18n({
     menuAutoCorrect: 'Параметры автозамены…',
     menuSpellingAndGrammar: 'Правописание',
     menuSpellingDialog: 'Правописание…',
-    menuEditor: 'Редактор',
     menuHideSpellingErrors: 'Скрыть орфографические ошибки',
     menuHideGrammarErrors: 'Скрыть грамматические ошибки',
     menuResetIgnoredWords: 'Сбросить пропущенные слова и грамматику',
-    menuThesaurus: 'Тезаурус…',
     menuHyphenation: 'Расстановка переносов…',
-    menuTranslate: 'Перевод',
-    menuTranslateSelection: 'Перевести выделенный фрагмент',
-    menuTranslateDocument: 'Перевести документ',
-    menuSetTranslationLanguage: 'Задать язык перевода документа…',
     menuLanguage: 'Язык…',
     menuTrackChanges: 'Исправления',
     menuHighlightChanges: 'Выделить исправления…',
@@ -4024,12 +3615,13 @@ const tMain = createI18n({
     menuLabels: 'Наклейки…',
     menuCustomizeKeyboard: 'Настройка клавиатуры…',
     menuPreferences: 'Параметры…',
-    menuAiProofread: 'ИИ-корректура',
     menuWindow: 'Окно',
     menuHelp: 'Справка',
     menuShortcuts: 'Сочетания клавиш',
   },
   ar: {
+    errTooLarge: 'يتجاوز الحد {mb}MB',
+    errUnreadable: 'تعذرت القراءة',
     dlgOpenDoc: 'فتح مستند',
     filterWord: 'مستندات Word',
     odtImportMsg: 'تحويل مستند .{ext} هذا؟',
@@ -4065,31 +3657,11 @@ const tMain = createI18n({
     filterImages: 'الصور',
     dlgMergeDataSource: 'اختيار قائمة المستلمين',
     filterMergeDataSource: 'Excel أو CSV',
-    dlgAddAttachment: 'إضافة مرفقات',
-    filterSupported: 'الملفات المدعومة',
-    filterAll: 'كل الملفات',
     dlgExportPdf: 'تصدير بتنسيق PDF',
     dlgExportHtml: 'تصدير بتنسيق HTML',
     dlgExportMarkdown: 'تصدير بتنسيق Markdown',
     dlgPickExportDir: 'اختيار مجلد التصدير',
-    errUnsupportedExt: 'ملفات .{ext} غير مدعومة',
-    errNotFile: 'ليس ملفًا',
-    errTooLarge: 'يتجاوز الحد {mb}MB',
     errTemplateProtected: 'هذا القالب محمي بكلمة مرور؛ افتحه من ملف > فتح',
-    errImageTooLarge: 'الصورة تتجاوز حد 5MB',
-    errUnreadable: 'تعذرت القراءة',
-    errFileTooLarge: 'الملف يتجاوز الحد الأقصى للحجم',
-    errParseFailed: 'فشل تحليل الملف',
-    errImageNoText:
-      'مرفقات الصور لا توفر نصًا؛ تُرسل الصورة مع رسالة المستخدم ويمكن الاطلاع عليها مباشرة',
-    errNotImage: 'ليس نوع صورة مدعومًا',
-    errGskNotLoggedIn:
-      'لم تسجّل الدخول إلى Genspark: انقر على «تسجيل الدخول إلى Genspark» أدناه ثم أعد المحاولة',
-    errNoApiKey: 'لم يتم تكوين مفتاح API لـ {provider}',
-    errAiRegion:
-      'مزوّد هذا النموذج لا يقدم الخدمة في منطقتك الحالية — اختر نموذجًا آخر أو غيّر الشبكة',
-    errAiBusy: 'خدمة الذكاء الاصطناعي مشغولة حاليًا — يرجى المحاولة مرة أخرى بعد قليل',
-    errNoModel: 'لم يتم تكوين اسم النموذج',
     menuFile: 'ملف',
     menuNewDoc: 'مستند جديد',
     menuNewWindow: 'نافذة جديدة',
@@ -4164,7 +3736,6 @@ const tMain = createI18n({
     menuPageWidth: 'عرض الصفحة',
     menuWholePage: 'صفحة كاملة',
     menuMultiPage: 'صفحات متعددة',
-    menuAiSidebar: 'الشريط الجانبي للذكاء الاصطناعي',
     menuDarkMode: 'الوضع الداكن',
     menuFullscreen: 'الدخول إلى ملء الشاشة',
     menuInsert: 'إدراج',
@@ -4294,16 +3865,10 @@ const tMain = createI18n({
     menuAutoCorrect: 'خيارات التصحيح التلقائي…',
     menuSpellingAndGrammar: 'التدقيق الإملائي والنحوي',
     menuSpellingDialog: 'التدقيق الإملائي والنحوي…',
-    menuEditor: 'المحرر',
     menuHideSpellingErrors: 'إخفاء الأخطاء الإملائية',
     menuHideGrammarErrors: 'إخفاء الأخطاء النحوية',
     menuResetIgnoredWords: 'إعادة تعيين الكلمات والقواعد التي تم تجاهلها',
-    menuThesaurus: 'قاموس المرادفات…',
     menuHyphenation: 'الواصلة…',
-    menuTranslate: 'ترجمة',
-    menuTranslateSelection: 'ترجمة التحديد',
-    menuTranslateDocument: 'ترجمة المستند',
-    menuSetTranslationLanguage: 'تعيين لغة ترجمة المستند…',
     menuLanguage: 'اللغة…',
     menuTrackChanges: 'تعقب التغييرات',
     menuHighlightChanges: 'تمييز التغييرات…',
@@ -4314,12 +3879,13 @@ const tMain = createI18n({
     menuLabels: 'تسميات…',
     menuCustomizeKeyboard: 'تخصيص لوحة المفاتيح…',
     menuPreferences: 'التفضيلات…',
-    menuAiProofread: 'تدقيق بالذكاء الاصطناعي',
     menuWindow: 'نافذة',
     menuHelp: 'تعليمات',
     menuShortcuts: 'اختصارات لوحة المفاتيح',
   },
   pt: {
+    errTooLarge: 'excede o limite de {mb}MB',
+    errUnreadable: 'não é possível ler',
     dlgOpenDoc: 'Abrir Documento',
     filterWord: 'Documentos do Word',
     odtImportMsg: 'Converter este documento .{ext}?',
@@ -4355,31 +3921,11 @@ const tMain = createI18n({
     filterImages: 'Imagens',
     dlgMergeDataSource: 'Selecionar lista de destinatários',
     filterMergeDataSource: 'Excel ou CSV',
-    dlgAddAttachment: 'Adicionar Anexos',
-    filterSupported: 'Arquivos Compatíveis',
-    filterAll: 'Todos os Arquivos',
     dlgExportPdf: 'Exportar como PDF',
     dlgExportHtml: 'Exportar como HTML',
     dlgExportMarkdown: 'Exportar como Markdown',
     dlgPickExportDir: 'Escolher Pasta de Exportação',
-    errUnsupportedExt: 'arquivos .{ext} não são suportados',
-    errNotFile: 'não é um arquivo',
-    errTooLarge: 'excede o limite de {mb}MB',
     errTemplateProtected: 'este modelo está protegido por senha; abra-o com Arquivo > Abrir',
-    errImageTooLarge: 'a imagem excede o limite de 5MB',
-    errUnreadable: 'não é possível ler',
-    errFileTooLarge: 'O arquivo excede o limite de tamanho',
-    errParseFailed: 'Falha ao analisar o arquivo',
-    errImageNoText:
-      'Anexos de imagem não fornecem texto; a imagem é enviada junto com a mensagem do usuário, basta vê-la diretamente',
-    errNotImage: 'não é um tipo de imagem suportado',
-    errGskNotLoggedIn:
-      'Não conectado ao Genspark: clique em “Entrar no Genspark” abaixo, entre e tente novamente',
-    errNoApiKey: 'Nenhuma chave de API configurada para {provider}',
-    errAiRegion:
-      'O fornecedor deste modelo não atende à sua região atual — escolha outro modelo ou mude de rede',
-    errAiBusy: 'O serviço de IA está sobrecarregado no momento — tente novamente em instantes',
-    errNoModel: 'Nenhum nome de modelo configurado',
     menuFile: 'Arquivo',
     menuNewDoc: 'Novo Documento',
     menuNewWindow: 'Nova Janela',
@@ -4454,7 +4000,6 @@ const tMain = createI18n({
     menuPageWidth: 'Largura da Página',
     menuWholePage: 'Página Inteira',
     menuMultiPage: 'Várias páginas',
-    menuAiSidebar: 'Barra Lateral de IA',
     menuDarkMode: 'Modo Escuro',
     menuFullscreen: 'Entrar em Tela Cheia',
     menuInsert: 'Inserir',
@@ -4584,16 +4129,10 @@ const tMain = createI18n({
     menuAutoCorrect: 'Opções de Correção Automática…',
     menuSpellingAndGrammar: 'Ortografia e Gramática',
     menuSpellingDialog: 'Ortografia e Gramática…',
-    menuEditor: 'Editor',
     menuHideSpellingErrors: 'Ocultar Erros de Ortografia',
     menuHideGrammarErrors: 'Ocultar Erros Gramaticais',
     menuResetIgnoredWords: 'Redefinir Palavras e Gramática Ignoradas',
-    menuThesaurus: 'Dicionário de Sinônimos…',
     menuHyphenation: 'Hifenização…',
-    menuTranslate: 'Traduzir',
-    menuTranslateSelection: 'Traduzir Seleção',
-    menuTranslateDocument: 'Traduzir Documento',
-    menuSetTranslationLanguage: 'Definir Idioma de Tradução do Documento…',
     menuLanguage: 'Idioma…',
     menuTrackChanges: 'Controlar Alterações',
     menuHighlightChanges: 'Realçar Alterações…',
@@ -4604,12 +4143,13 @@ const tMain = createI18n({
     menuLabels: 'Etiquetas…',
     menuCustomizeKeyboard: 'Personalizar Teclado…',
     menuPreferences: 'Preferências…',
-    menuAiProofread: 'Revisão com IA',
     menuWindow: 'Janela',
     menuHelp: 'Ajuda',
     menuShortcuts: 'Atalhos de Teclado',
   },
   it: {
+    errTooLarge: 'supera il limite di {mb} MB',
+    errUnreadable: 'impossibile leggere',
     dlgOpenDoc: 'Apri documento',
     filterWord: 'Documenti Word',
     odtImportMsg: 'Convertire questo documento .{ext}?',
@@ -4645,31 +4185,11 @@ const tMain = createI18n({
     filterImages: 'Immagini',
     dlgMergeDataSource: 'Seleziona elenco destinatari',
     filterMergeDataSource: 'Excel o CSV',
-    dlgAddAttachment: 'Aggiungi allegati',
-    filterSupported: 'File supportati',
-    filterAll: 'Tutti i file',
     dlgExportPdf: 'Esporta come PDF',
     dlgExportHtml: 'Esporta come HTML',
     dlgExportMarkdown: 'Esporta come Markdown',
     dlgPickExportDir: 'Scegli la cartella di esportazione',
-    errUnsupportedExt: 'i file .{ext} non sono supportati',
-    errNotFile: 'non è un file',
-    errTooLarge: 'supera il limite di {mb} MB',
     errTemplateProtected: 'questo modello è protetto da password; aprirlo con File > Apri',
-    errImageTooLarge: "l'immagine supera il limite di 5 MB",
-    errUnreadable: 'impossibile leggere',
-    errFileTooLarge: 'Il file supera il limite di dimensione',
-    errParseFailed: 'Impossibile analizzare il file',
-    errImageNoText:
-      "Gli allegati immagine non forniscono testo; l'immagine viene inviata insieme al messaggio dell'utente, basta guardarla direttamente",
-    errNotImage: 'tipo di immagine non supportato',
-    errGskNotLoggedIn:
-      'Accesso a Genspark non effettuato: fai clic su “Accedi a Genspark” qui sotto, accedi e riprova',
-    errNoApiKey: 'Nessuna chiave API configurata per {provider}',
-    errAiRegion:
-      'Il fornitore di questo modello non serve la tua regione attuale — scegli un altro modello o cambia rete',
-    errAiBusy: 'Il servizio IA è momentaneamente sovraccarico — riprova tra poco',
-    errNoModel: 'Nessun nome di modello configurato',
     menuFile: 'File',
     menuNewDoc: 'Nuovo documento',
     menuNewWindow: 'Nuova finestra',
@@ -4744,7 +4264,6 @@ const tMain = createI18n({
     menuPageWidth: 'Larghezza pagina',
     menuWholePage: 'Pagina intera',
     menuMultiPage: 'Più pagine',
-    menuAiSidebar: 'Barra laterale IA',
     menuDarkMode: 'Modalità scura',
     menuFullscreen: 'Attiva schermo intero',
     menuInsert: 'Inserisci',
@@ -4874,16 +4393,10 @@ const tMain = createI18n({
     menuAutoCorrect: 'Opzioni correzione automatica…',
     menuSpellingAndGrammar: 'Ortografia e grammatica',
     menuSpellingDialog: 'Ortografia e grammatica…',
-    menuEditor: 'Editor',
     menuHideSpellingErrors: 'Nascondi errori di ortografia',
     menuHideGrammarErrors: 'Nascondi errori grammaticali',
     menuResetIgnoredWords: 'Reimposta parole e grammatica ignorate',
-    menuThesaurus: 'Thesaurus…',
     menuHyphenation: 'Sillabazione…',
-    menuTranslate: 'Traduci',
-    menuTranslateSelection: 'Traduci selezione',
-    menuTranslateDocument: 'Traduci documento',
-    menuSetTranslationLanguage: 'Imposta lingua di traduzione del documento…',
     menuLanguage: 'Lingua…',
     menuTrackChanges: 'Revisioni',
     menuHighlightChanges: 'Evidenzia revisioni…',
@@ -4894,12 +4407,13 @@ const tMain = createI18n({
     menuLabels: 'Etichette…',
     menuCustomizeKeyboard: 'Personalizza tastiera…',
     menuPreferences: 'Preferenze…',
-    menuAiProofread: 'Correzione IA',
     menuWindow: 'Finestra',
     menuHelp: 'Aiuto',
     menuShortcuts: 'Scelte rapide da tastiera',
   },
   pl: {
+    errTooLarge: 'przekracza limit {mb} MB',
+    errUnreadable: 'nie można odczytać',
     dlgOpenDoc: 'Otwórz dokument',
     filterWord: 'Dokumenty programu Word',
     odtImportMsg: 'Skonwertować ten dokument .{ext}?',
@@ -4935,31 +4449,11 @@ const tMain = createI18n({
     filterImages: 'Obrazy',
     dlgMergeDataSource: 'Wybierz listę odbiorców',
     filterMergeDataSource: 'Excel lub CSV',
-    dlgAddAttachment: 'Dodaj załączniki',
-    filterSupported: 'Obsługiwane pliki',
-    filterAll: 'Wszystkie pliki',
     dlgExportPdf: 'Eksportuj jako PDF',
     dlgExportHtml: 'Eksportuj jako HTML',
     dlgExportMarkdown: 'Eksportuj jako Markdown',
     dlgPickExportDir: 'Wybierz folder eksportu',
-    errUnsupportedExt: 'pliki .{ext} nie są obsługiwane',
-    errNotFile: 'to nie jest plik',
-    errTooLarge: 'przekracza limit {mb} MB',
     errTemplateProtected: 'ten szablon jest chroniony hasłem; otwórz go przez Plik > Otwórz',
-    errImageTooLarge: 'obraz przekracza limit 5 MB',
-    errUnreadable: 'nie można odczytać',
-    errFileTooLarge: 'Plik przekracza limit rozmiaru',
-    errParseFailed: 'Nie udało się przeanalizować pliku',
-    errImageNoText:
-      'Załączniki graficzne nie zawierają tekstu; obraz jest wysyłany razem z wiadomością użytkownika, wystarczy na niego spojrzeć',
-    errNotImage: 'nieobsługiwany typ obrazu',
-    errGskNotLoggedIn:
-      'Nie zalogowano do Genspark: kliknij „Zaloguj się do Genspark” poniżej, zaloguj się i spróbuj ponownie',
-    errNoApiKey: 'Nie skonfigurowano klucza API dla {provider}',
-    errAiRegion:
-      'Dostawca tego modelu nie obsługuje Twojego obecnego regionu — wybierz inny model lub zmień sieć',
-    errAiBusy: 'Usługa AI jest obecnie przeciążona — spróbuj ponownie za chwilę',
-    errNoModel: 'Nie skonfigurowano nazwy modelu',
     menuFile: 'Plik',
     menuNewDoc: 'Nowy dokument',
     menuNewWindow: 'Nowe okno',
@@ -5034,7 +4528,6 @@ const tMain = createI18n({
     menuPageWidth: 'Szerokość strony',
     menuWholePage: 'Cała strona',
     menuMultiPage: 'Wiele stron',
-    menuAiSidebar: 'Pasek boczny AI',
     menuDarkMode: 'Tryb ciemny',
     menuFullscreen: 'Przejdź do pełnego ekranu',
     menuInsert: 'Wstaw',
@@ -5164,16 +4657,10 @@ const tMain = createI18n({
     menuAutoCorrect: 'Opcje Autokorekty…',
     menuSpellingAndGrammar: 'Pisownia i gramatyka',
     menuSpellingDialog: 'Pisownia i gramatyka…',
-    menuEditor: 'Redaktor',
     menuHideSpellingErrors: 'Ukryj błędy pisowni',
     menuHideGrammarErrors: 'Ukryj błędy gramatyczne',
     menuResetIgnoredWords: 'Resetuj zignorowane wyrazy i gramatykę',
-    menuThesaurus: 'Tezaurus…',
     menuHyphenation: 'Dzielenie wyrazów…',
-    menuTranslate: 'Tłumacz',
-    menuTranslateSelection: 'Tłumacz zaznaczenie',
-    menuTranslateDocument: 'Tłumacz dokument',
-    menuSetTranslationLanguage: 'Ustaw język tłumaczenia dokumentu…',
     menuLanguage: 'Język…',
     menuTrackChanges: 'Śledź zmiany',
     menuHighlightChanges: 'Wyróżnij zmiany…',
@@ -5184,12 +4671,13 @@ const tMain = createI18n({
     menuLabels: 'Etykiety…',
     menuCustomizeKeyboard: 'Dostosuj klawiaturę…',
     menuPreferences: 'Preferencje…',
-    menuAiProofread: 'Korekta AI',
     menuWindow: 'Okno',
     menuHelp: 'Pomoc',
     menuShortcuts: 'Skróty klawiaturowe',
   },
   cs: {
+    errTooLarge: 'překračuje limit {mb} MB',
+    errUnreadable: 'nelze přečíst',
     dlgOpenDoc: 'Otevřít dokument',
     filterWord: 'Dokumenty Wordu',
     odtImportMsg: 'Převést tento dokument .{ext}?',
@@ -5225,31 +4713,11 @@ const tMain = createI18n({
     filterImages: 'Obrázky',
     dlgMergeDataSource: 'Vybrat seznam příjemců',
     filterMergeDataSource: 'Excel nebo CSV',
-    dlgAddAttachment: 'Přidat přílohy',
-    filterSupported: 'Podporované soubory',
-    filterAll: 'Všechny soubory',
     dlgExportPdf: 'Exportovat jako PDF',
     dlgExportHtml: 'Exportovat jako HTML',
     dlgExportMarkdown: 'Exportovat jako Markdown',
     dlgPickExportDir: 'Zvolte složku pro export',
-    errUnsupportedExt: 'soubory .{ext} nejsou podporovány',
-    errNotFile: 'není soubor',
-    errTooLarge: 'překračuje limit {mb} MB',
     errTemplateProtected: 'tato šablona je chráněna heslem; otevřete ji přes Soubor > Otevřít',
-    errImageTooLarge: 'obrázek překračuje limit 5 MB',
-    errUnreadable: 'nelze přečíst',
-    errFileTooLarge: 'Soubor překračuje limit velikosti',
-    errParseFailed: 'Soubor se nepodařilo zpracovat',
-    errImageNoText:
-      'Obrázkové přílohy neobsahují text; obrázek se odesílá spolu se zprávou uživatele',
-    errNotImage: 'nepodporovaný typ obrázku',
-    errGskNotLoggedIn:
-      'Nejste přihlášeni do Genspark: klikněte níže na „Přihlásit se do Genspark“, přihlaste se a zkuste to znovu',
-    errNoApiKey: 'Pro {provider} není nakonfigurován žádný klíč API',
-    errAiRegion:
-      'Poskytovatel tohoto modelu neposkytuje služby ve vaší aktuální oblasti — vyberte jiný model nebo změňte síť',
-    errAiBusy: 'Služba AI je právě zaneprázdněna — zkuste to prosím za chvíli znovu',
-    errNoModel: 'Není nakonfigurován název modelu',
     menuFile: 'Soubor',
     menuNewDoc: 'Nový dokument',
     menuNewWindow: 'Nové okno',
@@ -5324,7 +4792,6 @@ const tMain = createI18n({
     menuPageWidth: 'Šířka stránky',
     menuWholePage: 'Celá stránka',
     menuMultiPage: 'Více stránek',
-    menuAiSidebar: 'Boční panel AI',
     menuDarkMode: 'Tmavý režim',
     menuFullscreen: 'Přejít na celou obrazovku',
     menuInsert: 'Vložení',
@@ -5454,16 +4921,10 @@ const tMain = createI18n({
     menuAutoCorrect: 'Možnosti automatických oprav…',
     menuSpellingAndGrammar: 'Pravopis a gramatika',
     menuSpellingDialog: 'Pravopis a gramatika…',
-    menuEditor: 'Editor',
     menuHideSpellingErrors: 'Skrýt pravopisné chyby',
     menuHideGrammarErrors: 'Skrýt gramatické chyby',
     menuResetIgnoredWords: 'Obnovit ignorovaná slova a gramatiku',
-    menuThesaurus: 'Tezaurus…',
     menuHyphenation: 'Dělení slov…',
-    menuTranslate: 'Přeložit',
-    menuTranslateSelection: 'Přeložit výběr',
-    menuTranslateDocument: 'Přeložit dokument',
-    menuSetTranslationLanguage: 'Nastavit jazyk překladu dokumentu…',
     menuLanguage: 'Jazyk…',
     menuTrackChanges: 'Sledování změn',
     menuHighlightChanges: 'Zvýraznit změny…',
@@ -5474,12 +4935,13 @@ const tMain = createI18n({
     menuLabels: 'Štítky…',
     menuCustomizeKeyboard: 'Vlastní klávesnice…',
     menuPreferences: 'Předvolby…',
-    menuAiProofread: 'Korektura AI',
     menuWindow: 'Okno',
     menuHelp: 'Nápověda',
     menuShortcuts: 'Klávesové zkratky',
   },
   nl: {
+    errTooLarge: 'overschrijdt de limiet van {mb} MB',
+    errUnreadable: 'kan niet worden gelezen',
     dlgOpenDoc: 'Document openen',
     filterWord: 'Word-documenten',
     odtImportMsg: 'Dit .{ext}-document converteren?',
@@ -5515,32 +4977,12 @@ const tMain = createI18n({
     filterImages: 'Afbeeldingen',
     dlgMergeDataSource: 'Ontvangerslijst selecteren',
     filterMergeDataSource: 'Excel of CSV',
-    dlgAddAttachment: 'Bijlagen toevoegen',
-    filterSupported: 'Ondersteunde bestanden',
-    filterAll: 'Alle bestanden',
     dlgExportPdf: 'Exporteren als PDF',
     dlgExportHtml: 'Exporteren als HTML',
     dlgExportMarkdown: 'Exporteren als Markdown',
     dlgPickExportDir: 'Exportmap kiezen',
-    errUnsupportedExt: '.{ext}-bestanden worden niet ondersteund',
-    errNotFile: 'geen bestand',
-    errTooLarge: 'overschrijdt de limiet van {mb} MB',
     errTemplateProtected:
       'deze sjabloon is beveiligd met een wachtwoord; open deze via Bestand > Openen',
-    errImageTooLarge: 'afbeelding overschrijdt de limiet van 5 MB',
-    errUnreadable: 'kan niet worden gelezen',
-    errFileTooLarge: 'Bestand overschrijdt de maximale grootte',
-    errParseFailed: 'Kan bestand niet parseren',
-    errImageNoText:
-      'Afbeeldingsbijlagen bevatten geen tekst; de afbeelding wordt samen met het gebruikersbericht verzonden en kan direct worden bekeken',
-    errNotImage: 'geen ondersteund afbeeldingstype',
-    errGskNotLoggedIn:
-      'Niet aangemeld bij Genspark: klik hieronder op “Aanmelden bij Genspark”, meld u aan en probeer het opnieuw',
-    errNoApiKey: 'Geen API-sleutel geconfigureerd voor {provider}',
-    errAiRegion:
-      'De aanbieder van dit model bedient uw huidige regio niet — kies een ander model of wissel van netwerk',
-    errAiBusy: 'De AI-service is momenteel overbelast — probeer het zo opnieuw',
-    errNoModel: 'Geen modelnaam geconfigureerd',
     menuFile: 'Bestand',
     menuNewDoc: 'Nieuw document',
     menuNewWindow: 'Nieuw venster',
@@ -5615,7 +5057,6 @@ const tMain = createI18n({
     menuPageWidth: 'Paginabreedte',
     menuWholePage: 'Hele pagina',
     menuMultiPage: "Meerdere pagina's",
-    menuAiSidebar: 'AI-zijbalk',
     menuDarkMode: 'Donkere modus',
     menuFullscreen: 'Schermvullende weergave',
     menuInsert: 'Invoegen',
@@ -5745,16 +5186,10 @@ const tMain = createI18n({
     menuAutoCorrect: 'AutoCorrectie-opties…',
     menuSpellingAndGrammar: 'Spelling en grammatica',
     menuSpellingDialog: 'Spelling en grammatica…',
-    menuEditor: 'Editor',
     menuHideSpellingErrors: 'Spelfouten verbergen',
     menuHideGrammarErrors: 'Grammaticafouten verbergen',
     menuResetIgnoredWords: 'Genegeerde woorden en grammatica opnieuw instellen',
-    menuThesaurus: 'Synoniemenlijst…',
     menuHyphenation: 'Woordafbreking…',
-    menuTranslate: 'Vertalen',
-    menuTranslateSelection: 'Selectie vertalen',
-    menuTranslateDocument: 'Document vertalen',
-    menuSetTranslationLanguage: 'Vertaaltaal voor document instellen…',
     menuLanguage: 'Taal…',
     menuTrackChanges: 'Wijzigingen bijhouden',
     menuHighlightChanges: 'Wijzigingen markeren…',
@@ -5765,12 +5200,13 @@ const tMain = createI18n({
     menuLabels: 'Etiketten…',
     menuCustomizeKeyboard: 'Toetsenbord aanpassen…',
     menuPreferences: 'Voorkeuren…',
-    menuAiProofread: 'AI-proeflezen',
     menuWindow: 'Venster',
     menuHelp: 'Help',
     menuShortcuts: 'Sneltoetsen',
   },
   ms: {
+    errTooLarge: 'melebihi had {mb}MB',
+    errUnreadable: 'tidak dapat dibaca',
     dlgOpenDoc: 'Buka Dokumen',
     filterWord: 'Dokumen Word',
     odtImportMsg: 'Tukar dokumen .{ext} ini?',
@@ -5806,31 +5242,11 @@ const tMain = createI18n({
     filterImages: 'Imej',
     dlgMergeDataSource: 'Pilih senarai penerima',
     filterMergeDataSource: 'Excel atau CSV',
-    dlgAddAttachment: 'Tambah Lampiran',
-    filterSupported: 'Fail yang Disokong',
-    filterAll: 'Semua Fail',
     dlgExportPdf: 'Eksport sebagai PDF',
     dlgExportHtml: 'Eksport sebagai HTML',
     dlgExportMarkdown: 'Eksport sebagai Markdown',
     dlgPickExportDir: 'Pilih Folder Eksport',
-    errUnsupportedExt: 'fail .{ext} tidak disokong',
-    errNotFile: 'bukan fail',
-    errTooLarge: 'melebihi had {mb}MB',
     errTemplateProtected: 'templat ini dilindungi kata laluan; buka melalui Fail > Buka',
-    errImageTooLarge: 'imej melebihi had 5MB',
-    errUnreadable: 'tidak dapat dibaca',
-    errFileTooLarge: 'Fail melebihi had saiz',
-    errParseFailed: 'Gagal menghurai fail',
-    errImageNoText:
-      'Lampiran imej tidak menyediakan teks; imej dihantar bersama mesej pengguna dan boleh dilihat terus',
-    errNotImage: 'bukan jenis imej yang disokong',
-    errGskNotLoggedIn:
-      'Belum log masuk ke Genspark: klik “Log masuk ke Genspark” di bawah, kemudian cuba lagi',
-    errNoApiKey: 'Kunci API untuk {provider} belum dikonfigurasikan',
-    errAiRegion:
-      'Penyedia model ini tidak memberi perkhidmatan di rantau semasa anda — pilih model lain atau tukar rangkaian',
-    errAiBusy: 'Perkhidmatan AI sedang sibuk — sila cuba lagi sebentar lagi',
-    errNoModel: 'Nama model belum dikonfigurasikan',
     menuFile: 'Fail',
     menuNewDoc: 'Dokumen Baharu',
     menuNewWindow: 'Tetingkap Baharu',
@@ -5905,7 +5321,6 @@ const tMain = createI18n({
     menuPageWidth: 'Lebar Halaman',
     menuWholePage: 'Seluruh Halaman',
     menuMultiPage: 'Beberapa halaman',
-    menuAiSidebar: 'Bar Sisi AI',
     menuDarkMode: 'Mod Gelap',
     menuFullscreen: 'Masuk Skrin Penuh',
     menuInsert: 'Sisip',
@@ -6035,16 +5450,10 @@ const tMain = createI18n({
     menuAutoCorrect: 'Pilihan AutoBetul…',
     menuSpellingAndGrammar: 'Ejaan dan Tatabahasa',
     menuSpellingDialog: 'Ejaan dan Tatabahasa…',
-    menuEditor: 'Editor',
     menuHideSpellingErrors: 'Sembunyikan Ralat Ejaan',
     menuHideGrammarErrors: 'Sembunyikan Ralat Tatabahasa',
     menuResetIgnoredWords: 'Set Semula Perkataan dan Tatabahasa yang Diabaikan',
-    menuThesaurus: 'Tesaurus…',
     menuHyphenation: 'Penyempangan…',
-    menuTranslate: 'Terjemah',
-    menuTranslateSelection: 'Terjemah Pilihan',
-    menuTranslateDocument: 'Terjemah Dokumen',
-    menuSetTranslationLanguage: 'Tetapkan Bahasa Terjemahan Dokumen…',
     menuLanguage: 'Bahasa…',
     menuTrackChanges: 'Jejak Perubahan',
     menuHighlightChanges: 'Serlahkan Perubahan…',
@@ -6055,12 +5464,13 @@ const tMain = createI18n({
     menuLabels: 'Label…',
     menuCustomizeKeyboard: 'Sesuaikan Papan Kekunci…',
     menuPreferences: 'Keutamaan…',
-    menuAiProofread: 'Pembacaan Pruf AI',
     menuWindow: 'Tetingkap',
     menuHelp: 'Bantuan',
     menuShortcuts: 'Pintasan Papan Kekunci',
   },
   he: {
+    errTooLarge: 'חורג מהמגבלה של {mb}MB',
+    errUnreadable: 'לא ניתן לקרוא',
     dlgOpenDoc: 'פתיחת מסמך',
     filterWord: 'מסמכי Word',
     odtImportMsg: 'להמיר את מסמך ה‑.{ext} הזה?',
@@ -6095,29 +5505,11 @@ const tMain = createI18n({
     filterImages: 'תמונות',
     dlgMergeDataSource: 'בחירת רשימת נמענים',
     filterMergeDataSource: 'Excel או CSV',
-    dlgAddAttachment: 'הוספת קבצים מצורפים',
-    filterSupported: 'קבצים נתמכים',
-    filterAll: 'כל הקבצים',
     dlgExportPdf: 'ייצוא כ-PDF',
     dlgExportHtml: 'ייצוא כ-HTML',
     dlgExportMarkdown: 'ייצוא כ-Markdown',
     dlgPickExportDir: 'בחירת תיקיית ייצוא',
-    errUnsupportedExt: 'קובצי .{ext} אינם נתמכים',
-    errNotFile: 'אינו קובץ',
-    errTooLarge: 'חורג מהמגבלה של {mb}MB',
     errTemplateProtected: 'תבנית זו מוגנת בסיסמה; פתח אותה דרך קובץ > פתח',
-    errImageTooLarge: 'התמונה חורגת מהמגבלה של 5MB',
-    errUnreadable: 'לא ניתן לקרוא',
-    errFileTooLarge: 'הקובץ חורג ממגבלת הגודל',
-    errParseFailed: 'ניתוח הקובץ נכשל',
-    errImageNoText:
-      'קבצים מצורפים מסוג תמונה אינם מספקים טקסט; התמונה נשלחת יחד עם הודעת המשתמש וניתן לצפות בה ישירות',
-    errNotImage: 'סוג תמונה שאינו נתמך',
-    errGskNotLoggedIn: 'לא מחובר ל-Genspark: לחץ על "התחבר ל-Genspark" למטה, התחבר ונסה שוב',
-    errNoApiKey: 'לא הוגדר מפתח API עבור {provider}',
-    errAiRegion: 'ספק המודל הזה אינו פועל באזור הנוכחי שלך — בחרו מודל אחר או החליפו רשת',
-    errAiBusy: 'שירות ה-AI עמוס כרגע — נסו שוב בעוד רגע',
-    errNoModel: 'לא הוגדר שם מודל',
     menuFile: 'קובץ',
     menuNewDoc: 'מסמך חדש',
     menuNewWindow: 'חלון חדש',
@@ -6192,7 +5584,6 @@ const tMain = createI18n({
     menuPageWidth: 'רוחב עמוד',
     menuWholePage: 'עמוד שלם',
     menuMultiPage: 'עמודים מרובים',
-    menuAiSidebar: 'סרגל צד AI',
     menuDarkMode: 'מצב כהה',
     menuFullscreen: 'מעבר למסך מלא',
     menuInsert: 'הוספה',
@@ -6322,16 +5713,10 @@ const tMain = createI18n({
     menuAutoCorrect: 'אפשרויות תיקון אוטומטי…',
     menuSpellingAndGrammar: 'איות ודקדוק',
     menuSpellingDialog: 'איות ודקדוק…',
-    menuEditor: 'עורך',
     menuHideSpellingErrors: 'הסתר שגיאות איות',
     menuHideGrammarErrors: 'הסתר שגיאות דקדוק',
     menuResetIgnoredWords: 'אפס מילים ודקדוק שהתעלמת מהם',
-    menuThesaurus: 'אוצר מילים…',
     menuHyphenation: 'מיקוף…',
-    menuTranslate: 'תרגום',
-    menuTranslateSelection: 'תרגם בחירה',
-    menuTranslateDocument: 'תרגם מסמך',
-    menuSetTranslationLanguage: 'הגדר שפת תרגום למסמך…',
     menuLanguage: 'שפה…',
     menuTrackChanges: 'מעקב אחר שינויים',
     menuHighlightChanges: 'סמן שינויים…',
@@ -6342,12 +5727,13 @@ const tMain = createI18n({
     menuLabels: 'תוויות…',
     menuCustomizeKeyboard: 'התאמה אישית של המקלדת…',
     menuPreferences: 'העדפות…',
-    menuAiProofread: 'הגהת AI',
     menuWindow: 'חלון',
     menuHelp: 'עזרה',
     menuShortcuts: 'קיצורי מקלדת',
   },
   hi: {
+    errTooLarge: '{mb}MB की सीमा से अधिक है',
+    errUnreadable: 'पढ़ा नहीं जा सकता',
     dlgOpenDoc: 'दस्तावेज़ खोलें',
     filterWord: 'Word दस्तावेज़',
     odtImportMsg: 'इस .{ext} दस्तावेज़ को बदलें?',
@@ -6383,31 +5769,11 @@ const tMain = createI18n({
     filterImages: 'छवियाँ',
     dlgMergeDataSource: 'प्राप्तकर्ता सूची चुनें',
     filterMergeDataSource: 'Excel या CSV',
-    dlgAddAttachment: 'अनुलग्नक जोड़ें',
-    filterSupported: 'समर्थित फ़ाइलें',
-    filterAll: 'सभी फ़ाइलें',
     dlgExportPdf: 'PDF के रूप में निर्यात करें',
     dlgExportHtml: 'HTML के रूप में निर्यात करें',
     dlgExportMarkdown: 'Markdown के रूप में निर्यात करें',
     dlgPickExportDir: 'निर्यात फ़ोल्डर चुनें',
-    errUnsupportedExt: '.{ext} फ़ाइलें समर्थित नहीं हैं',
-    errNotFile: 'फ़ाइल नहीं है',
-    errTooLarge: '{mb}MB की सीमा से अधिक है',
     errTemplateProtected: 'यह टेम्पलेट पासवर्ड से सुरक्षित है; इसे फ़ाइल > खोलें से खोलें',
-    errImageTooLarge: 'छवि 5MB की सीमा से अधिक है',
-    errUnreadable: 'पढ़ा नहीं जा सकता',
-    errFileTooLarge: 'फ़ाइल आकार सीमा से अधिक है',
-    errParseFailed: 'फ़ाइल पार्स करने में विफल',
-    errImageNoText:
-      'छवि अनुलग्नक टेक्स्ट प्रदान नहीं करते; छवि उपयोगकर्ता संदेश के साथ भेजी जाती है, उसे सीधे देखें',
-    errNotImage: 'समर्थित छवि प्रकार नहीं है',
-    errGskNotLoggedIn:
-      'Genspark में साइन इन नहीं है: नीचे “Genspark में साइन इन करें” पर क्लिक करें, साइन इन करें और फिर से कोशिश करें',
-    errNoApiKey: '{provider} के लिए कोई API कुंजी कॉन्फ़िगर नहीं है',
-    errAiRegion:
-      'इस मॉडल का प्रदाता आपके वर्तमान क्षेत्र में सेवा नहीं देता — कोई दूसरा मॉडल चुनें या नेटवर्क बदलें',
-    errAiBusy: 'AI सेवा अभी व्यस्त है — कृपया थोड़ी देर बाद फिर से प्रयास करें',
-    errNoModel: 'कोई मॉडल नाम कॉन्फ़िगर नहीं है',
     menuFile: 'फ़ाइल',
     menuNewDoc: 'नया दस्तावेज़',
     menuNewWindow: 'नई विंडो',
@@ -6482,7 +5848,6 @@ const tMain = createI18n({
     menuPageWidth: 'पृष्ठ चौड़ाई',
     menuWholePage: 'पूरा पृष्ठ',
     menuMultiPage: 'एकाधिक पृष्ठ',
-    menuAiSidebar: 'AI साइडबार',
     menuDarkMode: 'डार्क मोड',
     menuFullscreen: 'पूर्ण स्क्रीन में जाएँ',
     menuInsert: 'सम्मिलित करें',
@@ -6612,16 +5977,10 @@ const tMain = createI18n({
     menuAutoCorrect: 'स्वतः सुधार विकल्प…',
     menuSpellingAndGrammar: 'वर्तनी और व्याकरण',
     menuSpellingDialog: 'वर्तनी और व्याकरण…',
-    menuEditor: 'संपादक',
     menuHideSpellingErrors: 'वर्तनी त्रुटियाँ छिपाएँ',
     menuHideGrammarErrors: 'व्याकरण त्रुटियाँ छिपाएँ',
     menuResetIgnoredWords: 'उपेक्षित शब्द और व्याकरण रीसेट करें',
-    menuThesaurus: 'समानार्थी शब्दकोश…',
     menuHyphenation: 'हाइफ़नेशन…',
-    menuTranslate: 'अनुवाद',
-    menuTranslateSelection: 'चयन का अनुवाद करें',
-    menuTranslateDocument: 'दस्तावेज़ का अनुवाद करें',
-    menuSetTranslationLanguage: 'दस्तावेज़ अनुवाद भाषा सेट करें…',
     menuLanguage: 'भाषा…',
     menuTrackChanges: 'परिवर्तन ट्रैक करें',
     menuHighlightChanges: 'परिवर्तन हाइलाइट करें…',
@@ -6632,12 +5991,13 @@ const tMain = createI18n({
     menuLabels: 'लेबल…',
     menuCustomizeKeyboard: 'कीबोर्ड अनुकूलित करें…',
     menuPreferences: 'प्राथमिकताएँ…',
-    menuAiProofread: 'AI प्रूफ़रीडिंग',
     menuWindow: 'विंडो',
     menuHelp: 'सहायता',
     menuShortcuts: 'कीबोर्ड शॉर्टकट',
   },
   'zh-TW': {
+    errTooLarge: '超過 {mb}MB 上限',
+    errUnreadable: '無法讀取',
     dlgOpenDoc: '開啟文件',
     filterWord: 'Word 文件',
     odtImportMsg: '轉換這個 .{ext} 文件？',
@@ -6671,28 +6031,11 @@ const tMain = createI18n({
     filterImages: '圖片',
     dlgMergeDataSource: '選擇收件人清單',
     filterMergeDataSource: 'Excel 或 CSV',
-    dlgAddAttachment: '新增附件',
-    filterSupported: '支援的檔案',
-    filterAll: '所有檔案',
     dlgExportPdf: '匯出為 PDF',
     dlgExportHtml: '匯出為 HTML',
     dlgExportMarkdown: '匯出為 Markdown',
     dlgPickExportDir: '選擇匯出目錄',
-    errUnsupportedExt: '暫不支援 .{ext} 類型',
-    errNotFile: '不是檔案',
-    errTooLarge: '超過 {mb}MB 上限',
     errTemplateProtected: '此範本受密碼保護，請透過「檔案 > 開啟」開啟',
-    errImageTooLarge: '圖片超過 5MB 上限',
-    errUnreadable: '無法讀取',
-    errFileTooLarge: '檔案超過大小上限',
-    errParseFailed: '檔案解析失敗',
-    errImageNoText: '圖片附件不提供文字,已作為影像隨使用者訊息傳送,直接看圖即可',
-    errNotImage: '不是支援的圖片類型',
-    errGskNotLoggedIn: '未登入 Genspark:請點擊下方「登入 Genspark」完成登入後重試',
-    errNoApiKey: '未設定 {provider} 的 API Key',
-    errAiRegion: '該模型的廠商不向目前地區提供服務，請換一個模型或切換網路',
-    errAiBusy: 'AI 服務目前繁忙，請稍後重試',
-    errNoModel: '未設定模型名稱',
     menuFile: '檔案',
     menuNewDoc: '新增文件',
     menuNewWindow: '新增視窗',
@@ -6767,7 +6110,6 @@ const tMain = createI18n({
     menuPageWidth: '頁面寬度',
     menuWholePage: '整頁',
     menuMultiPage: '多頁',
-    menuAiSidebar: 'AI 側邊欄',
     menuDarkMode: '深色模式',
     menuFullscreen: '進入全螢幕',
     menuInsert: '插入',
@@ -6897,16 +6239,10 @@ const tMain = createI18n({
     menuAutoCorrect: '自動校正選項…',
     menuSpellingAndGrammar: '拼字及文法檢查',
     menuSpellingDialog: '拼字及文法檢查…',
-    menuEditor: '編輯器',
     menuHideSpellingErrors: '隱藏拼字錯誤',
     menuHideGrammarErrors: '隱藏文法錯誤',
     menuResetIgnoredWords: '重設略過的字詞及文法',
-    menuThesaurus: '同義字…',
     menuHyphenation: '斷字…',
-    menuTranslate: '翻譯',
-    menuTranslateSelection: '翻譯選取範圍',
-    menuTranslateDocument: '翻譯文件',
-    menuSetTranslationLanguage: '設定文件翻譯語言…',
     menuLanguage: '語言…',
     menuTrackChanges: '追蹤修訂',
     menuHighlightChanges: '醒目提示修訂…',
@@ -6917,7 +6253,6 @@ const tMain = createI18n({
     menuLabels: '標籤…',
     menuCustomizeKeyboard: '自訂鍵盤…',
     menuPreferences: '偏好設定…',
-    menuAiProofread: 'AI 校對',
     menuWindow: '視窗',
     menuHelp: '說明',
     menuShortcuts: '鍵盤快速鍵',
@@ -6966,14 +6301,6 @@ const pendingNewBlankIds = new Set<number>()
 /** mark a docs webContents as "open blank on first consume" (called by the shell for home:new-doc) */
 export function markDocsNewBlank(wcId: number): void {
   pendingNewBlankIds.add(wcId)
-}
-
-/** AI-authored content waiting for its create_document tab, keyed by webContents id */
-const pendingAiDocContents = new Map<number, AiDocContent>()
-
-/** queue AI content for a fresh blank docs tab (called by the shell right after creating the view) */
-export function queueDocsAiContent(wcId: number, content: AiDocContent): void {
-  pendingAiDocContents.set(wcId, content)
 }
 
 /** a document made in another tab (a comparison result) waiting for the tab that shows it */
@@ -7283,19 +6610,10 @@ function rememberOpenDoc(wcId: number, filePath: string): void {
   openDocByWc.set(wcId, filePath)
 }
 
-function docsMediaRoots(wcId: number): string[] {
-  return documentMediaRoots(openDocByWc.get(wcId), join(app.getPath('temp'), 'genoffice-pasted'))
-}
-
 function allowDocWrite(wcId: number, filePath: string): void {
   const set = docWritablePaths.get(wcId) ?? new Set<string>()
   set.add(filePath)
   docWritablePaths.set(wcId, set)
-}
-
-/** MCP save_session: the shell resolved this path for the tab, so docs:save-to may write it */
-export function authorizeMcpDocWrite(wcId: number, filePath: string): void {
-  allowDocWrite(wcId, filePath)
 }
 
 const organizerPaths = new Map<number, Set<string>>()
@@ -7330,27 +6648,7 @@ function isImageExportTemp(wcId: number, filePath: string): boolean {
   return imageExportTemps.get(wcId)?.has(filePath) === true
 }
 
-// Word's Ignore All lasts for the document session. Chromium has no
-// per-document skip list, so the word sits in the custom dictionary while a
-// renderer holds it and leaves when the last holder goes; the journal pulls
-// crash-orphaned words back out on the next start.
-const SPELL_IGNORED_PATH = () => userDataPath('spell-ignored.json')
-const spellIgnored = new Map<string, Set<number>>()
-const journalIgnoredWords = () => writeJsonAtomic(SPELL_IGNORED_PATH(), [...spellIgnored.keys()])
-
-function releaseSpellIgnores(wcId: number): void {
-  let changed = false
-  for (const [word, holders] of spellIgnored) {
-    if (!holders.delete(wcId) || holders.size > 0) continue
-    spellIgnored.delete(word)
-    session.defaultSession.removeWordFromSpellCheckerDictionary(word)
-    changed = true
-  }
-  if (changed) journalIgnoredWords()
-}
-
 function dropDocWriter(wcId: number): void {
-  releaseSpellIgnores(wcId)
   docWritablePaths.delete(wcId)
   organizerPaths.delete(wcId)
   pdfWritablePaths.delete(wcId)
@@ -7406,7 +6704,6 @@ async function diskChangedExternally(wcId: number, filePath: string): Promise<bo
 export function teardownDocsRenderer(contents: WebContents): void {
   teardownZoteroIpc(contents)
   tornDownWcIds.add(contents.id)
-  releaseSpellIgnores(contents.id)
   forgetLazyMediaOwner(contents.id)
   // Sweep recovery copies for this renderer's documents: every non-crash close
   // either saved (docs:save already cleared it) or explicitly discarded, so a
@@ -7696,539 +6993,9 @@ const IMAGE_MIME: Record<string, 'image/png' | 'image/jpeg' | 'image/gif'> = {
 
 // ---- chat attachments: local files parsed for the agent ----
 
-const ATTACHMENT_MAX_BYTES = 50 * 1024 * 1024
-/** plain-text extensions read as UTF-8 */
-const TEXT_EXTS = new Set([
-  'txt',
-  'md',
-  'markdown',
-  'csv',
-  'tsv',
-  'json',
-  'yaml',
-  'yml',
-  'xml',
-  'html',
-  'htm',
-  'log',
-  'js',
-  'ts',
-  'tsx',
-  'jsx',
-  'py',
-  'java',
-  'c',
-  'h',
-  'cpp',
-  'go',
-  'rs',
-  'rb',
-  'sh',
-  'sql',
-  'css',
-])
-/** office/pdf formats get text extracted via @genoffice/file-parse; images skip extraction and go multimodal (files:read-image) */
-const ATTACHMENT_EXTS = new Set([
-  ...TEXT_EXTS,
-  'doc',
-  'docx',
-  'pdf',
-  'pptx',
-  'ppt',
-  'xlsx',
-  'xlsm',
-  'xls',
-  ...ATTACHMENT_IMAGE_EXTS,
-])
-
-const ATTACHMENT_IMAGE_MIME: Record<string, string> = {
-  png: 'image/png',
-  jpg: 'image/jpeg',
-  jpeg: 'image/jpeg',
-  gif: 'image/gif',
-  webp: 'image/webp',
-}
-/** multimodal size cap per image attachment (keeps the context from blowing up) */
-const ATTACHMENT_IMAGE_MAX_BYTES = 5 * 1024 * 1024
-
-/** extracted text cache keyed by path; invalidated by mtime+size */
-const attachmentTextCache = new Map<string, { stamp: string; text: string }>()
-
-function statAttachment(filePath: string): { meta?: AttachmentMeta; error?: string } {
-  const name = basename(filePath)
-  const ext = name.split('.').pop()?.toLowerCase() ?? ''
-  if (!ATTACHMENT_EXTS.has(ext)) return { error: `${name}: ${tm('errUnsupportedExt', { ext })}` }
-  try {
-    const stat = statSync(filePath)
-    if (!stat.isFile()) return { error: `${name}: ${tm('errNotFile')}` }
-    if (stat.size > ATTACHMENT_MAX_BYTES) {
-      return {
-        error: `${name}: ${tm('errTooLarge', { mb: Math.round(ATTACHMENT_MAX_BYTES / 1024 / 1024) })}`,
-      }
-    }
-    if (ATTACHMENT_IMAGE_EXTS.has(ext) && stat.size > ATTACHMENT_IMAGE_MAX_BYTES) {
-      return { error: `${name}: ${tm('errImageTooLarge')}` }
-    }
-    return { meta: { path: filePath, name, ext, sizeBytes: stat.size } }
-  } catch {
-    return { error: `${name}: ${tm('errUnreadable')}` }
-  }
-}
-
-function collectAttachments(paths: string[]): AttachmentAddResult {
-  const accepted: AttachmentMeta[] = []
-  const rejected: string[] = []
-  for (const p of paths) {
-    const { meta, error } = statAttachment(p)
-    if (meta) accepted.push(meta)
-    else if (error) rejected.push(error)
-  }
-  return { accepted, rejected }
-}
-
-/** save clipboard-pasted image bytes to a temp file (screenshots/bitmaps with no local path); returns null for non-images or empty data */
-let pastedImageSeq = 0
-let pastedDirPruned = false
-
-/** drop pasted-image temp files older than 7 days (once per app run) */
-function prunePastedImages(dir: string): void {
-  if (pastedDirPruned) return
-  pastedDirPruned = true
-  const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000
-  try {
-    for (const name of readdirSync(dir)) {
-      const p = join(dir, name)
-      try {
-        if (statSync(p).mtimeMs < cutoff) unlinkSync(p)
-      } catch {
-        // ignore: another tab may have removed it already
-      }
-    }
-  } catch {
-    // ignore: directory may not exist yet
-  }
-}
-function savePastedImage(data: unknown, ext: unknown): string | null {
-  const cleanExt = typeof ext === 'string' ? ext.toLowerCase() : ''
-  if (!ATTACHMENT_IMAGE_EXTS.has(cleanExt)) return null
-  const bytes =
-    data instanceof ArrayBuffer
-      ? Buffer.from(data)
-      : ArrayBuffer.isView(data)
-        ? Buffer.from(data.buffer, data.byteOffset, data.byteLength)
-        : null
-  if (!bytes || bytes.byteLength === 0) return null
-  const dir = join(app.getPath('temp'), 'genoffice-pasted')
-  mkdirSync(dir, { recursive: true })
-  prunePastedImages(dir)
-  const stamp = new Date().toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '-')
-  const filePath = join(dir, `pasted-${stamp}-${++pastedImageSeq}.${cleanExt}`)
-  writeFileSync(filePath, bytes)
-  return filePath
-}
-
-/** parse an attachment to text via @genoffice/file-parse (docx/pdf/pptx/xlsx/plain text) */
-async function extractAttachmentText(filePath: string): Promise<string> {
-  const stat = statSync(filePath)
-  const stamp = `${stat.mtimeMs}:${stat.size}`
-  const cached = attachmentTextCache.get(filePath)
-  if (cached && cached.stamp === stamp) return cached.text
-  if (stat.size > ATTACHMENT_MAX_BYTES) throw new Error(tm('errFileTooLarge'))
-  const parsed = await parseFileToText(filePath)
-  if (!parsed.ok || parsed.kind !== 'text' || parsed.text == null) {
-    throw new Error(parsed.error ?? tm('errParseFailed'))
-  }
-  attachmentTextCache.set(filePath, { stamp, text: parsed.text })
-  // keep the cache bounded (a handful of recent files is plenty)
-  if (attachmentTextCache.size > 8) {
-    const oldest = attachmentTextCache.keys().next().value
-    if (oldest) attachmentTextCache.delete(oldest)
-  }
-  return parsed.text
-}
-
 // ---- print / export PDF ----
 
 const TWIPS_PER_INCH = 1440
-
-// ---- AI settings + chat proxy (main process avoids renderer CORS) ----
-// provider metadata, settings defaults/migration, and per-provider streaming/chat
-// implementations live in @genoffice/ai-provider, shared with apps/sheets.
-
-const SETTINGS_PATH = () => userDataPath('ai-settings.json')
-
-const activeAiStreams = new Map<string, AbortController>()
-
-/** every renderer (tabs, home) re-reads ai-settings.json — the composer chip and
- *  the settings page edit the same file from different windows */
-function broadcastAiSettingsChanged(): void {
-  for (const wc of webContents.getAllWebContents())
-    if (!wc.isDestroyed()) wc.send('ai:settings-changed')
-}
-
-/**
- * AI settings + chat/stream proxy handlers. Split out so the shell can
- * register them exactly once for all window types (docs, sheets, home) —
- * sheets' standalone AI handlers use the same channel names.
- */
-export function registerAiIpc(): void {
-  app.once('before-quit', shutdownCodexAppServers)
-  ipcMain.handle('ai:get-settings', async (): Promise<AiSettings> => {
-    const stored = readJson<Partial<AiSettings> & LegacyAiSettings>(SETTINGS_PATH(), {})
-    // pre-lock legacy file: genspark selected with cloud tools opted out. The
-    // settings UI locks the tools switch on with genspark and apps read this
-    // file live, so heal the stored flag once. Judged on the *stored* provider
-    // — never the activeProvider fallback below, which must not leak into the
-    // file and clobber a saved (half-configured) BYOK selection.
-    if ((stored.provider ?? 'genspark') === 'genspark' && stored.gskToolsEnabled === false) {
-      stored.gskToolsEnabled = true
-      writeJsonAtomic(SETTINGS_PATH(), stored, 0o600)
-    }
-    // heal the file mode of a settings file saved by an older build: BYOK keys
-    // are credentials and must not stay readable by other local accounts
-    restrictFileToOwner(SETTINGS_PATH())
-    const settings = resolveAiSettings(stored, defaultAiSettings())
-    // a stored BYOK provider is honored when usable; half-filled configs fall back to genspark
-    settings.provider = activeProvider(settings)
-    return settings
-  })
-
-  // Genspark account (gsk login state): auth source for AI features; the frontend uses it to prompt login when logged out
-  ipcMain.handle(
-    'ai:gsk-status',
-    async (_event, withEmail?: boolean): Promise<GenSparkAccountStatus> => {
-      if (!hasGskAuth()) return { loggedIn: false }
-      if (!withEmail) return { loggedIn: true }
-      const info = await gskLoginInfo()
-      return info?.email ? { loggedIn: true, email: info.email } : { loggedIn: true }
-    },
-  )
-
-  // a 401 on the gsk key opens the device-code login once (genoffice-auth recovery)
-  setGenofficeLoginOpener((url) => void shell.openExternal(url))
-
-  ipcMain.handle('ai:gsk-login', () => {
-    ensureGenofficeLogin((url) => void shell.openExternal(url))
-  })
-
-  ipcMain.handle('ai:set-settings', (_event, settings: AiSettings) => {
-    // SECURITY.md: payloads are schema-checked in the main process. The settings
-    // file feeds cliPath into spawn() and baseUrl receives the gsk bearer token,
-    // so the renderer's copy is sanitized before it touches disk.
-    const sanitized = sanitizeAiSettings(settings)
-    if (!sanitized) {
-      console.warn('[ai] rejected invalid ai:set-settings payload')
-      return
-    }
-    writeJsonAtomic(SETTINGS_PATH(), sanitized, 0o600)
-    broadcastAiSettingsChanged()
-  })
-
-  ipcMain.handle('ai:codex-models', async (_event, cliPath: unknown) => {
-    // the probe spawns the path directly, so it gets the same metacharacter and
-    // existence check as the stored setting (anything else: auto-detect)
-    return listCodexModels(sanitizeCliPath(cliPath))
-  })
-
-  ipcMain.handle('ai:custom-models', (_event, input: unknown) => listCustomModelsForIpc(input))
-
-  ipcMain.handle('ai:stream', async (event, request: AiStreamRequest) => {
-    // per-request settings get the same schema check as the persisted ones: a
-    // compromised renderer could otherwise hand cliPath/baseUrl straight to
-    // the provider layer without ever touching the settings file
-    const settings = sanitizeAiSettings(request.settings)
-    if (!settings) {
-      event.sender.send('ai:stream-chunk', {
-        requestId: request.requestId,
-        type: 'error',
-        error: 'invalid AI settings payload',
-      } satisfies AiStreamChunk)
-      return
-    }
-    const { requestId, system, messages } = request
-    const tools = request.tools ?? []
-    const maxTokens = request.maxTokens ?? maxOutputTokensOf(settings)
-    const provider = settings.provider
-    let config = settings.providers?.[provider]
-    // the genspark key never enters the settings file; requests take it from the gsk login state
-    // set only when the gsk key was injected: a 401 then means that key expired
-    let gskKey = ''
-    if (provider === 'genspark' && config && !config.apiKey) {
-      gskKey = gskApiKey()
-      config = { ...config, apiKey: gskKey }
-    }
-    // a custom endpoint may name an environment variable instead of storing a key
-    config = config ? resolveProfileCredential(config) : config
-    const send = (chunk: AiStreamChunk) => {
-      if (!event.sender.isDestroyed()) event.sender.send('ai:stream-chunk', chunk)
-    }
-    if (!config || (provider !== 'codex' && !config.apiKey)) {
-      send({
-        requestId,
-        type: 'error',
-        error: provider === 'genspark' ? tm('errGskNotLoggedIn') : tm('errNoApiKey', { provider }),
-      })
-      return
-    }
-    if (provider !== 'codex' && !config.model) {
-      send({ requestId, type: 'error', error: tm('errNoModel') })
-      return
-    }
-    const controller = new AbortController()
-    activeAiStreams.set(requestId, controller)
-    const unwatchSender = abortOnDestroyed(event.sender, controller)
-    // wire-activity keepalive: lets the renderer's silence watchdog tell a slow turn from a dead one
-    let lastPing = 0
-    const ping = () => {
-      const now = Date.now()
-      if (now - lastPing < 5_000) return
-      lastPing = now
-      send({ requestId, type: 'ping' })
-    }
-    const trace = startAiTrace({
-      requestId,
-      sessionId: request.sessionId,
-      source: event.sender.getURL(),
-      provider,
-      model: config.model,
-      maxTokens,
-      system,
-      messages,
-      tools,
-    })
-    try {
-      let stopReason: string | undefined
-      await streamForProvider(provider, config, system, messages, tools, maxTokens, {
-        ...(request.sessionId ? { sessionId: request.sessionId } : {}),
-        signal: controller.signal,
-        onDelta: (text) => {
-          trace?.onDelta(text)
-          send({ requestId, type: 'delta', text })
-        },
-        onReasoningDelta: (text) => {
-          trace?.onReasoningDelta(text)
-          send({ requestId, type: 'reasoning', text })
-        },
-        onToolCall: (toolCall) => {
-          trace?.onToolCall(toolCall)
-          send({ requestId, type: 'tool-call', toolCall })
-        },
-        onActivity: ping,
-        onStopReason: (reason) => {
-          stopReason = reason
-          trace?.onStopReason(reason)
-        },
-        onUsage: (usage) => {
-          trace?.onUsage(usage)
-          send({ requestId, type: 'usage', usage })
-        },
-      })
-      trace?.finish()
-      send({ requestId, type: 'done', stopReason })
-    } catch (err) {
-      trace?.finish(
-        controller.signal.aborted ? 'aborted' : err instanceof Error ? err.message : String(err),
-      )
-      if (controller.signal.aborted) {
-        send({ requestId, type: 'done' })
-      } else {
-        // an expired/revoked key drops to signed-out so the inline sign-in button shows
-        noteGskCallFailure(gskKey, err)
-        send({
-          requestId,
-          type: 'error',
-          error: err instanceof Error ? err.message : String(err),
-          ...(err instanceof AiTimeoutError
-            ? { errorCode: 'timeout' as const }
-            : err instanceof AiCreditsError
-              ? { errorCode: 'credits' as const }
-              : isAiNetworkError(err)
-                ? { errorCode: 'network' as const }
-                : isAiOverloadedError(err)
-                  ? { errorCode: 'overloaded' as const }
-                  : isAiRegionBlockedError(err)
-                    ? { errorCode: 'region' as const }
-                    : {}),
-        })
-      }
-    } finally {
-      unwatchSender()
-      activeAiStreams.delete(requestId)
-    }
-  })
-
-  ipcMain.handle('ai:stream-cancel', (_event, requestId: string) => {
-    activeAiStreams.get(requestId)?.abort()
-  })
-
-  // shared search tools (content + images): Serper with DuckDuckGo fallback (same source as slides/sheets)
-  ipcMain.handle('ai:web-search', async (_event, query: string, maxResults?: number) => {
-    try {
-      return await webSearchTool(
-        SETTINGS_PATH(),
-        String(query),
-        typeof maxResults === 'number' ? maxResults : 6,
-      )
-    } catch (err) {
-      return { results: [], method: 'error', error: String(err) }
-    }
-  })
-  ipcMain.handle('ai:image-search', async (_event, query: string, maxResults?: number) => {
-    try {
-      return await imageSearchTool(
-        SETTINGS_PATH(),
-        String(query),
-        typeof maxResults === 'number' ? maxResults : 8,
-      )
-    } catch (err) {
-      return { images: [], method: 'error', error: String(err) }
-    }
-  })
-
-  // media understanding (pictures in the document, attachments, local files): BYOK media
-  // provider when one is configured, otherwise the Genspark CLI behind its login gate.
-  // docs-prefixed: slides registers its own ai:analyze-media in the same shell process.
-  ipcMain.handle(
-    'docs:analyze-media',
-    async (event, op: { mediaUrls: string[]; requirements: string }) => {
-      const mediaUrls = (op.mediaUrls ?? []).map(String).filter(Boolean)
-      // a picture opened lazily from a large docx is only addressable by its main-process
-      // store; hand its bytes over as a data URL so the loader can read them like any other
-      const resolved: string[] = []
-      for (const url of mediaUrls) {
-        const lazy = await readLazyMedia(url).catch(() => null)
-        resolved.push(lazy ? `data:${lazy.mime};base64,${lazy.body.toString('base64')}` : url)
-      }
-      return analyzeMediaTool(
-        SETTINGS_PATH(),
-        {
-          mediaUrls: resolved,
-          requirements: String(op.requirements ?? ''),
-        },
-        { mediaRoots: docsMediaRoots(event.sender.id) },
-      )
-    },
-  )
-
-  // download image from URL → base64+mime (download in the main process avoids CORS; the renderer builds the image node and measures size itself)
-  ipcMain.handle(
-    'ai:fetch-image',
-    async (_event, url: string): Promise<{ base64: string; mime: string } | null> => {
-      try {
-        // the URL originates from AI tool calls (prompt-injectable via web search
-        // results), so refuse non-http schemes and private/link-local targets;
-        // redirects are followed manually so every hop is validated too.
-        // fetchRemoteImage adds CDN-friendly headers and transient-error retries.
-        const resp = await fetchRemoteImage(String(url))
-        if (!resp || !resp.ok) return null
-        const buf = Buffer.from(await readBodyCapped(resp, MAX_REMOTE_IMAGE_BYTES))
-        const ct = resp.headers.get('content-type') ?? ''
-        const mime = ct.includes('png')
-          ? 'image/png'
-          : ct.includes('gif')
-            ? 'image/gif'
-            : 'image/jpeg'
-        return { base64: buf.toString('base64'), mime }
-      } catch {
-        return null
-      }
-    },
-  )
-
-  // docs-owned (like pdf:generate-image): slides' ai:generate-image is only
-  // registered once a slides view exists, so docs needs its own channel
-  ipcMain.handle(
-    'docs:ai-generate-image',
-    (event, op: { prompt?: unknown; aspectRatio?: unknown }) =>
-      generateImageTool(
-        SETTINGS_PATH(),
-        {
-          prompt: String(op?.prompt ?? ''),
-          aspectRatio: op?.aspectRatio ? String(op.aspectRatio) : undefined,
-        },
-        { mediaRoots: docsMediaRoots(event.sender.id) },
-      ),
-  )
-
-  ipcMain.handle('ai:search-test', (_event, input: unknown) => {
-    const { provider, apiKey } = (input ?? {}) as { provider?: AiSearchProviderId; apiKey?: string }
-    if (!provider || provider === 'genspark') {
-      return hasGskAuth() ? { ok: true } : { ok: false, error: tm('errGskNotLoggedIn') }
-    }
-    return testSearchProvider(provider, String(apiKey ?? ''))
-  })
-
-  // settings-UI connection test for the media provider (genspark = the gsk login state)
-  ipcMain.handle('ai:media-test', (_event, input: unknown) => {
-    const { provider, config } = (input ?? {}) as {
-      provider?: AiMediaProviderId
-      config?: AiMediaProviderConfig
-    }
-    if (!provider || provider === 'genspark') {
-      return hasGskAuth() ? { ok: true } : { ok: false, error: tm('errGskNotLoggedIn') }
-    }
-    if (!config) return { ok: false, error: 'No media provider configuration' }
-    return testMediaProvider(provider, config)
-  })
-
-  ipcMain.handle('ai:chat', async (_event, request: AiChatRequest) => {
-    // same schema check as ai:stream: one-shot requests would otherwise act on
-    // the renderer's settings copy verbatim
-    const settings = sanitizeAiSettings(request.settings)
-    if (!settings) return { ok: false, error: 'invalid AI settings payload' }
-    const { system, user } = request
-    const provider = settings.provider
-    let config = settings.providers?.[provider]
-    // set only when the gsk key was injected: a 401 then means that key expired
-    let gskKey = ''
-    if (provider === 'genspark' && config && !config.apiKey) {
-      gskKey = gskApiKey()
-      config = { ...config, apiKey: gskKey }
-    }
-    // a custom endpoint may name an environment variable instead of storing a key
-    config = config ? resolveProfileCredential(config) : config
-    if (!config || (provider !== 'codex' && !config.apiKey)) {
-      return {
-        ok: false,
-        error: provider === 'genspark' ? tm('errGskNotLoggedIn') : tm('errNoApiKey', { provider }),
-      }
-    }
-    if (provider !== 'codex' && !config.model) return { ok: false, error: tm('errNoModel') }
-    try {
-      const result = await chatForProvider(provider, config, system, user)
-      // the one-shot path reports HTTP failures as ok:false with the raw body —
-      // replace capacity/rate-limit dumps with the localized "busy" message
-      if (!result.ok && isAiOverloadedError(result.error)) {
-        return { ok: false, error: tm('errAiBusy') }
-      }
-      if (!result.ok && isAiRegionBlockedError(result.error)) {
-        return { ok: false, error: tm('errAiRegion') }
-      }
-      if (!result.ok) noteGskCallFailure(gskKey, result.error)
-      return result
-    } catch (err) {
-      noteGskCallFailure(gskKey, err)
-      return {
-        ok: false,
-        error: isAiOverloadedError(err)
-          ? tm('errAiBusy')
-          : isAiRegionBlockedError(err)
-            ? tm('errAiRegion')
-            : String(err),
-      }
-    }
-  })
-}
-
-// ── project-store IPC (shared across docs / slides / sheets) ──────────────
-
-let projectStore: ProjectStore | null = null
-let projectIpcRegistered = false
-
-function getProjectStore(): ProjectStore {
-  if (!projectStore) projectStore = new ProjectStore(app.getPath('userData'))
-  return projectStore
-}
 
 /**
  * Fired when a save lands on a new path (save-as / first silent save). The shell
@@ -8262,163 +7029,6 @@ export function setDocsFileOpenedHook(hook: (wcId: number, filePath: string) => 
   fileOpenedHook = hook
 }
 
-/**
- * Reverse lookup from a sheets sessionId to its file path. In shell mode the
- * project:* handlers are registered by this file, but only sheets-main knows the
- * sessionId mapping; the shell injects it at startup (standalone docs doesn't need it).
- */
-let sessionPathResolver: ((senderId: number, sessionId: string) => string | null) | null = null
-
-export function setSessionPathResolver(
-  fn: (senderId: number, sessionId: string) => string | null,
-): void {
-  sessionPathResolver = fn
-}
-
-/** After a file is renamed/moved on disk, sync project-store (fileMap/chatIdByPath re-key accordingly; history follows the file). */
-export function projectFilePaths(): string[] {
-  try {
-    return getProjectStore().knownFilePaths()
-  } catch {
-    return []
-  }
-}
-
-export function projectFileRenamed(oldPath: string, newPath: string): void {
-  try {
-    getProjectStore().fileRenamed(oldPath, newPath)
-  } catch (err) {
-    console.warn('[project-store] fileRenamed failed:', err)
-  }
-}
-
-/**
- * Register the project:* IPC handlers (all three apps share the same channel names).
- * Idempotency guard: registered only once in shell mode.
- */
-export function registerProjectIpc(): void {
-  if (projectIpcRegistered) return
-  projectIpcRegistered = true
-
-  /** Resolve projectId + chatId from a file path (sheets without a path resolves via sessionId) */
-  ipcMain.handle(
-    'project:resolveChat',
-    (event, args: { filePath: string | null; tempChatId?: string; sessionId?: string }) => {
-      const store = getProjectStore()
-      store.ensureDefaultProject()
-      let resolvedPath = args.filePath
-      if (!resolvedPath && args.sessionId && sessionPathResolver) {
-        resolvedPath = sessionPathResolver(event.sender.id, args.sessionId)
-      }
-      if (!resolvedPath) {
-        return {
-          projectId: 'default',
-          chatId: args.tempChatId ?? `unsaved-${Date.now()}`,
-        }
-      }
-      return store.resolveChatForFile(resolvedPath)
-    },
-  )
-
-  /** Append a message */
-  ipcMain.handle(
-    'project:appendChat',
-    (
-      _event,
-      args: {
-        projectId: string
-        chatId: string
-        role: 'user' | 'assistant'
-        text: string
-        tools?: Array<{
-          name: string
-          summary: string
-          isError?: boolean
-          input?: string
-          output?: string
-        }>
-        attachments?: Array<{ name: string; path?: string; ext?: string; sizeBytes?: number }>
-        scope?: { label: string; text?: string }
-      },
-    ) => {
-      if (args.role !== 'user' && args.role !== 'assistant') {
-        throw new Error(`Invalid chat role: ${String(args.role)}`)
-      }
-      if (typeof args.text !== 'string' || args.text.length > 200_000) {
-        throw new Error('Invalid chat text: must be a string up to 200000 chars')
-      }
-      if (args.tools && !Array.isArray(args.tools)) throw new Error('Invalid chat tools')
-      if (args.attachments && !Array.isArray(args.attachments)) {
-        throw new Error('Invalid chat attachments')
-      }
-      const store = getProjectStore()
-      const msg: Parameters<ProjectStore['appendChatMessage']>[2] = {
-        role: args.role,
-        text: args.text,
-      }
-      if (args.tools) msg.tools = args.tools
-      if (args.attachments) msg.attachments = args.attachments
-      if (args.scope) msg.scope = args.scope
-
-      store.appendChatMessage(args.projectId, args.chatId, msg)
-    },
-  )
-
-  /** Read history */
-  ipcMain.handle(
-    'project:loadChat',
-    (
-      _event,
-      args: {
-        projectId: string
-        chatId: string
-        limit?: number
-      },
-    ) => {
-      const store = getProjectStore()
-      return store.loadChat(args.projectId, args.chatId, args.limit ?? 200)
-    },
-  )
-
-  /** Lists the conversations in a project, newest first. */
-  ipcMain.handle('project:listChats', (_event, args: { projectId: string }) => {
-    const store = getProjectStore()
-    return store.listChats(args.projectId)
-  })
-
-  /** Deletes one conversation. A file-less chat is the home screen's ask panel. */
-  ipcMain.handle('project:deleteChat', (_event, args: { projectId: string; chatId: string }) => {
-    const store = getProjectStore()
-    store.deleteChat(args.projectId, args.chatId)
-  })
-
-  /** rebind chat (called after a file first hits disk): newFilePath/sessionId take priority; the main process computes chatId and records fileMap */
-  ipcMain.handle(
-    'project:rebindChat',
-    (
-      event,
-      args: {
-        projectId: string
-        tempChatId: string
-        newChatId?: string
-        newFilePath?: string
-        sessionId?: string
-      },
-    ) => {
-      const store = getProjectStore()
-      let path = args.newFilePath ?? null
-      if (!path && args.sessionId && sessionPathResolver) {
-        path = sessionPathResolver(event.sender.id, args.sessionId)
-      }
-      if (path) {
-        return store.rebindChatToFile(args.projectId, args.tempChatId, path)
-      }
-      if (args.newChatId) store.rebindChat(args.projectId, args.tempChatId, args.newChatId)
-      return { projectId: args.projectId, chatId: args.newChatId ?? args.tempChatId }
-    },
-  )
-}
-
 /** A4 at 96dpi, as the HTML app exports */
 const ALT_CHUNK_VIEWPORT = { width: 794, height: 1123, deviceScaleFactor: 2 }
 const ALT_CHUNK_HTML_MAX_CHARS = 64 * 1024 * 1024
@@ -8438,9 +7048,6 @@ const reissuedDoc = (
 export function registerDocsIpc(): void {
   registerZoteroIpc()
   void app.whenReady().then(registerLazyMediaProtocol)
-  // Node fetch (undici) direct connections get reset under VPN/tun setups; retry over Chromium's stack
-  setRescueFetch((url, init) => net.fetch(url, init))
-  setAiUserAgent(`GenOffice/${app.getVersion()}`)
 
   // shared with the other editor modules — last (identical) registration wins
   ipcMain.removeHandler('app:get-language')
@@ -8630,13 +7237,6 @@ export function registerDocsIpc(): void {
     return false
   })
 
-  /** one-shot AI content queued by create_document for this tab; null when none */
-  ipcMain.handle('docs:consume-ai-doc-content', (event): AiDocContent | null => {
-    const content = pendingAiDocContents.get(event.sender.id) ?? null
-    pendingAiDocContents.delete(event.sender.id)
-    return content
-  })
-
   // ---- headless export mode (--headless-export) ----
 
   ipcMain.handle('docs:consume-headless-export', (event): HeadlessExportTarget | null => {
@@ -8765,39 +7365,10 @@ export function registerDocsIpc(): void {
     }
   })
 
-  // Blink only respells an editable as a consequence of real (trusted) typing
-  // of a word-committing character inside it: attribute flips, focus cycles,
-  // script selection moves, execCommand edits, fresh DOM nodes, synthetic
-  // clicks/arrow keys — and even a typed zero-width space — all leave existing
-  // typos unmarked (each verified pixel-by-pixel).
-  // Type one trusted space; the RENDERER removes it again by script (a
-  // trusted Backspace would work too, but its deletion re-suppresses the
-  // caret paragraph and that line stays unmarked) with ProseMirror's DOM
-  // observer paused, so the round trip never becomes a transaction.
-  // spell-diag trace (intermittent squiggle loss, platform-bound
-  // and unreproducible on demand) — a tiny always-on log support can ask for.
-  // Size-capped: over 256KB the file restarts from its last half.
-  ipcMain.on('docs:spell-diag', (_event, line: unknown) => {
-    if (typeof line !== 'string' || line.length > 500) return
-    try {
-      const path = userDataPath('spell-diag.log')
-      if (existsSync(path) && statSync(path).size > 256 * 1024) {
-        const tail = readFileSync(path, 'utf-8').slice(-128 * 1024)
-        writeFileSync(path, tail.slice(tail.indexOf('\n') + 1))
-      }
-      appendFileSync(path, `${new Date().toISOString()} ${line}\n`)
-    } catch {
-      // diagnostics must never break the app
-    }
-  })
-
-  // The document body draws its own React context menu, but Chromium's
-  // misspelling + suggestions for the clicked word only surface in the main
-  // process `context-menu` event. The renderer claims each body right-click
-  // synchronously from its DOM handler, i.e. before Blink requests the menu,
-  // so claims and events arrive in the same order: a claimed click gets its
-  // data forwarded and no native menu, anything else (header/footer surfaces,
-  // inputs) pops the native menu as before.
+  // The document body draws its own React context menu. The renderer claims
+  // each body right-click synchronously from its DOM handler, i.e. before Blink
+  // requests the menu: a claimed click is suppressed here, anything else
+  // (header/footer surfaces, inputs) pops the native menu as before.
   const ctxMenuClaims = new Map<number, ClickClaims>()
   ipcMain.on('docs:context-menu-claim', (event, seq: unknown) => {
     event.returnValue = true
@@ -8811,17 +7382,9 @@ export function registerDocsIpc(): void {
   })
   ipcMain.on('docs:context-menu-arm', (event) => {
     const wc = event.sender
-    setContextMenuInterceptor(app, wc, (contents, params) => {
+    setContextMenuInterceptor(app, wc, (contents) => {
       if (contents.isDestroyed() || tornDownWcIds.has(contents.id)) return Promise.resolve(false)
       const seq = ctxMenuClaims.get(contents.id)?.take(Date.now()) ?? null
-      if (seq !== null) {
-        const request: ContextMenuRequest = {
-          seq,
-          misspelledWord: params.misspelledWord,
-          suggestions: params.dictionarySuggestions,
-        }
-        contents.send('docs:context-menu', request)
-      }
       return Promise.resolve(seq !== null)
     })
     wc.once('destroyed', () => {
@@ -8829,63 +7392,6 @@ export function registerDocsIpc(): void {
       ctxMenuClaims.delete(wc.id)
     })
   })
-  void app.whenReady().then(() => {
-    const orphans = readJson<string[]>(SPELL_IGNORED_PATH(), [])
-    for (const w of orphans) session.defaultSession.removeWordFromSpellCheckerDictionary(w)
-    if (orphans.length) journalIgnoredWords()
-  })
-  ipcMain.handle('docs:spell-ignore-word', (event, word: unknown) => {
-    if (typeof word !== 'string' || !word.trim()) return false
-    const w = word.trim()
-    let holders = spellIgnored.get(w)
-    if (!holders) {
-      holders = new Set()
-      spellIgnored.set(w, holders)
-      journalIgnoredWords()
-    }
-    holders.add(event.sender.id)
-    return event.sender.session.addWordToSpellCheckerDictionary(w)
-  })
-  ipcMain.handle('docs:spell-reset-ignored', (event) => releaseSpellIgnores(event.sender.id))
-  ipcMain.handle('docs:spell-add-word', (event, word: unknown) => {
-    if (typeof word !== 'string' || !word.trim()) return false
-    const w = word.trim()
-    if (spellIgnored.delete(w)) journalIgnoredWords()
-    return event.sender.session.addWordToSpellCheckerDictionary(w)
-  })
-  ipcMain.handle('docs:spell-replace', (event, word: unknown) => {
-    if (typeof word === 'string' && word) event.sender.replaceMisspelling(word)
-  })
-  ipcMain.handle('docs:spell-languages', (event): SpellLanguages => {
-    const session = event.sender.session
-    return {
-      active: session.getSpellCheckerLanguages(),
-      available: session.availableSpellCheckerLanguages,
-    }
-  })
-  ipcMain.handle('docs:spell-set-languages', (event, langs: unknown): SpellLanguages => {
-    const session = event.sender.session
-    const available = new Set(session.availableSpellCheckerLanguages)
-    const next = Array.isArray(langs)
-      ? langs.filter((l): l is string => typeof l === 'string' && available.has(l))
-      : []
-    if (next.length) session.setSpellCheckerLanguages(next)
-    return { active: session.getSpellCheckerLanguages(), available: [...available] }
-  })
-
-  ipcMain.handle('docs:respell-kick', async (event) => {
-    const wc = event.sender
-    if (tornDownWcIds.has(wc.id) || wc.isDestroyed()) return
-    wc.focus()
-    // Blink only respells after a user activation, and only a keydown grants one
-    wc.sendInputEvent({ type: 'keyDown', keyCode: 'Space' })
-    wc.sendInputEvent({ type: 'char', keyCode: ' ' })
-    wc.sendInputEvent({ type: 'keyUp', keyCode: 'Space' })
-    // resolve only after the input pipeline has delivered the keystroke, so
-    // the caller can scrub the space it produced
-    await new Promise((r) => setTimeout(r, 120))
-  })
-
   ipcMain.handle(
     'docs:save-as',
     async (event, defaultName: string, data: ArrayBuffer, sourcePath?: string | null) => {
@@ -8991,78 +7497,6 @@ export function registerDocsIpc(): void {
       return { ok: false, error: String(err) }
     }
   })
-
-  ipcMain.handle(
-    'docs:create-document',
-    (_event, request: CreateDocumentRequest): Promise<CreateDocumentResult> =>
-      createAiDocument(request),
-  )
-
-  // MCP-driven output: write the live document to an explicit absolute path with
-  // no dialog. Mirrors docs:save-new's bookkeeping (write allowlist, disk state,
-  // recents, tab-title sync) but targets a caller-chosen path and refuses to
-  // clobber an existing file unless the caller asked for overwrite.
-  ipcMain.handle(
-    'docs:save-to',
-    async (event, filePath: string, data: ArrayBuffer, overwrite: boolean) => {
-      try {
-        if (tornDownWcIds.has(event.sender.id)) return { ok: false }
-        if (typeof filePath !== 'string' || !isAbsolute(filePath)) {
-          return { ok: false, error: 'path must be absolute' }
-        }
-        if (extname(filePath).toLowerCase() !== '.docx') {
-          return { ok: false, error: 'path must point to a .docx file' }
-        }
-        // only a target the MCP layer resolved for this tab may be written
-        if (!canDocWrite(event.sender.id, filePath)) {
-          return { ok: false, error: 'save target was not authorized' }
-        }
-        const existed = existsSync(filePath)
-        if (!overwrite && existed) {
-          return {
-            ok: false,
-            error: `file already exists: ${filePath} (pass overwrite:true to replace it)`,
-          }
-        }
-        await mkdir(dirname(filePath), { recursive: true })
-        const passwordState = snapshotDocPassword(event.sender.id, null)
-        const { bytes: plain, hashes } = await materializeLazyDocx(Buffer.from(data))
-        const bytes = passwordState.password ? encryptDocx(plain, passwordState.password) : plain
-        await atomicWriteFile(filePath, bytes)
-        // teardown may have happened while the write was in flight — only a file
-        // this handler created is safe to roll back; an overwritten one stays
-        const rollback = async (): Promise<{ ok: false }> => {
-          if (!existed) await unlink(filePath).catch(() => {})
-          return { ok: false }
-        }
-        if (tornDownWcIds.has(event.sender.id)) return rollback()
-        await rememberDiskState(event.sender.id, filePath, sha256Hex(bytes))
-        pointLazyMediaAt(
-          hashes,
-          filePath,
-          event.sender.id,
-          passwordState.password ? plain : undefined,
-        )
-        if (tornDownWcIds.has(event.sender.id)) return rollback()
-        const passwordIntentPending = commitDocPasswordSave(
-          event.sender.id,
-          passwordState,
-          filePath,
-        )
-        pushRecent(filePath)
-        rememberOpenDoc(event.sender.id, filePath)
-        notifyFileSaved(event.sender, filePath)
-        return {
-          ok: true,
-          path: filePath,
-          passwordIntentPending,
-          ...reissuedDoc(!!passwordState.password, hashes, plain),
-        }
-      } catch (err) {
-        return { ok: false, error: String(err) }
-      }
-    },
-  )
 
   ipcMain.handle('docs:recent', () => readJson<string[]>(RECENT_PATH(), []))
 
@@ -9265,80 +7699,6 @@ export function registerDocsIpc(): void {
     }
   })
 
-  ipcMain.handle('files:pick', async (event): Promise<AttachmentAddResult | null> => {
-    const result = await openDialog(event, {
-      title: tm('dlgAddAttachment'),
-      filters: [
-        { name: tm('filterSupported'), extensions: [...ATTACHMENT_EXTS] },
-        { name: tm('filterAll'), extensions: ['*'] },
-      ],
-      properties: ['openFile', 'multiSelections'],
-    })
-    if (result.canceled || result.filePaths.length === 0) return null
-    return collectAttachments(result.filePaths)
-  })
-
-  ipcMain.handle('files:add', (_event, paths: string[]) => collectAttachments(paths))
-
-  ipcMain.handle(
-    'files:read',
-    async (
-      _event,
-      filePath: string,
-      offset: number,
-      maxChars: number,
-    ): Promise<AttachmentReadResult> => {
-      const name = basename(filePath)
-      const ext = name.split('.').pop()?.toLowerCase() ?? ''
-      if (!ATTACHMENT_EXTS.has(ext)) return { ok: false, error: tm('errUnsupportedExt', { ext }) }
-      if (ATTACHMENT_IMAGE_EXTS.has(ext)) {
-        return { ok: false, error: tm('errImageNoText') }
-      }
-      try {
-        const text = await extractAttachmentText(filePath)
-        const start = Math.max(0, Math.floor(offset) || 0)
-        const size = Math.min(Math.max(1, Math.floor(maxChars) || 1), 48_000)
-        return {
-          ok: true,
-          name,
-          totalChars: text.length,
-          offset: start,
-          text: text.slice(start, start + size),
-        }
-      } catch (e) {
-        return { ok: false, error: e instanceof Error ? e.message : String(e) }
-      }
-    },
-  )
-
-  // image attachments read raw bytes → base64; AiPanel puts them into the user message's images for multimodal
-  ipcMain.handle('files:read-image', (_event, filePath: string): AttachmentImageResult => {
-    const name = basename(filePath)
-    const ext = name.split('.').pop()?.toLowerCase() ?? ''
-    const mime = ATTACHMENT_IMAGE_MIME[ext]
-    if (!mime) return { ok: false, error: `${name}: ${tm('errNotImage')}` }
-    try {
-      const stat = statSync(filePath)
-      if (stat.size > ATTACHMENT_IMAGE_MAX_BYTES) {
-        return { ok: false, error: `${name}: ${tm('errImageTooLarge')}` }
-      }
-      return { ok: true, base64: readFileSync(filePath).toString('base64'), mime }
-    } catch {
-      return { ok: false, error: `${name}: ${tm('errUnreadable')}` }
-    }
-  })
-
-  // clipboard-pasted images (screenshots and other bitmaps with no local path): saved to a temp file then use the regular attachment path
-  ipcMain.handle(
-    'files:add-pasted-image',
-    (_event, data: unknown, ext: unknown): AttachmentAddResult => {
-      const filePath = savePastedImage(data, ext)
-      return filePath
-        ? collectAttachments([filePath])
-        : { accepted: [], rejected: [tm('errNotImage')] }
-    },
-  )
-
   // r136: copying an embedded picture must yield a real bitmap for external
   // apps (Gmail pasted blank) plus plain <img> html for cross-document paste
   // (the protected wrapper round-tripped as a "protected content" shell).
@@ -9387,6 +7747,10 @@ export function registerDocsIpc(): void {
       return true
     },
   )
+
+  // Air-gapped build: pasting a web image with no bitmap is refused rather
+  // than fetched. Bitmap pastes and local images still work.
+  ipcMain.handle('docs:fetch-image', async (): Promise<null> => null)
 
   // renderer print scale (inverse of the preview's print zoom, see print-zoom.ts)
   // Infinity passes a `> 0` check, so require finiteness before handing it to Chromium.
@@ -9899,8 +8263,6 @@ export function registerDocsIpc(): void {
  * and falls back to real multi-BrowserWindow behavior. */
 interface DocsShellHooks {
   openTab(openPath?: string, options?: { newBlank?: boolean }): void
-  /** open a blank docs tab that consumes the queued AI content on boot (create_document) */
-  openAiDocTab?(content: AiDocContent): void
   /** open a docs tab that shows a made document untitled */
   openResultDocTab?(doc: ResultDoc): void
   listTabs(): DocsTabInfo[]
@@ -9960,66 +8322,6 @@ function openGeneratedFile(path: string): void {
   shell.showItemInFolder(path)
 }
 
-/** Pick a safe file-name stem for an AI-created document. */
-export function sanitizeAiDocFileBase(title: string): string {
-  // Control characters are intentionally rejected from generated file names.
-  const cleaned = String(title ?? '')
-    // eslint-disable-next-line no-control-regex
-    .replace(/[/\\:*?"<>|\u0000-\u001f]/g, '_')
-    .trim()
-    .slice(0, 80)
-    .trim()
-  return cleaned && cleaned !== '.' && cleaned !== '..' ? cleaned : 'Untitled'
-}
-
-/**
- * AI create_document: build a new standalone file in the default folder and
- * open it in a new tab. docx routes through a fresh blank docs tab that
- * inserts the queued content on boot and saves itself (the full-fidelity
- * HTML → docx conversion lives in the docs renderer); pdf and md are written
- * directly here. Also called by other apps' mains via shell-wired hooks.
- */
-export async function createAiDocument(
-  request: CreateDocumentRequest,
-): Promise<CreateDocumentResult> {
-  const type = request?.type
-  const title = sanitizeAiDocFileBase(request?.title)
-  const content = String(request?.content ?? '')
-  if (!content.trim()) return { ok: false, error: 'content must not be empty' }
-  try {
-    if (type === 'docx') {
-      const payload: AiDocContent = { title, html: content }
-      if (shellHooks?.openAiDocTab) shellHooks.openAiDocTab(payload)
-      else {
-        const win = createDocsWindow(undefined)
-        markDocsNewBlank(win.webContents.id)
-        queueDocsAiContent(win.webContents.id, payload)
-      }
-      return { ok: true }
-    }
-    if (type === 'pdf') {
-      const bytes = await printHtmlToPdf(
-        buildPrintableHtml(title, content),
-        () =>
-          new BrowserWindow({ show: false, webPreferences: { sandbox: true, javascript: false } }),
-      )
-      const filePath = uniquePathIn(defaultSaveDir(), `${title}.pdf`)
-      await writeFile(filePath, bytes)
-      openGeneratedFile(filePath)
-      return { ok: true, path: filePath }
-    }
-    if (type === 'md' || type === 'html') {
-      const filePath = uniquePathIn(defaultSaveDir(), `${title}.${type}`)
-      await writeFile(filePath, content, 'utf8')
-      openGeneratedFile(filePath)
-      return { ok: true, path: filePath }
-    }
-    return { ok: false, error: `unsupported document type: ${String(type)}` }
-  } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : String(err) }
-  }
-}
-
 // ---- application menu ----
 
 function sendCommand(command: MenuCommand, payload?: string): void {
@@ -10027,7 +8329,7 @@ function sendCommand(command: MenuCommand, payload?: string): void {
 }
 
 /**
- * Per-tab View-menu toggle state (AI Sidebar / Dark Mode), reported by each
+ * Per-tab View-menu toggle state (Dark Mode), reported by each
  * renderer whenever it changes. The template can't hardcode `checked` — the
  * state lives in the renderer and differs per tab — so builds read the active
  * tab's last report, and reports from the active tab patch the built menu in
@@ -10040,7 +8342,7 @@ function activeCommandState(): CommandMenuState {
   const id = activeDocsWebContents()?.id
   return (
     (id !== undefined ? commandStateByWebContents.get(id) : undefined) ?? {
-      checked: ['toggle-ai'],
+      checked: [],
       disabled: [],
     }
   )
@@ -10223,13 +8525,6 @@ export function buildDocsMenu(): void {
           }
         : { role: 'close', label: tm('menuClose') },
     ],
-    'name-with-ai': [
-      {
-        ...stateOf('name-with-ai'),
-        label: labels.nameWithAi,
-        click: () => sendCommand('name-with-ai'),
-      },
-    ],
     'zoom-presets': [500, 200, 150, 125, 100, 75, 50, 25, 10].map((pct) => ({
       ...stateOf('zoom-set'),
       label: `${pct}%`,
@@ -10255,12 +8550,7 @@ export function buildDocsMenu(): void {
     {
       label: tm('menuHelp'),
       role: 'help',
-      submenu: [
-        cmd('shortcuts'),
-        { type: 'separator' },
-        checkUpdatesMenuItem(appMenuLabels(getUiLang())),
-        aboutMenuItem(appMenuLabels(getUiLang())),
-      ],
+      submenu: [cmd('shortcuts'), { type: 'separator' }, aboutMenuItem(appMenuLabels(getUiLang()))],
     },
   ]
 
@@ -10304,6 +8594,9 @@ export async function exportDocsHeadless(
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
+      // no spelling correction anywhere in this build: Chromium's checker is
+      // off so it can neither download a dictionary nor paint a red underline
+      spellcheck: false,
       backgroundThrottling: false,
     },
   })
@@ -10359,6 +8652,8 @@ export function createDocsWindow(openPath?: string): BrowserWindow {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
+      // see the main window: no spelling correction
+      spellcheck: false,
       backgroundThrottling: false,
     },
   })
@@ -10602,6 +8897,8 @@ export function createDocsView(openPath?: string): WebContentsView {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
+      // see the main window: no spelling correction
+      spellcheck: false,
       backgroundThrottling: false,
     },
   })
@@ -10683,8 +8980,6 @@ export function startDocsStandalone(): void {
     mainWindow?.focus()
   })
 
-  registerAiIpc()
-  registerProjectIpc()
   registerDocsIpc()
 
   app.whenReady().then(() => {
@@ -10696,7 +8991,6 @@ export function startDocsStandalone(): void {
     }
     buildDocsMenu()
     createDocsWindow()
-    initDocsAutoUpdater(() => mainWindow)
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) createDocsWindow()
     })

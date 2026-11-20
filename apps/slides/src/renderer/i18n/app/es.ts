@@ -1,16 +1,6 @@
 import type { zh } from './zh'
 
 export const es = {
-  redactMenuLabel: 'Ocultar la selección a la IA',
-  redactDialogDesc:
-    'Lo seleccionado sigue en el documento y en el archivo; el modelo solo ve el marcador. Ponle un nombre para que sepa qué representa.',
-  redactDialogScope:
-    'Ocultar solo se aplica a la IA de esta aplicación. La CLI, las herramientas MCP y la exportación headless leen el archivo directamente y siguen viendo estas palabras.',
-  redactDialogPlaceholder: 'Nombre del marcador, p. ej.: teléfono del cliente',
-  redactCancel: 'Cancelar',
-  redactInsert: 'Ocultar',
-  redactEnable: 'Clic derecho en una selección para ocultarla al modelo.',
-
   appPhPromptTitle: 'Haga clic para agregar título',
   appPhPromptSubtitle: 'Haga clic para agregar subtítulo',
   appPhPromptBody: 'Haga clic para agregar texto',
@@ -274,8 +264,6 @@ export const es = {
   appNotesPlaceholder: 'Haga clic para agregar notas del orador (se guardan en el .pptx)',
   appNotesShow: 'Mostrar notas',
   appNotesHide: 'Ocultar notas',
-  appAiRailExpand: 'Expandir el asistente de IA',
-  appAiRailText: 'IA',
   appStatusBarSlide: 'Diapositiva {current} de {total}',
   appStatusBarReady: 'Listo',
   appMediaCloseTitle: 'Cerrar (Esc)',
@@ -293,14 +281,7 @@ export const es = {
     'Narración guardada en {count} diapositivas (PowerPoint también la reproduce)',
   appStatusRecordFailed: 'No se pudo guardar la grabación',
   appStatusNarrationCleared: 'Narración borrada',
-  appSettingsTitle: 'Configuración de IA',
-  appSettingsAccount: 'Cuenta de Genspark',
   appSettingsChecking: 'Comprobando…',
-  appSettingsLoggedIn: 'Sesión iniciada',
-  appSettingsLoggedInEmail: 'Sesión iniciada: {email}',
-  appSettingsLoggedOut: 'Sesión no iniciada (las funciones de IA requieren una cuenta de Genspark)',
-  appSettingsLoginPending: 'Esperando el inicio de sesión en el navegador…',
-  appSettingsLogin: 'Iniciar sesión en Genspark',
   appSettingsModel: 'Modelo',
   appSettingsCancel: 'Cancelar',
   appSettingsSave: 'Guardar',

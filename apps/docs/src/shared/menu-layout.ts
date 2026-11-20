@@ -12,7 +12,6 @@ export type MenuSlot =
   | 'open-recent'
   | 'extra-file-items'
   | 'close'
-  | 'name-with-ai'
   | 'zoom-presets'
   | 'settings-off-mac'
   | 'dev-tools'
@@ -90,7 +89,6 @@ const WORD_MENU = [
       { slot: 'new-window' },
       // also in the native File menu, the only entry on macOS: the ribbon's
       // File tab is Windows/Linux-only
-      { slot: 'name-with-ai' },
       'export-pdf',
       'export-html',
       'export-markdown',
@@ -181,7 +179,6 @@ const WORD_MENU = [
       { role: 'togglefullscreen', label: 'menuFullscreen' },
       // not in Word's View menu: kept below its items so their order stays Word's
       '---',
-      'toggle-ai',
       'toggle-dark',
       { slot: 'dev-tools' },
     ],
@@ -326,30 +323,7 @@ const WORD_MENU = [
     // Word for Mac keeps Word Count in the Tools menu, not on the ribbon
     label: 'menuTools',
     items: [
-      {
-        submenu: 'menuSpellingAndGrammar',
-        items: [
-          'tools-spelling',
-          // the same AI proofread as Review > Editor (the renderer shows the one-time ack)
-          { cmd: 'ai-proofread', label: 'menuEditor' },
-          '---',
-          'tools-hide-spelling',
-          'tools-hide-grammar',
-          '---',
-          'tools-reset-ignored',
-        ],
-      },
-      'tools-thesaurus',
       'tools-hyphenation',
-      {
-        submenu: 'menuTranslate',
-        items: [
-          'tools-translate-selection',
-          'tools-translate-document',
-          '---',
-          'tools-translation-language',
-        ],
-      },
       'tools-language',
       '---',
       'word-count',

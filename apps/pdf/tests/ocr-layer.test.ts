@@ -285,7 +285,7 @@ describe('runAutoOcr', () => {
   })
 
   it('extracts the document text once when the index is already cached', async () => {
-    // search / paragraph boxes / AI built the index first; the pass must reuse it
+    // search / paragraph boxes built the index first; the pass must reuse it
     const { doc, extractions } = scannedDoc(3)
     const cache = createSearchIndexCache()
     await cache.get(doc)

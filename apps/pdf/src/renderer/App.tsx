@@ -6,13 +6,7 @@ import type { CSSProperties, MouseEvent as ReactMouseEvent } from 'react'
 import { GlobalWorkerOptions } from 'pdfjs-dist/legacy/build/pdf.mjs'
 import type { PDFDocumentProxy } from 'pdfjs-dist'
 import workerUrl from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs?url'
-import { AiPanel, GensparkMark } from './ai/AiPanel'
-import { AiAskPopover, type AskAnchorRect } from './AiAskPopover'
-import {
-  createSavedAnnotCountsLoader,
-  loadSavedAnnots,
-  type SavedAnnotCounts,
-} from './annotation-catalog'
+import { loadSavedAnnots } from './annotation-catalog'
 import {
   AUTO_OCR_PAGE_CAP,
   OcrTextLayer,
@@ -22,7 +16,7 @@ import {
   type AutoOcrStop,
   type OcrPageData,
 } from './ocr-layer'
-import type { CropRect, FileOpCanceled, FileOpResult, PdfAppDeps, RotateDelta } from './ai/tools'
+import { checkboxWidgetAt, markRectForBox, printedBoxAt } from './form-mark-target'
 import {
   MARKUP_COLORS,
   geomDispSize,
@@ -53,7 +47,17 @@ import {
 } from './FormDesignLayer'
 import type { DesignField, FormDesignTool } from './FormDesignLayer'
 import { collectDetectInput, detectFormFields } from './form-detect'
-import { checkboxWidgetAt, markRectForBox, printedBoxAt } from './form-mark-target'
+
+type RotateDelta = 90 | -90 | 180
+
+/** Page-region fractions used by the manual crop tool */
+type CropRect = { l: number; t: number; r: number; b: number }
+
+/** A native picker was dismissed; flushed = the pending edits had already been saved to disk first */
+type FileOpCanceled = { ok: true; canceled: true; flushed: boolean }
+
+/** In-place rewrite: pageCount is read from the reloaded document */
+type FileOpResult = { ok: true; pageCount: number } | FileOpCanceled | { ok: false; error: string }
 
 type Arrange =
   | 'left'
@@ -113,10 +117,10 @@ import { ImageEditLayer, imageRectKey } from './ImageEditLayer'
 import { RedactionLayer } from './RedactionLayer'
 import type { LocalRedaction } from './RedactionLayer'
 import type { LocalImageEdit } from './ImageEditLayer'
-import { CropDialog, CutoutDialog, cropImagePng } from './ImageDialogs'
+import { CropDialog, CutoutDialog } from './ImageDialogs'
 import { cropRect, flipPixels, multiplyAlpha } from './image-bake'
-import type { CropFractions, ImageBakeOp } from './image-bake'
-import { removeBackground, type PixelImage } from './cutout'
+import type { CropFractions } from './image-bake'
+import type { PixelImage } from './cutout'
 import { navAction, shouldHandleDocumentUndo } from './keyNav'
 import { rowOfVisIdx, spreadRows, stepPage } from './spread'
 import {
@@ -193,14 +197,7 @@ import {
 } from './color-runs'
 import type { CharStyle } from './color-runs'
 import { platformShortcuts } from '@genoffice/i18n'
-import {
-  Dropdown,
-  aiPanelInitiallyOpen,
-  rememberAiPanelOpen,
-  useDismissablePopover,
-  useRibbonCollapse,
-  useAiSidebarEnabled,
-} from '@genoffice/ui'
+import { Dropdown, useDismissablePopover, useRibbonCollapse } from '@genoffice/ui'
 import { useI18n } from './i18n/locale'
 import type { StringKey } from './i18n/locale'
 import { useAutosave } from './useAutosave'
@@ -263,11 +260,8 @@ import {
   boldToken,
   blockRectKey,
   blockMoveInput,
-  editCarriesBlock,
   mergeTextDraft as mergeTextDraftImpl,
-  isBlockEditOf,
   patchPendingEdits,
-  resolveTextEdit,
   shiftPendingEdit,
   shiftRect,
   unionCover,
@@ -322,7 +316,6 @@ import {
   IconPreviousField,
   IconNextField,
   IconCompleteForm,
-  IconFormAiFill,
   IconFormText,
   IconFieldText,
   IconFieldCheckbox,
@@ -383,8 +376,6 @@ import {
   IconCrop,
   IconCutout,
   IconOpacity,
-  IconAiSummarize,
-  IconAiKeyPoints,
 } from './icons'
 
 GlobalWorkerOptions.workerSrc = workerUrl
@@ -458,7 +449,7 @@ export default function App() {
     return table
   }, [sizes, blankPages])
   const isBlankPage = (origIdx: number) => origIdx >= sizes.length
-  // Ref-based views for code that runs before React re-renders (AI tool turns): a blank
+  // Ref-based views for code that runs before React re-renders (batched edits): a blank
   // page committed a moment ago is already addressable
   const blankSizeNow = (origIdx: number): PageSize | undefined => {
     const b = blankPagesRef.current.find((x) => x.input.pageIndex === origIdx)
@@ -518,19 +509,6 @@ export default function App() {
     window.addEventListener('pointermove', onMove)
     window.addEventListener('pointerup', onUp)
   }
-  // Persisted so a closed AI panel stays closed on next launch (docs/slides parity)
-  const [aiCollapsed, setAiCollapsed] = useState(
-    () => !aiPanelInitiallyOpen('genoffice-pdf-show-ai'),
-  )
-  /** the panel setter in the "true = visible" sense the sidebar hook expects */
-  const setAiOpen = useCallback((open: boolean) => setAiCollapsed(!open), [])
-  // the sidebar switch is a soft hide; it closes the panel when it turns off
-  const aiSidebarEnabled = useAiSidebarEnabled(setAiOpen)
-  useEffect(() => {
-    rememberAiPanelOpen('genoffice-pdf-show-ai', !aiCollapsed)
-  }, [aiCollapsed])
-  /** One-shot prompt pushed by the ribbon AI buttons; the panel auto-runs it (docs preset pattern) */
-  const [aiPreset, setAiPreset] = useState<{ text: string; nonce: number } | null>(null)
   const [ribbonTab, setRibbonTab] = useState<RibbonTab>('home')
   const [spread, setSpread] = useState<1 | 2>(1)
   const [nightMode, setNightMode] = useState(false)
@@ -560,7 +538,7 @@ export default function App() {
   annotDeletesRef.current = annotDeletes
   /** Pending content rewrites of saved note comments (one entry per note, latest text) */
   const [noteEdits, setNoteEdits] = useState<LocalNoteEdit[]>([])
-  /** Mirrors for AI tool calls, which run several per turn before React re-renders */
+  /** Mirrors for edit operations, which can run several before React re-renders */
   const noteEditsRef = useRef(noteEdits)
   noteEditsRef.current = noteEdits
   /** Saved markup annotations per original page index, loaded lazily for visible pages (keyed to `doc`) */
@@ -621,7 +599,7 @@ export default function App() {
   const [redactionCopyInFlight, setRedactionCopyInFlight] = useState(false)
   const [textEdits, setTextEdits] = useState<LocalTextEdit[]>([])
   const [textInserts, setTextInserts] = useState<LocalTextInsert[]>([])
-  // AI tool calls within one turn read and write inserts through this mirror (see orderRef)
+  // Edits within one batch read and write inserts through this mirror (see orderRef)
   const textInsertsRef = useRef(textInserts)
   textInsertsRef.current = textInserts
   const commitTextInserts = (next: LocalTextInsert[]) => {
@@ -844,8 +822,8 @@ export default function App() {
   /** Latest imageEdits for async callbacks (same rationale as applyEditOpsRef) */
   const imageEditsRef = useRef(imageEdits)
   imageEditsRef.current = imageEdits
-  /** Mutate state and the ref together so an edit queued by one AI tool call is visible
-      to the next call in the same turn (they all run before React re-renders) */
+  /** Mutate state and the ref together so a queued edit is visible to the next one
+      in the same batch (they all run before React re-renders) */
   const updateImageEdits = (fn: (prev: LocalImageEdit[]) => LocalImageEdit[]) => {
     imageEditsRef.current = fn(imageEditsRef.current)
     setImageEdits(fn)
@@ -919,8 +897,8 @@ export default function App() {
     if (noteEditDraft && activeNote?.rootKey !== noteEditDraft.rootKey) setNoteEditDraft(null)
   }, [activeNote, noteEditDraft])
   const [stampCfg, setStampCfg] = useState<StampConfig | null>(null)
-  // AI tool calls within one turn run before React re-renders; the watermark and
-  // header/footer tools each read-modify-write the config, so they go through this ref
+  // Batched edits can run before React re-renders; the watermark and header/footer
+  // operations each read-modify-write the config, so they go through this ref
   const stampRef = useRef(stampCfg)
   stampRef.current = stampCfg
   /** Current pending text edits for async callbacks (validation results land after renders) */
@@ -928,8 +906,8 @@ export default function App() {
   textEditsRef.current = textEdits
 
   /** The only writer of textEdits: lands in the ref and React state at once, so the
-      ref is the single source of truth between renders (AI tool calls within one turn
-      run before React re-renders, and a later tool or undo snapshot must see what an
+      ref is the single source of truth between renders (edits within one batch run
+      before React re-renders, and a later edit or undo snapshot must see what an
       earlier one queued or a background dry-run dropped). fn runs twice (ref, then
       React) — build new edits outside it so both copies share one id */
   const applyTextEdits = (fn: (prev: LocalTextEdit[]) => LocalTextEdit[]) => {
@@ -941,8 +919,6 @@ export default function App() {
   const [metadata, setMetadata] = useState<MetadataInput | null>(null)
   const metadataRef = useRef(metadata)
   metadataRef.current = metadata
-  /** Properties as stored in the file; the pending metadata overrides them until saved */
-  const [docInfo, setDocInfo] = useState<MetadataInput>({})
   const [stampDlg, setStampDlg] = useState(false)
   const [propsDlg, setPropsDlg] = useState(false)
   const [fileSize, setFileSize] = useState(0)
@@ -1027,7 +1003,7 @@ export default function App() {
   /** The field just placed: its card takes focus and offers Cancel */
   const [freshFormFieldId, setFreshFormFieldId] = useState<string | null>(null)
   const [rotations, setRotations] = useState<Map<number, number>>(new Map())
-  /** Latest rotations for same-turn AI geometry (an apply_ops rotation then an image bake) */
+  /** Latest rotations for same-batch geometry (a page rotation then an image bake) */
   const rotationsRef = useRef(rotations)
   rotationsRef.current = rotations
   const [deleted, setDeleted] = useState<Set<number>>(new Set())
@@ -1038,51 +1014,6 @@ export default function App() {
     y: number
     quads: Map<number, number[][]>
   } | null>(null)
-  /** AI scope selection cached at mouseup — the native DOM selection collapses the
-      moment focus moves into the AI panel, so the chip/context read this snapshot.
-      Cleared by clicking elsewhere on the document or the chip's ×. */
-  const [aiSelection, setAiSelection] = useState<{
-    page: number
-    lastPage: number
-    text: string
-  } | null>(null)
-  /** Ask-AI popover opened from the markup bar; the anchor rect is captured at open */
-  const [askPop, setAskPop] = useState<{ rect: AskAnchorRect; excerpt: string } | null>(null)
-  /** Whole-document saved-annotation counts per original page for the AI context.
-      The scan starts on first AI use, not when the document opens. */
-  const [aiAnnotCounts, setAiAnnotCounts] = useState<SavedAnnotCounts | null>(null)
-  const aiAnnotCountsLoaderRef = useRef<{
-    doc: PDFDocumentProxy
-    controller: AbortController
-    load: () => Promise<SavedAnnotCounts>
-  } | null>(null)
-  useEffect(() => {
-    setAiAnnotCounts(null)
-    aiAnnotCountsLoaderRef.current?.controller.abort()
-    aiAnnotCountsLoaderRef.current = null
-    return () => {
-      aiAnnotCountsLoaderRef.current?.controller.abort()
-      aiAnnotCountsLoaderRef.current = null
-    }
-  }, [doc])
-  const startAiAnnotCountScan = useCallback(() => {
-    if (!doc || aiAnnotCountsLoaderRef.current?.doc === doc) return
-    const controller = new AbortController()
-    const entry = {
-      doc,
-      controller,
-      load: createSavedAnnotCountsLoader(doc, loadSavedAnnots, controller.signal),
-    }
-    aiAnnotCountsLoaderRef.current = entry
-    void entry.load().then((counts) => {
-      if (aiAnnotCountsLoaderRef.current === entry) setAiAnnotCounts(counts)
-    })
-  }, [doc])
-  // the first AI turn should already know whether the file carries review
-  // feedback, so an open panel starts the scan before the user sends anything
-  useEffect(() => {
-    if (!aiCollapsed) startAiAnnotCountScan()
-  }, [aiCollapsed, startAiAnnotCountScan])
   const [selected, setSelected] = useState<AnnotSelection | null>(null)
   /** Transparency presets fold-out inside the image selection popup */
   const [opacityMenu, setOpacityMenu] = useState(false)
@@ -1152,8 +1083,8 @@ export default function App() {
   docFontsRef.current = docFonts
   /** OCR results for scanned pages, keyed by original page index (reset per doc) */
   const [ocrPages, setOcrPages] = useState<Map<number, OcrPageData>>(new Map())
-  /** One text extraction per loaded document, shared by search, paragraph boxes,
-      the AI tools and the auto-OCR pass */
+  /** One text extraction per loaded document, shared by search, paragraph boxes
+      and the auto-OCR pass */
   const [searchIndexCache] = useState(createSearchIndexCache)
   /** In-flight auto-OCR pass, so its toast can stop it */
   const ocrAbortRef = useRef<AbortController | null>(null)
@@ -1179,8 +1110,8 @@ export default function App() {
     return base.filter((i) => !deleted.has(i))
   }, [allSizes, deleted, order])
   const pageCount = visList.length
-  // AI tool calls within one turn run before React re-renders, so the order and
-  // deletions they read and write go through these refs instead of the closed-over state
+  // Batched edits can run before React re-renders, so the order and deletions they
+  // read and write go through these refs instead of the closed-over state
   const orderRef = useRef(order)
   orderRef.current = order
   const deletedRef = useRef(deleted)
@@ -1345,12 +1276,6 @@ export default function App() {
           Subject?: string
           Keywords?: string
         }
-        setDocInfo({
-          title: documentInfo.Title ?? '',
-          author: documentInfo.Author ?? '',
-          subject: documentInfo.Subject ?? '',
-          keywords: documentInfo.Keywords ?? '',
-        })
         const formFeatures = documentFormFeatures(documentInfo, bytes)
         setFormHasXfa(formFeatures.hasXfa)
         setDocumentEncrypted(formFeatures.encrypted)
@@ -1480,8 +1405,6 @@ export default function App() {
       setDoc(loaded)
       if (renderedPages) await renderedPages
       if (!saved) {
-        setAiSelection(null)
-        setAskPop(null)
         setMarkups([])
         setRedactions([])
         redactionApplyConfirmedRef.current = false
@@ -2035,7 +1958,7 @@ export default function App() {
       })
   })
 
-  // A reorder committed by an AI tool has not been laid out yet when the tool wants to
+  // A programmatic reorder has not been laid out yet when the caller wants to
   // scroll, so the target waits for the render that carries the new order
   const scrollAfterReorderRef = useRef<number | null>(null)
   useEffect(() => {
@@ -2276,8 +2199,8 @@ export default function App() {
 
   // ── Undo/redo: push a full snapshot before each change; consecutive input on the same form field coalesces into one step ──
 
-  // Ref-mirrored fields read the mirrors so a pushUndo later in an AI turn captures
-  // the tools that ran before it, not the state this render closed over
+  // Ref-mirrored fields read the mirrors so a pushUndo later in the same batch captures
+  // the edits that ran before it, not the state this render closed over
   const snapshot = (): EditSnapshot => ({
     markups: markupsRef.current,
     annotDeletes: annotDeletesRef.current,
@@ -2334,7 +2257,7 @@ export default function App() {
   /**
    * The one write path into the pending-edit buckets (edit-ops/registry.ts): the
    * whole batch is validated first, then each touched bucket reduces from its ref
-   * mirror, so a later op in the same AI turn sees what an earlier one queued. The
+   * mirror, so a later op in the same batch sees what an earlier one queued. The
    * same reducers run over a whole snapshot in tests. One batch = one undo step
    * (coalesceKey folds repeats). Post-save reload, undo/redo restore and async
    * display metadata (validated bounds, ghost PNGs) are the only direct writes left.
@@ -2411,7 +2334,7 @@ export default function App() {
     }
     return plan
   }
-  /** Latest entry for async callbacks (bakes, validated AI edits): the closure they
+  /** Latest entry for async callbacks (bakes, validated edits): the closure they
       started with would snapshot stale state for undo by the time they land */
   const applyEditOpsRef = useRef(applyEditOps)
   applyEditOpsRef.current = applyEditOps
@@ -2511,7 +2434,7 @@ export default function App() {
 
   /** Text index cached per doc; invalidated and rebuilt after a save reload.
       Scanned pages recognized by OCR overlay their entry so search, markups and
-      AI tools address them like born-digital text. */
+      edit operations address them like born-digital text. */
   const getSearchIndex = useCallback((): Promise<SearchIndex> | null => {
     if (!doc) return null
     const base = searchIndexCache.get(doc)
@@ -2784,42 +2707,22 @@ export default function App() {
   /** Mouse released over selected text → show the markup bar centered above the selection box (below if it doesn't fit) */
   const handleMouseUp = () => {
     // In edit-text mode a drag means "choose the characters to edit" (the click
-    // after mouseup opens the editor preselected), not the markup popup — and any
-    // previously cached AI scope no longer matches what the user sees
-    if (editTextMode && !readOnly) {
-      setAiSelection(null)
-      return
-    }
+    // after mouseup opens the editor preselected), not the markup popup
+    if (editTextMode && !readOnly) return
+    // Read-only documents have no markup actions; the bar would be empty
+    if (readOnly) return
     setTimeout(() => {
       const el = scrollRef.current
       const sel = window.getSelection()
       if (!el || !sel || sel.isCollapsed || sel.rangeCount === 0) {
         setSelPopup(null)
-        setAiSelection(null)
         return
       }
-      // Selection lives outside the document (e.g. panel text): leave the scope alone
+      // Selection lives outside the document (e.g. panel text): leave it alone
       if (!el.contains(sel.getRangeAt(0).commonAncestorContainer)) return
       const box = sel.getRangeAt(0).getBoundingClientRect()
       const quads = box.width >= 1 || box.height >= 1 ? selectionQuads() : null
-      if (!quads) {
-        // A live document selection the scope can't represent must not leave a stale chip
-        setAiSelection(null)
-        return
-      }
-      const selText = sel.toString()
-      // min/max, not insertion order: after a page reorder the visual walk can hit
-      // original indices out of sequence and would invert the span
-      const pages = [...quads.keys()]
-      if (pages.length > 0 && selText.trim()) {
-        setAiSelection({
-          page: Math.min(...pages) + 1,
-          lastPage: Math.max(...pages) + 1,
-          text: selText,
-        })
-      }
-      // Read-only documents still get the bar for its Ask-AI entry (Q&A works);
-      // the markup buttons themselves are hidden in that state
+      if (!quads) return
       setSelPopup({
         x: Math.min(Math.max(box.left + box.width / 2, 70), window.innerWidth - 70),
         y: box.top >= 52 ? box.top - 44 : Math.min(box.bottom + 8, window.innerHeight - 44),
@@ -2892,25 +2795,6 @@ export default function App() {
             ],
       ),
     )
-  }
-
-  /** Ask-AI entry on the markup bar: capture the selection box as the popover
-      anchor now (the bar's mousedown preventDefault kept the selection alive up
-      to this click; the popover input will collapse it) */
-  const openAskPopover = () => {
-    const sel = window.getSelection()
-    const box =
-      sel && !sel.isCollapsed && sel.rangeCount > 0
-        ? sel.getRangeAt(0).getBoundingClientRect()
-        : null
-    const rect: AskAnchorRect | null = box
-      ? { left: box.left, top: box.top, right: box.right, bottom: box.bottom }
-      : selPopup
-        ? { left: selPopup.x, top: selPopup.y, right: selPopup.x, bottom: selPopup.y + 36 }
-        : null
-    if (!rect) return
-    setSelPopup(null)
-    setAskPop({ rect, excerpt: aiSelection?.text ?? sel?.toString() ?? '' })
   }
 
   /** Markup types the whole current selection already carries — shown as pressed
@@ -5734,15 +5618,6 @@ export default function App() {
     return c.toDataURL('image/png').split(',')[1] ?? null
   }
 
-  const cropPng = async (b64: string, crop: CropFractions): Promise<string | null> => {
-    const img = await decodePng(b64)
-    try {
-      return img ? cropImagePng(img, crop) : null
-    } catch {
-      return null
-    }
-  }
-
   /** Crop footprint of an insert op: its bytes are display-oriented, so the fractions
       apply in display space and map back through the page geometry (handles /Rotate) */
   const cropRectDisplay = (
@@ -5758,7 +5633,7 @@ export default function App() {
   }
 
   /** Whether a pending op already targets this existing image (reads the ref, so it
-      stays current across async bakes and same-turn AI tool calls) */
+      stays current across async bakes and same-turn edit calls) */
   const isImageClaimedNow = (ref: PageImageRef): boolean => {
     const key = `${ref.pageIndex}:${imageRectKey(ref.rect)}`
     return imageEditsRef.current.some(
@@ -5809,37 +5684,6 @@ export default function App() {
       { op: 'bakeImageEdit', id: target.id, image: png, rect, opacityBase },
     ])
     return plan.failures.length === 0
-  }
-
-  /** AI-tool entry to the same bakes as the floating bar, for an existing page image */
-  const bakeExisting = async (
-    ref: PageImageRef,
-    op: ImageBakeOp,
-    signal?: AbortSignal,
-  ): Promise<boolean> => {
-    if (readOnly || isImageClaimedNow(ref)) return false
-    const target: ImageBakeTarget = { kind: 'existing', ref }
-    const src = await bakeSourcePng(target)
-    if (!src || signal?.aborted) return false
-    const out =
-      op.kind === 'crop'
-        ? await cropPng(src, op.crop)
-        : await transformPngPixels(src, (img) =>
-            op.kind === 'flip'
-              ? flipPixels(img, op.axis)
-              : op.kind === 'opacity'
-                ? multiplyAlpha(img, op.alpha)
-                : removeBackground(img, op.tolerance).data,
-          )
-    if (!out || signal?.aborted) return false
-    const landed = commitBaked(
-      target,
-      out,
-      op.kind === 'crop' ? op.crop : undefined,
-      op.kind === 'opacity' ? src : undefined,
-    )
-    if (landed) setSelected(null)
-    return landed
   }
 
   /** Fetch → transform → commit, used by the one-click bakes (flip / transparency) */
@@ -6249,7 +6093,7 @@ export default function App() {
     threadsFromSaved(origIdx, savedNotes.get(origIdx) ?? [])
 
   /** Async threads for any page: the visible-page cache when warm, pdf.js otherwise
-      (AI tools address arbitrary pages, not just the ones scrolled into view) */
+      (callers address arbitrary pages, not just the ones scrolled into view) */
   const noteThreadsFor = async (origIdx: number): Promise<NoteThreadItem[]> => {
     const cached = savedNotes.get(origIdx)
     if (cached) return threadsFromSaved(origIdx, cached)
@@ -6401,7 +6245,7 @@ export default function App() {
     return fn()
   }
 
-  // File-level page operations shared by the ribbon dialogs and the AI tools. The
+  // File-level page operations shared by the ribbon dialogs and programmatic callers. The
   // flush writes the on-screen order into the file, so every page index below is a
   // post-save index = visible position, not a pre-save original index.
   const FLUSH_FAILED = { ok: false, error: 'saving the pending edits failed' } as const
@@ -6702,358 +6546,6 @@ export default function App() {
     opFailed,
     diskPasswordRef,
   })
-
-  /** Capability surface for AI tools; rebuilt each render (AiPanel mirrors it via refs to get the latest) */
-  /** One context line about edits queued but unsaved — the model cannot see them in the file */
-  const aiPendingSummary = (): string => {
-    const parts: string[] = []
-    const add = (n: number, label: string) => {
-      if (n > 0) parts.push(`${label}: ${n}`)
-    }
-    add(textEdits.length, 'text edits')
-    add(textInserts.length, 'text inserts')
-    add(imageEdits.length, 'image edits')
-    add(markups.length, 'markups')
-    add(annotDeletes.length, 'annotation deletions')
-    add(noteEdits.length, 'note edits')
-    add(drawings.length, 'drawings')
-    add(formEdits.size, 'form field changes')
-    add(formFields.length, 'new form fields (Form Design)')
-    add(blankPages.length, 'blank pages added')
-    add(formWidgetEdits.size, 'existing form field changes (Form Design)')
-    add(rotations.size, 'page rotations')
-    add(deleted.size, 'page deletions')
-    if (order) parts.push('page order changed')
-    if (metadata) parts.push('document properties changed')
-    if (stampCfg?.wm) parts.push('watermark')
-    if (stampCfg?.hf) parts.push('header/footer')
-    return parts.length > 0
-      ? `Unsaved changes queued this session (pending until the user saves, not yet visible in the file): ${parts.join(', ')}.`
-      : ''
-  }
-
-  /** One context line about the document's annotations; '' when there are none.
-      Deleted pages and per-annotation deletions are excluded, matching what
-      read_annotations actually returns. */
-  const aiAnnotationSummary = (): string => {
-    const pendingRoots = drawings.filter(
-      (d) =>
-        d.input.kind === 'note' &&
-        !d.input.replyToSaved &&
-        d.input.replyToLocalId === undefined &&
-        !deleted.has(d.input.pageIndex),
-    ).length
-    let deletedThreads = 0
-    let deletedMarkups = 0
-    for (const d of annotDeletes) {
-      if (deleted.has(d.annot.pageIndex)) continue // its whole page is already excluded
-      if (d.annot.type === 'note') {
-        if (d.annot.inReplyTo === null) deletedThreads++
-      } else deletedMarkups++
-    }
-    // scan still running: "unknown" must not read as "none" — a run started right
-    // after open would otherwise never hear the file carries review feedback
-    if (!aiAnnotCounts) {
-      startAiAnnotCountScan()
-      return 'Whether the file contains notes/markups has not been determined yet; use read_annotations to check when the user asks about review feedback.'
-    }
-    let savedThreads = 0
-    let savedMarkups = 0
-    aiAnnotCounts.threads.forEach((n, i) => {
-      if (!deleted.has(i)) savedThreads += n
-    })
-    aiAnnotCounts.markups.forEach((n, i) => {
-      if (!deleted.has(i)) savedMarkups += n
-    })
-    const threads = Math.max(0, savedThreads - deletedThreads) + pendingRoots
-    const markupCount =
-      Math.max(0, savedMarkups - deletedMarkups) +
-      markups.filter((m) => !deleted.has(m.pageIndex)).length
-    if (threads + markupCount === 0) return ''
-    const bits: string[] = []
-    if (threads > 0) bits.push(`${threads} note thread(s)`)
-    if (markupCount > 0) bits.push(`${markupCount} text markup(s)`)
-    return `The document has ${bits.join(' and ')}; use read_annotations to read them.`
-  }
-
-  const aiApi: PdfAppDeps = {
-    doc: () => doc,
-    fileName: () => fileName,
-    pageCount: pageCountNow,
-    currentPage: () => (visList[currentPage - 1] ?? 0) + 1,
-    readOnly: () => readOnly,
-    ocrText: (origIdx) => ocrPages.get(origIdx)?.entry.text ?? null,
-    selection: () => aiSelection,
-    pendingSummary: aiPendingSummary,
-    annotationSummary: aiAnnotationSummary,
-    annotationsOn: async (origIdx) => {
-      // one pdf.js pass per uncached page: notes and markups come from the same load
-      let notes = savedNotes.get(origIdx)
-      let savedList = savedMarkups.get(origIdx)
-      if ((!notes || !savedList) && doc) {
-        const loaded = await loadSavedAnnots(doc, origIdx)
-        notes ??= loaded.notes
-        savedList ??= loaded.markups
-      }
-      const pendingDeleted = new Set(annotDeletesRef.current.map((d) => d.annot.objNum))
-      return {
-        threads: threadsFromSaved(origIdx, notes ?? []),
-        markups: [
-          ...(savedList ?? [])
-            .filter((a) => !pendingDeleted.has(a.objNum))
-            .map((a) => ({ key: `S${a.objNum}`, type: a.type, quads: a.quads, saved: true })),
-          ...markups
-            .filter((m) => m.pageIndex === origIdx)
-            .map((m) => ({ key: `P${m.id}`, type: m.type, quads: m.quads, saved: false })),
-        ],
-      }
-    },
-    deleteMarkups: async (origIdx, keys) => {
-      const pendingIds = new Set(keys.filter((k) => k[0] === 'P').map((k) => k.slice(1)))
-      const savedNums = new Set(keys.filter((k) => k[0] === 'S').map((k) => Number(k.slice(1))))
-      let savedList = savedMarkups.get(origIdx)
-      if (!savedList && doc) savedList = (await loadSavedAnnots(doc, origIdx)).markups
-      const pendingDeleted = new Set(annotDeletesRef.current.map((d) => d.annot.objNum))
-      const saved = (savedList ?? []).filter(
-        (a) => savedNums.has(a.objNum) && !pendingDeleted.has(a.objNum),
-      )
-      if (pendingIds.size === 0 && saved.length === 0) return
-      applyEditOpsRef.current([
-        ...markupsRef.current
-          .filter((m) => m.pageIndex === origIdx && pendingIds.has(m.id))
-          .map((m): Op => ({ op: 'removeMarkup', id: m.id })),
-        ...saved.map((annot): Op => ({ op: 'deleteSavedAnnot', annot })),
-      ])
-    },
-    deleteNoteThread: (_origIdx, root) => deleteNoteItem(root),
-    addNote: (origIdx, at, contents, color) => {
-      const id = newId()
-      const plan = applyEditOpsRef.current([
-        {
-          op: 'addDrawing',
-          id,
-          drawing: {
-            kind: 'note',
-            pageIndex: origIdx,
-            color: color ?? drawColor,
-            at,
-            contents,
-            author: 'AI Assistant',
-            createdMs: Date.now(),
-          },
-        },
-      ])
-      if (plan.failures.length > 0) return { error: plan.failures[0]!.error }
-      setActiveNote({ origIdx, rootKey: pendingNoteKey(id) })
-      return { key: pendingNoteKey(id) }
-    },
-    findNoteRoot: async (origIdx, rootKey) =>
-      (await noteThreadsFor(origIdx)).find((r) => r.key === rootKey) ?? null,
-    replyToThread: (origIdx, root, contents) =>
-      replyToNote(origIdx, root, contents, 'AI Assistant'),
-    editNote: (_origIdx, item, contents) => {
-      const ops = noteEditOps(item, contents)
-      if (ops) applyEditOpsRef.current(ops)
-    },
-    outline: () => outline,
-    searchIndex: getSearchIndex,
-    redactionCount: () => redactionsRef.current.length,
-    addRedactions: appendRedactions,
-    isDeleted: (i) => deletedRef.current.has(i),
-    gotoPage: (p) => {
-      if (orderRef.current !== order) {
-        if (!visListOf(orderRef.current).includes(p - 1)) return false
-        scrollAfterReorderRef.current = p - 1
-        return true
-      }
-      const visIdx = visList.indexOf(p - 1)
-      if (visIdx < 0) return false
-      scrollToPage(visIdx + 1)
-      return true
-    },
-    addMarkup: (type, origIdx, rects, color) => {
-      const quads = rects.map((r) => [r[0], r[3], r[2], r[3], r[0], r[1], r[2], r[1]])
-      applyEditOpsRef.current([
-        {
-          op: 'addMarkup',
-          markup: {
-            pageIndex: origIdx,
-            type,
-            // default follows the manual path: the ribbon color for highlights
-            color: color ?? (type === 'highlight' ? highlightColor : MARKUP_COLORS[type]),
-            quads,
-          },
-        },
-      ])
-    },
-    editText: async (raw) => {
-      const resolved = resolveTextEdit(textEditsRef.current, raw)
-      if ('reason' in resolved) return resolved.reason
-      const { input, replaces, moveBy } = resolved
-      let cover: [number, number, number, number] | undefined
-      if (filePath) {
-        try {
-          const [v] = await window.pdfApi.validateTextEdits({ path: filePath, edits: [input] })
-          if (v?.reason) return v.reason
-          cover = v?.bounds
-        } catch {
-          /* best-effort: the save path skips-and-reports unmatched edits anyway */
-        }
-      }
-      const te: LocalTextEdit = { id: newId(), input, cover, moveBy }
-      const gone = new Set(replaces.map((e) => e.id))
-      const prev = textEditsRef.current
-      const plan = applyEditOpsRef.current(textEditListOps(prev, patchPendingEdits(prev, te, gone)))
-      return plan.failures[0]?.error ?? null
-    },
-    moveTextBlock: async (origIdx, block, d) => {
-      const plan = planBlockMove(origIdx, block, d, textEditsRef.current)
-      if (plan === 'overflow') {
-        return { reason: 'the moved paragraph would overlap the content below it' }
-      }
-      if (!plan || !editCarriesBlock(plan.te, block)) {
-        return {
-          reason:
-            'a pending edit of a line inside this paragraph keeps it from moving as one unit; undo that edit or rewrite the paragraph with edit_block first',
-        }
-      }
-      let te = plan.te
-      // Shifting a block-level edit of this block re-uses objects validated when it was
-      // queued; anything else is dry-run like a fresh move so the model learns of a
-      // rejection now instead of at save
-      if (filePath && !(plan.kind === 'shift' && isBlockEditOf(te, block))) {
-        try {
-          const [v] = await window.pdfApi.validateTextEdits({ path: filePath, edits: [te.input] })
-          if (v?.reason) return { reason: v.reason }
-          if (v?.bounds) te = { ...te, cover: v.bounds }
-        } catch {
-          /* best-effort: the save path skips-and-reports unmatched edits anyway */
-        }
-      }
-      // The owner the plan shifted or folded into may have gone while validating (a
-      // failed background dry-run drops edits); patching a vanished id would resurrect it
-      if (plan.kind !== 'move' && !textEditsRef.current.some((e) => e.id === te.id)) {
-        return { reason: 'the pending edits changed while the move was validated; retry' }
-      }
-      const prev = textEditsRef.current
-      const result = applyEditOpsRef.current(
-        textEditListOps(
-          prev,
-          patchPendingEdits(prev, te, plan.remove, plan.kind === 'move' ? 'upsert' : 'replace'),
-        ),
-      )
-      if (result.failures.length > 0) return { reason: result.failures[0]!.error }
-      return { moveBy: te.moveBy ?? d }
-    },
-    insertText: (input) => {
-      const id = newId()
-      const plan = applyEditOpsRef.current([{ op: 'addTextInsert', id, input }])
-      return plan.failures.length > 0 ? { error: plan.failures[0]!.error } : { id }
-    },
-    textInserts: () => textInsertsRef.current,
-    updateTextInsert: (id, edit) => {
-      applyEditOpsRef.current([{ op: 'patchTextInsert', id, input: edit }])
-    },
-    moveTextInsert: (id, origin) => {
-      applyEditOpsRef.current([{ op: 'patchTextInsert', id, input: { origin } }])
-    },
-    deleteTextInsert: (id) => {
-      applyEditOpsRef.current([{ op: 'removeTextInsert', id }])
-      setSelected((sel) => (sel?.kind === 'textInsert' && sel.id === id ? null : sel))
-    },
-    addFormMark: (origIdx, kind, rect) => {
-      const image = renderStaticFormMark(kind, Math.max(rect[2] - rect[0], rect[3] - rect[1]))
-      if (image) commitPlacedImage(origIdx, image.image, rect, kind)
-    },
-    formWidgets: (origIdx) => liveFormCatalog?.byPage.get(origIdx) ?? [],
-    pageBoxes: pageBoxShapes,
-    editFonts: () => editFonts,
-    formEdits: () => formEdits,
-    applyOps: (ops, opts) =>
-      opts?.dryRun ? planEditOps(ops, editOpContext(), newId) : applyEditOpsRef.current(ops),
-    metadata: () => metadataRef.current ?? docInfo,
-    pageOrder: () => visListOf(orderRef.current),
-    pageGeom: (origIdx) =>
-      (allSizes[origIdx] ?? blankSizeNow(origIdx)) ? pageGeom(origIdx) : null,
-    listImages: () => (filePath ? window.pdfApi.listPageImages(filePath) : Promise.resolve([])),
-    isImageClaimed: isImageClaimedNow,
-    insertImage: (origIdx, png, rect, layer) => {
-      applyEditOpsRef.current([
-        {
-          op: 'addImageEdit',
-          input: {
-            kind: 'insertImage',
-            pageIndex: origIdx,
-            image: png,
-            rect,
-            layer,
-            rotate: ((pageGeom(origIdx).rot % 360) + 360) % 360,
-          },
-        },
-      ])
-    },
-    transformImage: (ref, rect, layer, quarterTurns) =>
-      transformExisting(ref, rect, layer, quarterTurns),
-    replaceImage: (ref, png) => replaceExisting(ref, png),
-    bakeImage: bakeExisting,
-    deleteImage: (ref) => {
-      applyEditOpsRef.current([
-        {
-          op: 'addImageEdit',
-          input: { kind: 'deleteImage', pageIndex: ref.pageIndex, oldRect: ref.rect },
-        },
-      ])
-    },
-    searchImages: (query, maxResults) => window.pdfApi.imageSearch(query, maxResults),
-    generateImage: (op) => window.pdfApi.generateImage(op),
-    fetchImage: async (url) => {
-      const fetched = await window.pdfApi.fetchImage(url)
-      if (!fetched) return null
-      try {
-        const bytes = Uint8Array.from(atob(fetched.base64), (c) => c.charCodeAt(0))
-        const canvas = await fileToCanvas(
-          new File([bytes], 'ai-image', { type: fetched.mime }),
-          2400,
-        )
-        const png = canvas?.toDataURL('image/png').split(',')[1]
-        return canvas && png ? { png, width: canvas.width, height: canvas.height } : null
-      } catch {
-        return null
-      }
-    },
-    stamps: () => stampRef.current,
-    setStamps: (cfg) => {
-      applyEditOpsRef.current([{ op: 'setStamps', cfg }])
-    },
-    createDocument: (request) => window.pdfApi.createDocument(request),
-    insertBlankPage,
-    setPageSize: resizePages,
-    cropPages: cropPagesOnDisk,
-    replacePages: replacePagesOnDisk,
-    extractPages: extractPagesToFile,
-    splitPdf: splitPdfToFolder,
-    splitPages: splitPagesToFile,
-    mergePages: mergePagesToFile,
-  }
-
-  /**
-   * After an AI run that mutated a shell-created blank still carrying its untitled
-   * name, silently save once: the save's auto-rename then derives the file name from
-   * the inserted text — mirrors docs/sheets, where AI generation names the draft.
-   * PDFs the user merely opened keep the pending-until-⌘S contract (isUntitled is
-   * false for them, and the main process would refuse the rename anyway).
-   */
-  const autoSaveAfterAiRun = async () => {
-    if (!filePath || readOnly) return
-    try {
-      if (!(await window.pdfApi.isUntitled(filePath))) return
-    } catch {
-      return
-    }
-    // A file we created ourselves is safe to keep autosaving from here on
-    savedOnceRef.current = true
-    void save(true)
-  }
 
   /** Internal destination of a Link annotation → jump to that page */
   // ── Bookmark editing (embedded outlines only; fail-closed on named dests) ──
@@ -7415,8 +6907,7 @@ export default function App() {
       if (e.key === 'Escape') {
         // Modal dialogs own Escape; the states behind them must not react too
         if (signDlg || stampDlg || propsDlg) return
-        if (askPop) setAskPop(null)
-        else if (textDraft) setTextDraft(null)
+        if (textDraft) setTextDraft(null)
         else if (pendingTextInsert) setPendingTextInsert(null)
         else if (imagePick) setImagePick(null)
         else if (editTextMode) setEditTextMode(false)
@@ -7606,12 +7097,6 @@ export default function App() {
   const menuOrig = thumbMenu?.origIdx ?? -1
   const menuInGap = thumbMenu != null && thumbMenu.origIdx === null
   const menuInsertAfter = menuInGap ? (thumbMenu.afterOrigIdx ?? -1) : menuOrig
-
-  /** Ribbon AI buttons: expand the dock and auto-run the prompt in the assistant */
-  const runAiPreset = (text: string): void => {
-    setAiCollapsed(false)
-    setAiPreset({ text, nonce: Date.now() })
-  }
 
   /** Converter dropdown → the shell's local conversion flows (save dialog, password prompt) */
   const convertTo = async (format: PdfConvertFormat): Promise<void> => {
@@ -8121,54 +7606,6 @@ export default function App() {
         <div className="ribbon-body" data-ribbon-body="">
           {ribbonTab === 'home' && (
             <>
-              {/* ---- Genspark AI (first slot: entry + one-click AI actions, docs parity) ---- */}
-              <div className="ribbon-group">
-                <div className="ribbon-group-items">
-                  <button
-                    className={`rb-big ai-entry${aiCollapsed ? '' : ' active'}`}
-                    data-tip={t('aiOpenAssistant')}
-                    onClick={() => setAiCollapsed((v) => !v)}
-                  >
-                    <span className="rb-big-icon">
-                      <GensparkMark size={26} />
-                    </span>
-                    <span>Genspark AI</span>
-                  </button>
-                  <button
-                    className="rb-big ai-entry"
-                    data-tip={t('aiSummarizeBtn')}
-                    onClick={() =>
-                      runAiPreset(
-                        t(aiSelection ? 'aiQuickSummarySelPrompt' : 'aiQuickSummaryPrompt'),
-                      )
-                    }
-                  >
-                    <span className="rb-big-icon">
-                      <span className="ai-feature-icon" aria-hidden="true">
-                        <IconAiSummarize />
-                      </span>
-                    </span>
-                    <span>{t('aiSummarizeBtn')}</span>
-                  </button>
-                  <button
-                    className="rb-big ai-entry"
-                    data-tip={t('aiKeyPointsBtn')}
-                    onClick={() =>
-                      runAiPreset(
-                        t(aiSelection ? 'aiQuickKeyPointsSelPrompt' : 'aiQuickKeyPointsPrompt'),
-                      )
-                    }
-                  >
-                    <span className="rb-big-icon">
-                      <span className="ai-feature-icon" aria-hidden="true">
-                        <IconAiKeyPoints />
-                      </span>
-                    </span>
-                    <span>{t('aiKeyPointsBtn')}</span>
-                  </button>
-                </div>
-              </div>
-              <div className="ribbon-sep" />
               {markupGroup}
               <div className="ribbon-sep" />
               {/* Edit entries lead; Search moved after page/zoom (⌘F is the common path) */}
@@ -8262,36 +7699,6 @@ export default function App() {
           )}
           {ribbonTab === 'annotate' && (
             <>
-              <div className="ribbon-group">
-                <div className="ribbon-group-items">
-                  <button
-                    className="rb-big ai-entry"
-                    data-tip={t('aiReviewSummaryBtn')}
-                    onClick={() => runAiPreset(t('aiReviewSummaryPrompt'))}
-                  >
-                    <span className="rb-big-icon">
-                      <span className="ai-feature-icon" aria-hidden="true">
-                        <IconAiSummarize />
-                      </span>
-                    </span>
-                    <span>{t('aiReviewSummaryBtn')}</span>
-                  </button>
-                  <button
-                    className="rb-big ai-entry"
-                    disabled={readOnly}
-                    data-tip={t('aiProcessNotesBtn')}
-                    onClick={() => runAiPreset(t('aiProcessNotesPrompt'))}
-                  >
-                    <span className="rb-big-icon">
-                      <span className="ai-feature-icon" aria-hidden="true">
-                        <GensparkMark size={20} />
-                      </span>
-                    </span>
-                    <span>{t('aiProcessNotesBtn')}</span>
-                  </button>
-                </div>
-              </div>
-              <div className="ribbon-sep" />
               {markupGroup}
               <div className="ribbon-sep" />
               <div className="ribbon-group">
@@ -8545,17 +7952,6 @@ export default function App() {
             <>
               <div className="ribbon-group">
                 <div className="ribbon-group-items">
-                  <button
-                    className="rb-big ai-entry"
-                    disabled={readOnly}
-                    data-tip={t('aiFillFormBtn')}
-                    onClick={() => runAiPreset(t('aiFillFormPrompt'))}
-                  >
-                    <span className="rb-big-icon">
-                      <IconFormAiFill />
-                    </span>
-                    <span>{t('aiFillFormBtn')}</span>
-                  </button>
                   <button
                     className={`rb-big${pendingStaticFill === 'text' ? ' active' : ''}`}
                     disabled={readOnly}
@@ -9062,32 +8458,6 @@ export default function App() {
         }}
       />
       <div className="app-main">
-        {/* dock wrapper animates the width between panel and rail (docs-style 180ms ease);
-              the panel stays mounted while collapsed so the chat history survives */}
-        <div
-          className={`ai-dock${aiCollapsed ? ' collapsed' : ''}${
-            !aiSidebarEnabled && aiCollapsed ? ' ai-dock-off' : ''
-          }`}
-        >
-          {aiCollapsed && aiSidebarEnabled && (
-            <button
-              className="ai-rail"
-              data-tip={t('aiOpenAssistant')}
-              aria-label={t('aiOpenAssistant')}
-              onClick={() => setAiCollapsed(false)}
-            >
-              <GensparkMark size={22} />
-            </button>
-          )}
-          <AiPanel
-            api={aiApi}
-            filePath={filePath}
-            preset={aiPreset}
-            onCollapse={() => setAiCollapsed(true)}
-            onRunDone={() => void autoSaveAfterAiRun()}
-            onClearSelection={() => setAiSelection(null)}
-          />
-        </div>
         <div className="app-content">
           {digitalSignatures.length > 0 && (
             <div className={`pdf-sig-banner ${overallSignatureStatus(digitalSignatures)}`}>
@@ -9131,8 +8501,8 @@ export default function App() {
                   <button
                     type="button"
                     className="rb-icon"
-                    aria-label={t('aiCollapsePanel')}
-                    data-tip={t('aiCollapsePanel')}
+                    aria-label={t('collapsePanel')}
+                    data-tip={t('collapsePanel')}
                     onClick={() => setSidebar(null)}
                   >
                     <svg
@@ -9177,8 +8547,8 @@ export default function App() {
                   <button
                     type="button"
                     className="rb-icon"
-                    aria-label={t('aiCollapsePanel')}
-                    data-tip={t('aiCollapsePanel')}
+                    aria-label={t('collapsePanel')}
+                    data-tip={t('collapsePanel')}
                     onClick={() => setSidebar(null)}
                   >
                     <svg
@@ -9215,7 +8585,7 @@ export default function App() {
                   <button
                     type="button"
                     className="rb-icon"
-                    aria-label={t('aiCollapsePanel')}
+                    aria-label={t('collapsePanel')}
                     onClick={() => setSidebar(null)}
                   >
                     ×
@@ -9244,7 +8614,7 @@ export default function App() {
                   <button
                     type="button"
                     className="rb-icon"
-                    aria-label={t('aiCollapsePanel')}
+                    aria-label={t('collapsePanel')}
                     onClick={() => setSidebar(null)}
                   >
                     ×
@@ -9415,7 +8785,6 @@ export default function App() {
               onScroll={() => {
                 handleScroll()
                 setSelPopup(null)
-                setAskPop(null)
                 setSelected(null)
                 clearLineHover()
                 clearBlockHover()
@@ -10874,37 +10243,9 @@ export default function App() {
                     >
                       <span className="sel-swatch sel-swatch-st">S</span>
                     </button>
-                    <span className="pdf-sel-popup-sep" aria-hidden />
                   </>
                 )}
-                <button
-                  type="button"
-                  className="pdf-sel-ask"
-                  data-tip={t('aiAskTitle')}
-                  aria-label={t('aiAskBtn')}
-                  onClick={openAskPopover}
-                >
-                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" aria-hidden>
-                    <path
-                      d="M12 3l1.7 4.6L18 9.3l-4.3 1.7L12 15.6l-1.7-4.6L6 9.3l4.3-1.7L12 3zM19 15l.85 2.3L22 18.15l-2.15.85L19 21.3l-.85-2.3-2.15-.85 2.15-.85L19 15z"
-                      fill="currentColor"
-                    />
-                  </svg>
-                  {t('aiAskBtn')}
-                </button>
               </div>
-            )}
-            {askPop && (
-              <AiAskPopover
-                rect={askPop.rect}
-                excerpt={askPop.excerpt}
-                readOnly={readOnly}
-                onSend={(text) => {
-                  setAskPop(null)
-                  runAiPreset(text)
-                }}
-                onClose={() => setAskPop(null)}
-              />
             )}
             {selected && (
               <div

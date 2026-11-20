@@ -1,5 +1,8 @@
 import type { ActionCommandId, CommandMenuState } from './commands'
 import type { KeyOverrides } from './keybindings'
+import type { HeadlessExportTarget } from '@genoffice/electron-utils/headless-export'
+import type { FaceVerticalMetrics } from '@genoffice/font-metrics'
+import type { SaveAsExportFormat } from './save-as-format'
 
 export interface OpenFileResult {
   path: string
@@ -122,44 +125,7 @@ export interface MergeOutputResponse {
   error?: string
 }
 
-// ---- AI provider settings/config/streaming: canonical types live in @genoffice/ai-provider ----
-
-import type {
-  AiChatRequest,
-  AiChatResponse,
-  AiSettings,
-  AiStreamChunk,
-  AiStreamRequest,
-  GenSparkAccountStatus,
-} from '@genoffice/ai-provider'
-import type { HeadlessExportTarget } from '@genoffice/electron-utils/headless-export'
-import type { FaceVerticalMetrics } from '@genoffice/font-metrics'
-import type { AiPanelPrefs } from '@genoffice/ui'
-import type { SaveAsExportFormat } from './save-as-format'
-
 export type { FaceVerticalMetrics }
-
-export type {
-  AiChatRequest,
-  AiChatResponse,
-  AiProviderConfig,
-  AiProviderId,
-  AiProviderMeta,
-  AiSettings,
-  AiStreamChunk,
-  AiStreamRequest,
-  GenSparkAccountStatus,
-} from '@genoffice/ai-provider'
-export { AI_PROVIDERS } from '@genoffice/ai-provider/browser'
-
-// ---- agent protocol: canonical types live in @genoffice/agent-core ----
-
-export type {
-  AgentMessage,
-  AgentToolCall,
-  AgentToolDef,
-  AgentToolResult,
-} from '@genoffice/agent-core'
 
 // ---- PDF export ----
 
@@ -194,46 +160,6 @@ export interface MarkdownImage {
  */
 export const MARKDOWN_MEDIA_DIR_TOKEN = '__genoffice_media__'
 
-// ---- chat attachments (local files fed to the agent via tools) ----
-
-/** Image attachment extensions: no text extraction; read as base64 on send and passed to the model as a multimodal image with the user message */
-export const ATTACHMENT_IMAGE_EXTS = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp'])
-
-export interface AttachmentMeta {
-  /** absolute local path; the file never leaves the machine */
-  path: string
-  name: string
-  /** lowercased extension without the dot */
-  ext: string
-  sizeBytes: number
-}
-
-export interface AttachmentAddResult {
-  accepted: AttachmentMeta[]
-  /** per-file rejection messages (too large / unsupported type / unreadable) */
-  rejected: string[]
-}
-
-export interface AttachmentReadResult {
-  ok: boolean
-  error?: string
-  name?: string
-  /** total characters of the extracted text */
-  totalChars?: number
-  /** requested slice */
-  text?: string
-  offset?: number
-}
-
-/** an image attachment read as raw bytes for multimodal input (files:read-image) */
-export interface AttachmentImageResult {
-  ok: boolean
-  /** raw base64 (no data: URL prefix) */
-  base64?: string
-  mime?: string
-  error?: string
-}
-
 /** an open docs tab, for View → Switch Tab */
 export interface DocsTabInfo {
   id: string
@@ -256,30 +182,6 @@ export type DocTheme = 'follow' | 'light' | 'dark'
 export interface AutoSaveDefault {
   on: boolean
   updatedAt: number
-}
-
-/** target file type of the AI create_document tool */
-export type CreateDocumentType = 'docx' | 'pdf' | 'md' | 'html'
-
-export interface CreateDocumentRequest {
-  type: CreateDocumentType
-  /** file name stem (sanitized main-side) */
-  title: string
-  /** docx/pdf: restricted HTML; md: Markdown source; html: a complete HTML document */
-  content: string
-}
-
-export interface CreateDocumentResult {
-  ok: boolean
-  /** the created file, when it is written directly (pdf/md); docx opens as a new tab that saves itself */
-  path?: string
-  error?: string
-}
-
-/** AI-authored content queued for a docs tab spawned by create_document */
-export interface AiDocContent {
-  title: string
-  html: string
 }
 
 export type ZoteroCommand =
@@ -307,56 +209,7 @@ export interface ZoteroRendererResponse {
   error?: string
 }
 
-/**
- * MCP bridge: an editor command pushed from the shell main process into a docs
- * tab so an external agent drives the *visible* editor instead of writing a file
- * behind it. `insert_content` / `replace_blocks` / `apply_ops` / `insert_picture` /
- * `read_document` / `read_blocks` reuse the built-in agent's tool executors;
- * `save_document` writes the live document to an explicit path.
- */
-export type McpEditorCommand =
-  | 'insert_content'
-  | 'replace_blocks'
-  | 'apply_ops'
-  | 'insert_picture'
-  | 'read_document'
-  | 'read_blocks'
-  | 'save_document'
-
-export interface McpCommandMessage {
-  requestId: string
-  command: McpEditorCommand
-  payload: unknown
-}
-
-export interface McpCommandResult {
-  requestId: string
-  ok: boolean
-  result?: unknown
-  error?: string
-}
-
-export interface McpSaveResult {
-  ok: boolean
-  path?: string
-  error?: string
-  passwordIntentPending?: boolean
-  dataUrl?: string
-}
-
 /** Chromium's misspelling data for a claimed body right-click (`seq` = the claim it answers) */
-export interface ContextMenuRequest {
-  seq: number
-  misspelledWord: string
-  suggestions: string[]
-}
-
-export interface SpellLanguages {
-  active: string[]
-  /** empty on macOS: the OS checker picks the language itself */
-  available: string[]
-}
-
 export type PrintDuplex = 'simplex' | 'longEdge' | 'shortEdge'
 
 /** job options from the in-app print dialog; deviceName null = system dialog, '' = OS default printer */
@@ -405,10 +258,6 @@ export interface DesktopApi {
   /** author of comments and tracked changes (Settings → General, falling back to the OS account) */
   getAuthorName(): Promise<string>
   onAuthorNameChanged(handler: (name: string) => void): () => void
-  /** AI panel text size + chat-input spellcheck (Settings → General in the shell) */
-  getAiPanelPrefs(): Promise<AiPanelPrefs>
-  setAiPanelPrefs(patch: Partial<AiPanelPrefs>): Promise<AiPanelPrefs>
-  onAiPanelPrefsChanged(handler: (prefs: AiPanelPrefs) => void): () => void
   /** press on the shell chrome (tab strip is a sibling WebContentsView whose
    *  clicks produce no DOM event here) — dismiss open popovers */
   onChromePressed(handler: () => void): () => void
@@ -436,14 +285,10 @@ export interface DesktopApi {
   consumePendingOpenDocx(): Promise<OpenDocxResult>
   /** returns true when this tab was created via "New Document" and should start blank */
   consumeNewBlankDoc(): Promise<boolean>
-  /** AI-authored content queued for this tab by create_document; one-shot, null when none */
-  consumeAiDocContent(): Promise<AiDocContent | null>
   /** Headless export mode: the path and format this hidden renderer must export, null in normal use */
   consumeHeadlessExport(): Promise<HeadlessExportTarget | null>
   /** Headless export mode: report the export outcome so the main process can quit */
   headlessExportDone(result: { ok: boolean; error?: string }): void
-  /** AI create_document: build a new standalone file and open it in a new tab */
-  createDocument(request: CreateDocumentRequest): Promise<CreateDocumentResult>
   /** receive documents opened from Finder/Explorer while the app is running */
   onOpenDocx(handler: (result: Exclude<OpenDocxResult, null>) => void): () => void
   /** File was renamed externally (renamed in the shell Home list) — pushes old and new paths; renderer syncs its save path and title bar */
@@ -469,34 +314,11 @@ export interface DesktopApi {
   writeRecoveryCopy(path: string, data: ArrayBuffer): Promise<{ ok: boolean }>
   /** tab closed but webContents kept alive (shell freeze workaround) — stop background timers */
   onTeardown(handler: () => void): () => void
-  /** one trusted space keystroke into this webContents — the only thing that
-   *  makes Blink respell existing text after the spellcheck attribute turns
-   *  back on (r168); the caller pauses the PM DOM observer and removes the
-   *  space again by script */
-  respellKick(): Promise<void>
-  /** append one line to userData/spell-diag.log (size-capped) — field
-   *  spellcheck failures are intermittent and platform-bound, so the
-   *  toggle/kick lifecycle keeps a trace support can ask users for */
-  spellDiag(line: string): void
   /** opt this renderer into claiming right-clicks: claimed clicks get no native menu */
   armContextMenu(): void
   /** synchronous, from the DOM contextmenu handler: the React menu answers this
    *  right-click, so Blink's request for it must not pop the native menu */
   claimContextMenu(seq: number): void
-  /** Chromium's misspelling data for a claimed click */
-  onContextMenuRequest(handler: (request: ContextMenuRequest) => void): () => void
-  spellAddWord(word: string): Promise<boolean>
-  /** Word's Ignore All: skipped while this document is open, forgotten when it closes */
-  spellIgnoreWord(word: string): Promise<boolean>
-  /** Reset Ignored Words: the words this window set aside with Ignore All are checked again */
-  spellResetIgnored(): Promise<void>
-  /** Blink-side replacement of the misspelled word under the last right-click */
-  spellReplace(word: string): Promise<void>
-  /** the built-in checker's verdict on one word, in the languages being checked */
-  spellIsMisspelled(word: string): boolean
-  spellSuggestions(word: string): string[]
-  spellLanguages(): Promise<SpellLanguages>
-  spellSetLanguages(langs: string[]): Promise<SpellLanguages>
   /** writes template bytes to a .dotx the user picks; the open document is not affected */
   saveTemplate(
     defaultName: string,
@@ -533,15 +355,6 @@ export interface DesktopApi {
     passwordIntentPending?: boolean
     dataUrl?: string
   }>
-  /** MCP-driven output: write the current document to an explicit absolute path
-   *  with no dialog; refuses to replace an existing file unless overwrite is true */
-  saveDocxTo(path: string, data: ArrayBuffer, overwrite: boolean): Promise<McpSaveResult>
-  /** MCP bridge: receive an editor command pushed by the shell main process */
-  onMcpCommand(handler: (message: McpCommandMessage) => void): () => void
-  /** MCP bridge: report a command's outcome back to the shell main process */
-  reportMcpResult(result: McpCommandResult): void
-  /** MCP bridge: announce that this tab's editor is ready for commands */
-  signalMcpReady(): void
   getRecentFiles(): Promise<string[]>
   pickImage(): Promise<PickImageResult | null>
   pickDocx(): Promise<PickDocxResult>
@@ -565,14 +378,6 @@ export interface DesktopApi {
    *  (CJK) family name yields the English spelling the browser resolves.
    *  Only the names that have an alias are answered (genoffice#2449). */
   fontAliases(names: readonly string[]): Promise<Record<string, readonly string[]>>
-  getAiSettings(): Promise<AiSettings>
-  setAiSettings(settings: AiSettings): Promise<void>
-  /** ai-settings.json was rewritten by any renderer; re-read it */
-  onAiSettingsChanged(handler: () => void): () => void
-  /** shell only: switch to Home and open Settings › AI Model (rejects in standalone) */
-  openAiModelSettings(): Promise<void>
-  /** shell: switch to Home and open Settings › Integrations (the skills list) */
-  openSkillsSettings(): Promise<void>
   /** print the current window; ok=false without error = canceled.
    *  scale: print scale inverting the preview's print zoom (print-zoom.ts).
    *  job: printer/copies/duplex from the in-app dialog; a named printer ('' = OS
@@ -634,96 +439,17 @@ export interface DesktopApi {
   ): Promise<{ ok: boolean; path?: string; error?: string }>
   /** Save a picture the renderer displays (data URL) through a Save dialog */
   saveImageAs(src: string): Promise<{ ok: boolean; path?: string; error?: string }>
-  /** Native context menu "View Image" on a chrome surface such as the AI panel */
-  onViewImage(handler: (src: string) => void): () => void
-  aiChat(request: AiChatRequest): Promise<AiChatResponse>
-  /** start a streaming AI call; deltas arrive via onAiStream with the same requestId */
-  aiStream(request: AiStreamRequest): Promise<void>
-  aiStreamCancel(requestId: string): Promise<void>
-  /** Genspark account status (gsk login state); withEmail also returns the email (needs a network request, slower) */
-  aiGskStatus(withEmail?: boolean): Promise<GenSparkAccountStatus>
-  /** Open the browser to log in to Genspark (fire-and-forget; aiGskStatus flips to logged-in when done) */
-  aiGskLogin(): Promise<void>
-  /** A browser-approved Genspark login landed (whichever surface started it) */
-  onGskLoginLanded(handler: () => void): () => void
-  webSearch(
-    query: string,
-    maxResults?: number,
-  ): Promise<{
-    results: Array<{ title: string; url: string; snippet: string }>
-    answer?: string
-    method: string
-    /** failure reason when method === 'error' */
-    error?: string
-  }>
-  imageSearch(
-    query: string,
-    maxResults?: number,
-  ): Promise<{
-    images: Array<{
-      title: string
-      imageUrl: string
-      sourceUrl: string
-      source: string
-      width?: number
-      height?: number
-    }>
-    method: string
-    /** failure reason when method === 'error' */
-    error?: string
-  }>
-  /** media understanding (image/audio/video) via the configured media provider; returns analysis text */
-  analyzeMedia(op: {
-    mediaUrls: string[]
-    requirements: string
-  }): Promise<{ text?: string; error?: string }>
+  /** fetch a pasted web image through SSRF-guarded main-process networking */
   fetchImage(url: string): Promise<{ base64: string; mime: string } | null>
-  /** AI image generation via the Genspark cloud channel (requires login + cloud tools) */
-  aiGenerateImage(op: {
-    prompt: string
-    aspectRatio?: string
-  }): Promise<{ url?: string; error?: string }>
-  /** file picker for chat attachments (multi-select) */
-  pickAttachments(): Promise<AttachmentAddResult | null>
-  /** validate dropped paths and return attachment metadata */
-  addAttachmentPaths(paths: string[]): Promise<AttachmentAddResult>
-  /** persist a pasted clipboard image (no local path) to a temp file and add it as an attachment */
-  addPastedImage(data: ArrayBuffer, ext: string): Promise<AttachmentAddResult>
+  /** Native context menu "View Image" on a chrome surface such as the app panel */
+  onViewImage(handler: (src: string) => void): () => void
   /** copy an embedded picture to the OS clipboard as a real bitmap + <img>
    *  html (r136: copying an image exported only the protected placeholder) */
   copyImageToClipboard(dataUrl: string, metaJson?: string): Promise<boolean>
-  /** read a slice of the extracted text of an attachment */
-  readAttachment(path: string, offset: number, maxChars: number): Promise<AttachmentReadResult>
-  /** read an image attachment as base64 for multimodal input (≤5MB) */
-  readAttachmentImage(path: string): Promise<AttachmentImageResult>
-  /** the reader's starred files as the AI's knowledge base */
-  kbList(): Promise<
-    Array<{
-      path: string
-      folder: string
-      folderPath: string
-      name: string
-      ext: string
-      sizeBytes: number
-    }>
-  >
-  /** full-text search over the starred set; q capped like the home search box */
-  kbSearch(query: {
-    q: string
-    limit?: number
-  }): Promise<Array<{ path: string; name: string; ext: string; folder: string; snippet: string }>>
-  /** one page of a starred file's parsed text (path must be in kbList) */
-  kbRead(
-    path: string,
-    offset: number,
-  ): Promise<{ text: string; totalChars: number; offset: number }>
-
   /** absolute path of a File dropped onto the window (Electron webUtils) */
   getPathForFile(file: File): string
   /** View → New Tab: open another docs tab, optionally loading the same document */
   openNewTab(openPath?: string | null): Promise<void>
-  /** open any shell-routed document path (an AI answer's filenav citation) */
-  openSourcePath(path: string): Promise<void>
   /** all open docs tabs, for View → Switch Tab */
   listDocsTabs(): Promise<DocsTabInfo[]>
   arrangeAllWindows(): Promise<void>
@@ -733,8 +459,6 @@ export interface DesktopApi {
   detachedWindowCount?(): Promise<number>
   onDetachedWindowsChanged?(handler: (count: number) => void): () => void
   focusDocsTab(id: string): Promise<void>
-  /** subscribe to AI stream chunks; returns unsubscribe */
-  onAiStream(handler: (chunk: AiStreamChunk) => void): () => void
   /** subscribe to native menu commands; returns unsubscribe */
   onMenuCommand(handler: (command: MenuCommand, payload?: string) => void): () => void
   /** Close guard: main process queries pre-close state (dirty flag + autosave switch; if autosave is on, save silently without a dialog) */
@@ -751,38 +475,6 @@ export interface DesktopApi {
   getKeyOverrides(): Promise<KeyOverrides>
   setKeyOverrides(overrides: KeyOverrides): Promise<KeyOverrides>
   onKeyOverridesChanged(handler: (overrides: KeyOverrides) => void): () => void
-  /** the skills the user installed (userData/skills), for the AI panel's skills skill */
-  skillsList(): Promise<UserSkillEntry[]>
-  /** the body of one installed skill, by name — the main process resolves the path */
-  skillText(name: string): Promise<string>
-  /** run the bundled genoffice CLI; failures come back as ok:false, never a throw */
-  runCli(args: string[]): Promise<UserCliRun>
-}
-
-export interface UserSkillEntry {
-  name: string
-  description: string
-  relevant: boolean
-}
-
-export interface UserCliRun {
-  ok: boolean
-  /** process exit code, or -1 when the process never started */
-  code: number
-  json?: {
-    status: string
-    command: string | null
-    code?: number
-    summary?: string
-    output_path?: string
-    message?: string
-  }
-  stdout: string
-  stderr: string
-  /** where relative paths resolved; absent in a window with no document and no save folder */
-  cwd?: string
-  /** the folders the CLI may read and write */
-  allowedRoots?: string[]
 }
 
 /** mirrors VIEW_IMAGE_CHANNEL in @genoffice/electron-utils (kept literal so the preload stays free of main-only deps) */

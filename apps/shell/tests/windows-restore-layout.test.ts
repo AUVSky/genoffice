@@ -169,7 +169,6 @@ const createDocsView = vi.fn(() => {
 })
 const docsQueryDirty = vi.fn(() => Promise.resolve(false))
 const markDocsNewBlank = vi.fn()
-const queueDocsAiContent = vi.fn()
 const requestDocsClose = vi.fn(() => Promise.resolve(true))
 const setActiveDocsResolver = vi.fn()
 const teardownDocsRenderer = vi.fn()
@@ -178,7 +177,6 @@ vi.mock('../../docs/src/main/docs-main', () => ({
   createDocsView: (...args: unknown[]) => createDocsView(...(args as [])),
   docsQueryDirty: (...args: unknown[]) => docsQueryDirty(...(args as [])),
   markDocsNewBlank: (...args: unknown[]) => markDocsNewBlank(...args),
-  queueDocsAiContent: (...args: unknown[]) => queueDocsAiContent(...args),
   requestDocsClose: (...args: unknown[]) => requestDocsClose(...(args as [])),
   setActiveDocsResolver: (...args: unknown[]) => setActiveDocsResolver(...args),
   teardownDocsRenderer: (...args: unknown[]) => teardownDocsRenderer(...args),
@@ -240,18 +238,6 @@ vi.mock('../../markdown/src/main/markdown-main', () => ({
   createMarkdownView: (...args: unknown[]) => createMarkdownView(...(args as [])),
   markdownIsDirty: (...args: unknown[]) => markdownIsDirty(...(args as [])),
   requestMarkdownClose: (...args: unknown[]) => requestMarkdownClose(...(args as [])),
-}))
-
-const createHtmlView = vi.fn(() => makeView())
-const createHtmlPresentView = vi.fn(() => makeView())
-const htmlIsDirty = vi.fn(() => false)
-const requestHtmlClose = vi.fn(() => Promise.resolve(true))
-
-vi.mock('../../html/src/main/html-main', () => ({
-  createHtmlView: (...args: unknown[]) => createHtmlView(...(args as [])),
-  createHtmlPresentView: (...args: unknown[]) => createHtmlPresentView(...(args as [])),
-  htmlIsDirty: (...args: unknown[]) => htmlIsDirty(...(args as [])),
-  requestHtmlClose: (...args: unknown[]) => requestHtmlClose(...(args as [])),
 }))
 
 import { TabManager } from '../src/main/tab-manager'

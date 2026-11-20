@@ -25,7 +25,7 @@ import {
   resolveTextboxes,
   resolutionOf,
 } from '../src/renderer/editor/story-revisions'
-import { listRevisionEntries } from '../src/renderer/ai/revision-ops'
+import { listRevisionEntries } from '../src/renderer/doc-core/revision-ops'
 import type { HfSectionState } from '../src/renderer/hf-sections'
 import { buildDocx } from '../../../packages/docx-engine/tests/helpers/build-docx'
 

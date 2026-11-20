@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test'
 import type { Editor } from '@tiptap/core'
 import { openSource } from './math-clipboard-helpers'
 
-// Format fixtures, not captures from a logged-in AI service. Both MIME types
+// Format fixtures, not captures from a live web app. Both MIME types
 // deliberately differ so a test cannot pass by always preferring plain text.
 const richFormula = {
   text: 'fallback without formula',

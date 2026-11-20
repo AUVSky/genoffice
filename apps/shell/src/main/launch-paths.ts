@@ -27,8 +27,6 @@ export const LAUNCHABLE_EXTS = [
   'markdown',
   'txt',
   'json',
-  'html',
-  'htm',
 ] as const
 
 const SUPPORTED_LAUNCH_RE = new RegExp(`\\.(${LAUNCHABLE_EXTS.join('|')})$`, 'i')

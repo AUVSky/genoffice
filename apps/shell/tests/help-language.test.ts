@@ -11,18 +11,18 @@ import { HelpScreen } from '../src/renderer/src/i18n/help/HelpScreen'
 import { helpBody } from '../src/renderer/src/i18n/help/help-registry'
 
 /**
- * The manual ships 21 editions — 294 bodies, 21 sets of titles, 21 figure
- * sets — and every one of them has to be reachable.
+ * The manual ships two editions — English and Simplified Chinese, one body and
+ * one figure set each — plus a title in every UI language. Every other
+ * language reads the English body under its own localized title.
  *
  * The screen used to read `document.documentElement.lang`, which is the BCP-47
  * tag (`zh-CN`, `ja-JP`), and then pick between two branches: `zh` or `en`.
- * That left 19 editions unrendered, showed English titles over whatever body
- * matched `startsWith('zh')`, and gave zh-TW readers the zh-CN edition —
- * while the files sat in the bundle the whole time and the mechanical
+ * That left the other editions unrendered and gave zh-TW readers the zh-CN
+ * body — while the files sat in the bundle the whole time and the mechanical
  * language checker counted them as present.
  *
- * So these assert on rendered output in four languages, including one the old
- * code could not have got right by accident.
+ * So these assert on rendered output in several languages, including ones the
+ * old code could not have got right by accident.
  */
 
 const actEnvironment = globalThis as typeof globalThis & {
@@ -34,10 +34,7 @@ let host: HTMLDivElement
 let root: Root
 
 import gettingStarted from '../src/renderer/src/i18n/help/topics/getting-started.en.md?raw'
-import gettingStartedJa from '../src/renderer/src/i18n/help/topics/getting-started.ja.md?raw'
 import gettingStartedZh from '../src/renderer/src/i18n/help/topics/getting-started.zh.md?raw'
-import gettingStartedZhTW from '../src/renderer/src/i18n/help/topics/getting-started.zh-TW.md?raw'
-import gettingStartedDe from '../src/renderer/src/i18n/help/topics/getting-started.de.md?raw'
 import { topicTitle } from '../src/renderer/src/i18n/help/help-titles'
 
 const TOPIC = 'getting-started'
@@ -54,7 +51,7 @@ function proseFrom(markdown: string): string {
   const line = markdown
     .split('\n')
     .map((l) => l.trim())
-    .find((l) => l.length > 60 && !/[#|*!`[\]]/.test(l))
+    .find((l) => l.length > 24 && !/[#|*!`[\]]/.test(l))
   if (!line) throw new Error('no prose line to sample')
   // A slice from the middle: the start of a line tends to carry a heading or a
   // list the renderer rewrites. Collapsed first, because the renderer collapses
@@ -66,10 +63,7 @@ function proseFrom(markdown: string): string {
 
 const BODIES: Partial<Record<Lang, string>> = {
   en: proseFrom(gettingStarted),
-  ja: proseFrom(gettingStartedJa),
   zh: proseFrom(gettingStartedZh),
-  'zh-TW': proseFrom(gettingStartedZhTW),
-  de: proseFrom(gettingStartedDe),
 }
 
 const TITLES: Partial<Record<Lang, string>> = {
@@ -171,12 +165,16 @@ describe('the manual renders in the reader’s language', () => {
   })
 
   it("does not hand back another language's body", async () => {
-    // zh and zh-TW are separate files, not a variant of one: the Simplified
-    // text appearing in the Traditional one is the failure `startsWith('zh')`
-    // would have shipped
-    const traditional = (await helpBody(TOPIC, 'zh-TW')) ?? ''
-    expect(traditional).toContain(BODIES['zh-TW']!)
-    expect(traditional).not.toContain(BODIES.zh!)
-    expect(traditional).not.toContain(BODIES.en!)
+    // zh and en are separate editions, and a language with no edition of its
+    // own reads English rather than whatever `startsWith('zh')` happens to hit
+    const chinese = (await helpBody(TOPIC, 'zh')) ?? ''
+    expect(chinese).toContain(BODIES.zh!)
+    expect(chinese).not.toContain(BODIES.en!)
+
+    for (const lang of ['ja', 'de', 'zh-TW'] as Lang[]) {
+      const fallback = (await helpBody(TOPIC, lang)) ?? ''
+      expect(fallback, `fallback for ${lang}`).toContain(BODIES.en!)
+      expect(fallback, `fallback for ${lang}`).not.toContain(BODIES.zh!)
+    }
   })
 })

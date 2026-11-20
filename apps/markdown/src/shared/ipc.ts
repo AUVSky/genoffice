@@ -1,11 +1,4 @@
-import type { AiPanelPrefs } from '@genoffice/ui'
 import type { Lang } from '@genoffice/i18n'
-import type {
-  AiSettings,
-  AiStreamChunk,
-  AiStreamRequest,
-  GenSparkAccountStatus,
-} from '@genoffice/ai-provider'
 import type { ExportImageMime } from './export-image-mime'
 
 export const MAX_PASTED_IMAGE_BYTES = 50 * 1024 * 1024
@@ -44,11 +37,8 @@ export const MARKDOWN_CHANNELS = {
   saveImage: 'markdown:save-image',
   readImage: 'markdown:read-image',
   saveImageAs: 'markdown:save-image-as',
-  getImageHost: 'markdown:get-image-host',
-  setImageHost: 'markdown:set-image-host',
   getMarkdownTheme: 'markdown:get-theme',
   setMarkdownTheme: 'markdown:set-theme',
-  uploadImage: 'markdown:upload-image',
   viewImage: 'genoffice:view-image',
   exportRequest: 'markdown:export-request',
   exportDocx: 'markdown:export-docx',
@@ -59,7 +49,6 @@ export const MARKDOWN_CHANNELS = {
   consumeHeadlessExport: 'markdown:consume-headless-export',
   headlessExportDone: 'markdown:headless-export-done',
   printRequest: 'markdown:print-request',
-  aiGenerateImage: 'markdown:ai-generate-image',
   getLanguage: 'app:get-language',
   languageChanged: 'app:language-changed',
   getTheme: 'app:get-theme',
@@ -68,8 +57,6 @@ export const MARKDOWN_CHANNELS = {
   documentThemeChanged: 'app:document-theme-changed',
   getAutoSaveDefault: 'app:get-auto-save-default',
   autoSaveDefaultChanged: 'app:auto-save-default-changed',
-  getAiPanelPrefs: 'app:get-ai-panel-prefs',
-  aiPanelPrefsChanged: 'app:ai-panel-prefs-changed',
 } as const
 
 /** the raw text between `[[ ]]`, verbatim, as the editor holds it */
@@ -192,50 +179,6 @@ export type UiTheme = 'light' | 'dark' | 'system'
  */
 export type DocTheme = 'follow' | 'light' | 'dark'
 
-/**
- * Bring-your-own image host for pasted/dropped pictures in Markdown
- * (genoffice#388). Keys are stored plaintext in the user's own settings file,
- * like every other credential in the app. The local assets/ copy stays the
- * fallback whenever the host is disabled, unconfigured or the upload fails.
- */
-export type ImageHostKind = 's3' | 'smms' | 'github'
-
-export interface ImageHostConfig {
-  kind: ImageHostKind
-  /** SM.MS and GitHub take a bearer token; S3 uses the key pair below */
-  token?: string
-  /** s3: endpoint base, path-style (`https://<account>.r2.cloudflarestorage.com`, `https://oss-<region>.aliyuncs.com`, …) */
-  endpoint?: string
-  /** s3 */
-  region?: string
-  /** s3 */
-  bucket?: string
-  /** s3 */
-  accessKeyId?: string
-  /** s3 */
-  secretAccessKey?: string
-  /** s3: optional key prefix inside the bucket (e.g. `notes/`) */
-  prefix?: string
-  /** s3: public base the bucket is served from when it differs from the API endpoint (R2 custom domain, CDN); URLs become `<publicBase>/<key>` */
-  publicBase?: string
-  /** github: repository coordinates of the image branch */
-  owner?: string
-  /** github */
-  repo?: string
-  /** github: branch to commit to (default `main`) */
-  branch?: string
-  /** github: directory inside the repo (default `images/`) */
-  dir?: string
-  /** github: serve URLs from this base instead of the API's download_url (e.g. a jsDelivr CDN) */
-  urlPrefix?: string
-}
-
-export interface ImageUploadResult {
-  ok: boolean
-  url?: string
-  error?: string
-}
-
 /** shell-wide AutoSave default; updatedAt is 0 until the user has ever set it */
 export interface AutoSaveDefault {
   on: boolean
@@ -251,16 +194,10 @@ export interface SaveMarkdownRequest {
   imageSources: string[]
   mode: SaveMode
   /**
-   * Silent first save for an untitled document (AI auto-naming): saves to a
-   * unique path under Documents derived from this name, without a dialog.
-   * Ignored when the document already has a path.
-   */
-  suggestedName?: string
-  /**
    * Name offered in the Save As dialog for a document that has never been
    * saved. A plain ⌘S on an untitled document still asks where the file goes —
-   * the model-proposed name (or the first heading) prefills that dialog rather
-   * than replacing it, so the reader still chooses the location.
+   * the content-derived name prefills that dialog rather than replacing it, so
+   * the reader still chooses the location.
    */
   defaultName?: string
   /** write even though the file changed on disk since it was loaded or last saved */
@@ -279,36 +216,6 @@ export type SaveMarkdownResult =
   | { ok: true; canceled: true }
   | { ok: false; error: string; conflict?: true }
 
-/** AI channels are app-wide shared ipcMain handlers (shell registers via docs-main registerAiIpc); pass-through only */
-export const AI_CHANNELS = {
-  getSettings: 'ai:get-settings',
-  setSettings: 'ai:set-settings',
-  settingsChanged: 'ai:settings-changed',
-  openModelSettings: 'ai:open-model-settings',
-  gskStatus: 'ai:gsk-status',
-  stream: 'ai:stream',
-  streamChunk: 'ai:stream-chunk',
-  streamCancel: 'ai:stream-cancel',
-  webSearch: 'ai:web-search',
-  imageSearch: 'ai:image-search',
-  fetchImage: 'ai:fetch-image',
-} as const
-
-export interface WebSearchResult {
-  answer?: string
-  results: Array<{ title: string; url: string; snippet: string }>
-  method: string
-  /** failure reason when method === 'error' */
-  error?: string
-}
-
-export interface ImageSearchResult {
-  images: Array<{ title?: string; imageUrl: string; width?: number; height?: number }>
-  method: string
-  /** failure reason when method === 'error' */
-  error?: string
-}
-
 export type ExportFormat = 'pdf' | 'docx' | 'docs' | 'png'
 
 export interface ExportDocxRequest {
@@ -316,7 +223,7 @@ export interface ExportDocxRequest {
   base64: string
   /** file name (no extension) suggested in the dialog / used for the silent convert */
   suggestedName: string
-  /** 'dialog' = save dialog; 'openInDocs' = app-managed temporary copy opened in AI Docs */
+  /** 'dialog' = save dialog; 'openInDocs' = app-managed temporary copy opened in Docs */
   mode: 'dialog' | 'openInDocs'
 }
 
@@ -346,7 +253,7 @@ import type { MarkdownTheme } from './markdown-theme'
 export interface MarkdownApi {
   /** Take the md path pending for this view (queued at tab creation); null = new untitled document */
   consumePending(): Promise<string | null>
-  /** open any shell-routed document path (an AI answer's filenav citation) */
+  /** open any shell-routed document path */
   openSourcePath(path: string): Promise<void>
   /**
    * Resolve every `[[target]]` in this document to a file. One walk for the
@@ -434,27 +341,9 @@ export interface MarkdownApi {
    * document; returns the relative path to author, or null when untitled.
    */
   saveImage(data: { base64: string; ext: string }): Promise<string | null>
-  /**
-   * The configured image host (genoffice#388), or null when none was ever
-   * saved. Pasted/dropped images upload here first and fall back to the
-   * local `assets/` copy when the upload fails or the host is disabled.
-   */
   /** Paper theme for the editor (default = the light/dark document theme) */
   getMarkdownTheme(): Promise<MarkdownTheme>
   setMarkdownTheme(theme: MarkdownTheme): Promise<MarkdownTheme>
-  getImageHost(): Promise<ImageHostConfig | null>
-  /** Validate and persist the image host configuration; returns null on invalid input */
-  setImageHost(config: ImageHostConfig | null): Promise<ImageHostConfig | null>
-  /**
-   * Upload one image through the configured host. Returns the public URL on
-   * success; ok=false with a message when the host rejected the upload or is
-   * not configured (the renderer then keeps the local-copy fallback).
-   */
-  uploadImage(data: { base64: string; ext: string; name?: string }): Promise<{
-    ok: boolean
-    url?: string
-    error?: string
-  }>
   /**
    * Read an image referenced by the document for DOCX embedding. Only paths
    * inside the document's directory are allowed; anything else returns null.
@@ -485,45 +374,7 @@ export interface MarkdownApi {
   onDocumentThemeChanged(handler: (theme: DocTheme) => void): () => void
   getAutoSaveDefault(): Promise<AutoSaveDefault>
   onAutoSaveDefaultChanged(handler: (value: AutoSaveDefault) => void): () => void
-  /** AI panel text size + chat-input spellcheck (Settings → General in the shell) */
-  getAiPanelPrefs(): Promise<AiPanelPrefs>
-  setAiPanelPrefs(patch: Partial<AiPanelPrefs>): Promise<AiPanelPrefs>
-  onAiPanelPrefsChanged(handler: (prefs: AiPanelPrefs) => void): () => void
   /** press on the shell chrome (tab strip is a sibling WebContentsView whose
    *  clicks produce no DOM event here) — dismiss open popovers */
   onChromePressed(handler: () => void): () => void
-  getAiSettings(): Promise<AiSettings>
-  setAiSettings(settings: AiSettings): Promise<void>
-  /** ai-settings.json was rewritten by any renderer; re-read it */
-  onAiSettingsChanged(handler: () => void): () => void
-  /** shell only: switch to Home and open Settings › AI Model (rejects in standalone) */
-  openAiModelSettings(): Promise<void>
-  /** shell only: switch to Home and open Settings › Integrations (the skills list) */
-  openSkillsSettings(): Promise<void>
-  /** the skills the user installed into GenOffice (userData/skills) */
-  skillsList(): Promise<UserSkillEntry[]>
-  /** the body of one installed skill, by name — the main process resolves the path */
-  skillText(name: string): Promise<string>
-  /** Genspark login state (shell-registered ai:gsk-status) — gates generate_image with the cloud-tools toggle */
-  aiGskStatus(): Promise<GenSparkAccountStatus>
-  aiStream(request: AiStreamRequest): Promise<void>
-  aiStreamCancel(requestId: string): Promise<void>
-  onAiStream(handler: (chunk: AiStreamChunk) => void): () => void
-  /** Main-process web search (Serper/DuckDuckGo via the shared ai:web-search handler) */
-  webSearch(query: string, maxResults?: number): Promise<WebSearchResult>
-  /** Main-process image search (shared ai:image-search handler) */
-  imageSearch(query: string, maxResults?: number): Promise<ImageSearchResult>
-  /** Download an image URL in the main process (CORS-free, scheme/target validated) */
-  fetchImage(url: string): Promise<{ base64: string; mime: string } | null>
-  /** Genspark cloud image generation (markdown-owned channel, gsk login required) */
-  aiGenerateImage(op: { prompt: string; aspectRatio?: string }): Promise<{
-    url?: string
-    error?: string
-  }>
-}
-
-export interface UserSkillEntry {
-  name: string
-  description: string
-  relevant: boolean
 }

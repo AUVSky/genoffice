@@ -1,19 +1,5 @@
 /** app strings, zh: defines the key set every other locale shard must match. */
 export const zh = {
-  // ── Withholding cells from the model ──
-  redactMenuLabel: '把选中的内容对 AI 隐藏',
-  redactDialogDesc:
-    '选中的内容会留在文档和文件里，AI 读到的却是下面的标记。给它起个名字，AI 才知道它是什么。',
-  redactDialogScope:
-    '这只针对本应用的 AI。命令行、MCP 工具和无界面导出会直接读取文件，仍然看得到这些文字。',
-  redactDialogPlaceholder: '占位名称，例如：客户电话',
-  redactCancel: '取消',
-  redactInsert: '隐藏',
-  redactEnable: '选中文字后右键，即可对 AI 隐藏。',
-  redactNeedsSavedRow: '这一行还没存进文件。请先存盘，再隐藏其中的单元格。',
-  redactRecoveredFromNames:
-    '这个文件被别的软件改写过，隐藏记录的部件被丢掉了。已从工作簿里的名称把隐藏单元格找回来；存一次盘就能恢复完整记录。',
-
   appMergeWorkbooks: '合并工作簿',
   appMergeWorkbooksTip: '将其他 Excel 文件的工作表并入当前工作簿',
   appMergeWorkbooksPicking: '选择要合并的文件…',
@@ -156,13 +142,10 @@ export const zh = {
   appRefreshHintIn: '重算当前透视表',
   appRefreshHintOut: '选中透视区域后刷新',
   // App status bar / toast messages
-  appAttachmentReadFailed: '{name}: 读取失败',
   appTooManyImages: '图片最多随消息发送 {max} 张,多余的已忽略',
-  appAppliedRevision: '已应用（第 {revision} 版）— 不满意可撤销（⌘Z），⌘S 保存进文件。',
   appCannotReadImage: '无法读取图片文件。',
   appTableNotDeletable: '表格 "{name}" 不存在或不是本次会话创建的——文件原有表暂不能删除。',
   appImageNotLoaded: '图片没有加载成功: {path}',
-  appApplyFailed: '⚠️ 应用失败：{reason}',
   appPivotChartNeedsFile: '请先打开 XLSX 文件——数据透视图会写入文件。',
   appCursorNotInPivot: '光标不在数据透视表内——请先选中透视表输出区内的单元格。',
   appPivotDefNotLoaded: '透视表定义还没加载完(或解析失败),稍后再试。',
@@ -267,15 +250,7 @@ export const zh = {
   appSaveSecondCanceled: '第二段保存被取消——结构已保存，透视表/表格/命名区域还未写入。',
   appSavedTwoPhase: '已保存。',
   appSaveSecondFailed: '结构已保存，但第二段（透视表/表格/命名区域）失败：{reason}',
-  // AI session / status bar
-  appReadyInitial: '就绪——可使用本地确定性 AI 命令。',
-  appAiThinking: 'AI 思考中…',
-  appAiDone: 'AI 已完成',
-  appAiTurnLimit: '（已达单次请求的工具调用轮数上限，以上是基于已读取信息的回答，可能不完整。）',
-  appAiTruncatedNote: '（回复因长度限制被截断,内容可能不完整。）',
-  appAiStopped: '（已停止）',
-  appAiNoSummary: 'AI 已完成，没有生成总结。',
-  appAiNoAction: 'AI 没有执行任何操作，也没有给出回复。请重试或换个说法。',
+  appReadyInitial: '就绪。',
   appNewConversation: '已开始新对话。',
   // Streaming load / edit gating
   appPivotCellNoEdit: '该单元格属于数据透视表——暂不支持编辑。',
@@ -313,15 +288,8 @@ export const zh = {
   appDvListOptions: '列表：{items}',
   appDvListFromRange: '列表（来自区域 {range}）',
   appRuleBrokenRef: '引用已失效（#REF!），此规则永不生效',
-  appCellStreaming: '该单元格还在流式加载——稍后再试。',
-  appPreviewCreated: '预览已创建——应用前不会有任何改动。',
-  appPreviewCreatedDemo: '预览已创建。工作簿状态未改变。',
-  appPreviewFailed: '无法创建预览。',
   appApplyTxFailed: '无法应用该事务。',
   appTxCommitted: '事务已提交（第 {revision} 版）。',
-  appPreviewOtherWorkbook: '该预览属于另一个工作簿——请重新创建。',
-  appPreviewSheetGone: '预览的工作表已不存在——请重新创建预览。',
-  appWorkbookChangedSincePreview: '预览之后工作簿已发生变化——请重新创建预览。',
   appAppliedJournaled: '已应用——改动已记录，⌘S 保存进文件。',
   appUndoCommitted: '撤销已提交（第 {revision} 版）。',
   appUndoFailed: '无法撤销。',
@@ -553,8 +521,6 @@ export const zh = {
   appShowCommentsTitle: '固定/取消固定所选单元格的批注气泡',
   appStructuralShiftBlocked:
     '此工作表上有图表或表格锚定在受影响的行/列上,无法平移,结构改动没有保存。请撤销该改动(⌘Z)后重新保存。',
-  appAiChangesNotSaved: '已应用 AI 更改(未保存)。可用 ⌘Z 撤销;用 ⌘S 保存到文件。',
-  // Floating objects / chart editing
   appChartUpdated: '图表已更新。',
   appChartNotEditable: '该图表不可编辑。',
   appChartEditRecorded: '图表编辑已记录——⌘S 保存。',
@@ -633,7 +599,6 @@ export const zh = {
   appRibbonExpand: '展开功能区',
   appRibbonCompact: '紧凑功能区（仅图标）',
   appTabView: '视图',
-  appTabAi: 'AI',
   appTabChartDesign: '图表设计',
   // Title bar / status
   appAutoSave: '自动保存',
@@ -642,7 +607,6 @@ export const zh = {
   appExportPdfTitle: '导出为 PDF',
   appSaveTitle: '保存（⌘S）',
   appSaveAs: '另存为',
-  aiNameFile: '用 AI 命名…',
   appUndo: '撤销',
   appRedo: '重做',
   appUnsavedEditOne: '● {count} 处未保存的编辑',
@@ -652,9 +616,6 @@ export const zh = {
   appRevisionChip: '第 {revision} 版',
   appOpenWorkbookTitle: '打开工作簿（⌘O）',
   appOpenXlsx: '打开 XLSX',
-  appHideAi: '隐藏 AI',
-  appShowAi: '显示 AI',
-  // Chart text dialog
   appCategoryAxisTitle: '分类轴标题',
   appValueAxisTitle: '数值轴标题',
   appTitleText: '标题文字',
@@ -727,12 +688,6 @@ export const zh = {
   appFormatPaneDetail: '坐标轴、分类间距、分离',
   appGroupChartActions: '图表操作',
   appRemoveFromSheet: '从工作表中删除',
-  // AI Tab
-  appGroupAiAssistant: 'AI 助手',
-  appAiOpenPanelDetail: '侧栏对话',
-  appGroupAiStarters: '快速开始',
-  appAiStarterDetail: '发送到 AI 面板',
-  // Insert tab
   appGroupTables: '表格',
   appFromSelection: '基于当前选区',
   appEditPivotTable: '编辑数据透视表',
@@ -1238,10 +1193,7 @@ export const zh = {
   appGroupProofing: '校对',
   appWorkbookStatsLabel: '工作簿统计信息',
   appSheetsCellsFormulas: '工作表、单元格、公式',
-  appTranslate: '翻译',
   appGroupLanguage: '语言',
-  appTranslateTitle: '用 AI 翻译选区文本',
-  appTranslatePrompt: '把当前选中区域的文本翻译成{language},并把译文写回原单元格。',
   appNewCommentDetail: '添加或编辑',
   appDeleteLabel: '删除',
   appNoteAtSelection: '所选位置的注释',

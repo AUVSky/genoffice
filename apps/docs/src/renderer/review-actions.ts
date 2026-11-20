@@ -38,7 +38,7 @@ import { combineDocuments } from './editor/combine'
 import { blocksToPmDoc, pmDocOptions } from './editor/convert'
 import { pendingCommentPluginKey } from './editor/extensions'
 import type { InkAnnotation } from './editor/ink'
-import { renumber, type NoteKind } from './ai/note-ops'
+import { renumber, type NoteKind } from './doc-core/note-ops'
 import {
   TRACK_IGNORE,
   acceptAllRevisions,

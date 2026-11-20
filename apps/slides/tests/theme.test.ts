@@ -142,7 +142,7 @@ describe('apply-theme round trip (bake → surgical patch → save → reopen an
       minorFont: graphite.minorFont!,
     }
 
-    // Shape with an explicit dark-green fill + explicit white background (typical AI-generated deck palette)
+    // Shape with an explicit dark-green fill + explicit white background (typical dark deck palette)
     addElement(opened.deck.slides[0]!, {
       kind: 'rect',
       offset: { x: 914400, y: 914400, cx: 1828800, cy: 914400 },

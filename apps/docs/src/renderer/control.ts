@@ -1,5 +1,5 @@
 import type { Editor } from '@tiptap/core'
-import { navigateToBlock } from './ai/doc-nav'
+import { navigateToBlock } from './doc-core/doc-nav'
 
 /** Request/reply the shell relays from `genoffice open --block` and `genoffice selection`. */
 export type ControlRequest =

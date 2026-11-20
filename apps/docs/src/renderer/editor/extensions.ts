@@ -249,7 +249,6 @@ import {
   TextStyleMark,
   UnderlineMark,
 } from './marks'
-import { DocRedaction } from './redaction'
 import {
   DropCapExtension,
   MoveRevisionExtension,
@@ -280,7 +279,6 @@ import type { SeqRenumber } from './field-results'
 import { TableFormulaExtension } from './table-formula'
 import { MergePreviewExtension } from './merge-preview'
 import { FormattingMarksExtension } from './formatting-marks'
-import { AiQueueAnchorsExtension } from './ai-queue-anchors'
 import { CheckboxToggleExtension } from './checkbox-toggle'
 import { DoubleClickWordExtension } from './dblclick-word'
 import { OutlineViewExtension } from './outline-view'
@@ -8122,7 +8120,6 @@ export const editorExtensions = [
   CtrlCheckboxMark,
   RprChangeMark,
   TextStyleMark,
-  DocRedaction,
   FormatOffClearExtension,
   CommentMark,
   InsMark,
@@ -8153,7 +8150,6 @@ export const editorExtensions = [
   FloatVShiftsExtension,
   FloatTableSpacingExtension,
   InactiveSelectionExtension,
-  AiQueueAnchorsExtension,
   CheckboxToggleExtension,
   DoubleClickWordExtension,
   OutlineViewExtension,

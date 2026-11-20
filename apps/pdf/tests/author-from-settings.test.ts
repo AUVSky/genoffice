@@ -127,7 +127,7 @@ describe('the PDF annotation author', () => {
     expect(seen).toEqual(['Grace Hopper'])
   })
 
-  it('is written on the annotations a save adds, while AI Assistant notes keep their own', async () => {
+  it('is written on the annotations a save adds, while notes with their own author keep it', async () => {
     const source = await openWithSettings({ authorName: 'Ada Lovelace' })
     const author = await api().getUsername()
     const result: SavePdfResult = await api().save({
@@ -157,7 +157,7 @@ describe('the PDF annotation author', () => {
           color: [1, 1, 0],
           at: [80, 700],
           contents: 'theirs',
-          author: 'AI Assistant',
+          author: 'Guest Author',
         },
       ],
       formValues: [],
@@ -167,7 +167,7 @@ describe('the PDF annotation author', () => {
     expect(Object.fromEntries(await savedAuthors(source))).toEqual({
       Highlight: ['Ada Lovelace'],
       Square: ['Ada Lovelace'],
-      Text: ['Ada Lovelace', 'AI Assistant'],
+      Text: ['Ada Lovelace', 'Guest Author'],
     })
   })
 })

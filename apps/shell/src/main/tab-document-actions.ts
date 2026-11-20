@@ -16,8 +16,6 @@ export interface TabDocumentActionDeps {
   printPdf(contents: WebContents): void
   saveMarkdown(contents: WebContents, mode: 'save' | 'saveAs'): void
   printMarkdown(contents: WebContents): void
-  saveHtml(contents: WebContents, mode: 'save' | 'saveAs'): void
-  printHtml(contents: WebContents): void
 }
 
 /** Resolve the clicked tab, then use its editor's existing save and print workflows. */
@@ -58,10 +56,6 @@ export function runTabDocumentAction(
     case 'markdown':
       if (action === 'print') deps.printMarkdown(contents)
       else deps.saveMarkdown(contents, action)
-      break
-    case 'html':
-      if (action === 'print') deps.printHtml(contents)
-      else deps.saveHtml(contents, action)
       break
   }
 }

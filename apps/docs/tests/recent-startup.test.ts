@@ -87,7 +87,7 @@ it('builds the startup Docs menu without probing recent paths', () => {
 })
 
 it('greys out the host-built items of a command reported unavailable', () => {
-  const f = fixture(['name-with-ai', 'zoom-set', 'save'])
+  const f = fixture(['zoom-set', 'save'])
   const node = source.statements.find(
     (n) => ts.isFunctionDeclaration(n) && n.name?.text === 'buildDocsMenu',
   )!
@@ -97,7 +97,6 @@ it('greys out the host-built items of a command reported unavailable', () => {
   const flat = (items: Item[]): Item[] => items.flatMap((i) => [i, ...flat(i.submenu ?? [])])
   const items = flat(f.installMenu.mock.calls[0][0] as Item[])
   const of = (id: string) => items.filter((i) => i.id === `docs-cmd:${id}`)
-  expect(of('name-with-ai').map((i) => i.enabled)).toEqual([false])
   expect(of('zoom-set')).toHaveLength(9)
   expect(of('zoom-set').every((i) => i.enabled === false)).toBe(true)
   expect(of('save').map((i) => i.enabled)).toEqual([false])

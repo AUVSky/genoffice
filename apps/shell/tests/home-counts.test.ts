@@ -156,24 +156,16 @@ describe('recent query ext normalization', () => {
     expect(normalizeRecentQuery({ offset: 'abc' }).offset).toBe(0)
   })
 
-  it('shares the sheets/html families with the starred view (same helper)', async () => {
+  it('shares the sheets family with the starred view (same helper)', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'shell-counts-'))
     tempDirs.push(dir)
-    const htmPath = join(dir, 'page.htm')
-    const htmlPath = join(dir, 'page.html')
     const legacyPath = join(dir, 'legacy.xls')
-    writeFileSync(htmPath, 'html')
-    writeFileSync(htmlPath, 'html')
     writeFileSync(legacyPath, 'sheet')
     // pageRecentPaths is the recents helper; starred now calls the same
-    // matchesExtFamily, so assert the family includes both spellings
-    expect(
-      (await pageRecentPaths([htmPath, legacyPath], { ext: 'html', limit: 50 }, new Set())).total,
-    ).toBe(1)
-    expect(
-      (await pageRecentPaths([htmPath, legacyPath], { ext: 'xlsx', limit: 50 }, new Set())).total,
-    ).toBe(1)
-    expect((await pageRecentPaths([htmlPath], { ext: 'htm', limit: 50 }, new Set())).total).toBe(0)
+    // matchesExtFamily, so assert the family includes the legacy spelling
+    expect((await pageRecentPaths([legacyPath], { ext: 'xlsx', limit: 50 }, new Set())).total).toBe(
+      1,
+    )
   })
 })
 

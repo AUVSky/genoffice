@@ -1,16 +1,6 @@
 import type { zh } from './zh'
 
 export const it = {
-  redactMenuLabel: 'Nascondi la selezione all’IA',
-  redactDialogDesc:
-    'Il contenuto selezionato resta nel documento e nel file; il modello vede solo il segnaposto. Dai un nome perché sappia cosa rappresenta.',
-  redactDialogScope:
-    'Nascondere vale solo per l’IA di questa app. La CLI, gli strumenti MCP e l’esportazione senza interfaccia leggono direttamente il file e vedono comunque queste parole.',
-  redactDialogPlaceholder: 'Nome del segnaposto, es. telefono del cliente',
-  redactCancel: 'Annulla',
-  redactInsert: 'Nascondi',
-  redactEnable: 'Clic destro su una selezione per nasconderla al modello.',
-
   appPhPromptTitle: 'Fai clic per aggiungere un titolo',
   appPhPromptSubtitle: 'Fai clic per aggiungere un sottotitolo',
   appPhPromptBody: 'Fai clic per aggiungere del testo',
@@ -278,8 +268,6 @@ export const it = {
   appNotesPlaceholder: 'Fai clic per aggiungere le note del relatore (salvate nel file .pptx)',
   appNotesShow: 'Mostra note',
   appNotesHide: 'Nascondi note',
-  appAiRailExpand: 'Espandi assistente IA',
-  appAiRailText: 'IA',
   appStatusBarSlide: 'Diapositiva {current} di {total}',
   appStatusBarReady: 'Pronto',
   appMediaCloseTitle: 'Chiudi (Esc)',
@@ -296,15 +284,7 @@ export const it = {
   appStatusRecordSaved: 'Commento salvato in {count} diapositive (riprodotto anche da PowerPoint)',
   appStatusRecordFailed: 'Impossibile salvare la registrazione',
   appStatusNarrationCleared: 'Commento cancellato',
-  appSettingsTitle: 'Impostazioni IA',
-  appSettingsAccount: 'Account Genspark',
   appSettingsChecking: 'Verifica in corso…',
-  appSettingsLoggedIn: 'Accesso effettuato',
-  appSettingsLoggedInEmail: 'Accesso effettuato: {email}',
-  appSettingsLoggedOut:
-    'Accesso non effettuato (le funzionalità IA richiedono un account Genspark)',
-  appSettingsLoginPending: "In attesa dell'accesso dal browser…",
-  appSettingsLogin: 'Accedi a Genspark',
   appSettingsModel: 'Modello',
   appSettingsCancel: 'Annulla',
   appSettingsSave: 'Salva',
