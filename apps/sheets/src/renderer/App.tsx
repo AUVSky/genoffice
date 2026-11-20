@@ -3348,7 +3348,7 @@ export function App({
 
   async function openLazyWorkbook(
     opened: WorkbookFile,
-    opts?: { onInitialRangeLoaded?: () => void },
+    opts?: { continueChat?: boolean; onInitialRangeLoaded?: () => void },
   ): Promise<boolean> {
     if (!(await commitActiveEditor())) return false
     await untilCellFontsLoaded(registerCellFontAliases(workbookFontFamilies(opened)))
@@ -3533,7 +3533,8 @@ export function App({
     loadWorkbookSkeleton(univerRef.current, selected)
     applyWorkbookNotes(univerRef.current, selected)
     threadStore.load(selected)
-    threadPane.close()
+    // a save reopens the same workbook: the user goes on with the comment they were on
+    if (!opts?.continueChat) threadPane.close()
     applyDefinedNames(univerRef.current, selected, state)
     const runtime = univerRef.current
     if (runtime) {
