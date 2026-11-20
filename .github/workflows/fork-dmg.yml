@@ -6,18 +6,17 @@ name: Fork macOS DMG
 on:
   workflow_dispatch:
 
-concurrency:
-  group: fork-dmg-${{ github.ref }}
-  cancel-in-progress: true
-
 permissions:
   contents: read
 
 jobs:
   dmg:
-    runs-on: macos-14
+    runs-on: macos-latest
     timeout-minutes: 60
     steps:
+      - name: Runner
+        run: uname -a && sw_vers
+
       - name: Checkout
         uses: actions/checkout@v4
 
