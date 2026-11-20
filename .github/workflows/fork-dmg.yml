@@ -1,0 +1,61 @@
+name: Fork macOS DMG
+
+# Builds the offline fork's arm64 dmg on GitHub's Apple Silicon runner.
+# No signing secrets are used: the bundle gets the same ad-hoc signature as
+# the local `npm run dist:mac` output.
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: fork-dmg-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  dmg:
+    runs-on: macos-14
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Setup Rust
+        # Required by the Sheets xlsx sidecar and the macOS OCR helper.
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/sheets/native/xlsx-engine
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate fixtures
+        run: |
+          npm run fixtures
+          npm run fixtures -w @genoffice/sheets
+
+      - name: Build dmg
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: npm run dist:mac
+
+      - name: Upload dmg
+        uses: actions/upload-artifact@v4
+        with:
+          name: GenOffice-arm64-dmg
+          path: apps/shell/release/*.dmg
+          if-no-files-found: error
+          retention-days: 14
