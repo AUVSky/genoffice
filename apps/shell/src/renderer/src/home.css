@@ -409,6 +409,16 @@ body.vib .home {
   font-weight: 500;
 }
 
+/* one shared measure for the quick-create row and the recents below it:
+   six 200px cards plus five 10px gaps. Both sections center in the content
+   area at the same width, so their left and right edges line up. */
+.quick-start,
+.recents {
+  width: 100%;
+  max-width: 1250px;
+  margin-inline: auto;
+}
+
 .quick-cards {
   /* auto-fit grid: the tiles keep a readable width and the whole row is
      centered; they wrap into further rows only when the window is narrow */
@@ -517,7 +527,6 @@ body.vib .home {
 .recents {
   margin-top: 24px;
 }
-
 /* sticks to the top of the .content scrollport while the list scrolls under;
    the gap below is padding (not margin) so the background paints over rows.
    z-index stays under the sort dropdown (z-index: 5). */
