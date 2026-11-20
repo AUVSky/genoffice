@@ -18,12 +18,23 @@ export function AppFrame() {
     return window.aiOfficeTabs.onChanged(applyTabs)
   }, [])
 
+  // The editor is a WebContentsView painted above this document, so the
+  // Settings modal would be behind it. Hide the active view while Settings is
+  // open and bring it back on close; Home also stays visible behind the modal
+  // instead of leaving an empty content area.
+  useEffect(() => {
+    void window.aiOfficeTabs.setContentVisible(!settingsOpen)
+  }, [settingsOpen])
+
   return (
     <div className="app-frame">
       <TabBar onOpenSettings={() => setSettingsOpen(true)} />
       {/* docs/sheets tabs render as WebContentsView children of this window, positioned
        * by the main process to cover this area — only Home paints its own content here. */}
-      <div className="app-frame-content" style={{ visibility: homeActive ? 'visible' : 'hidden' }}>
+      <div
+        className="app-frame-content"
+        style={{ visibility: homeActive || settingsOpen ? 'visible' : 'hidden' }}
+      >
         <Home />
       </div>
       {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}

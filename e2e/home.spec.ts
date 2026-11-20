@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { launchShell, closeAndSaveVideo, screenshotPath } from './helpers'
+import { launchShell, closeAndSaveVideo, screenshotPath, waitForPageWithUrl } from './helpers'
 
 test.describe('home screen', () => {
   test('shows hero, quick-create cards and tab bar', async () => {
@@ -39,4 +39,36 @@ test.describe('home screen', () => {
       await closeAndSaveVideo(launched, 'home-zh-cn')
     }
   })
+
+  test('settings opens over an open document', async () => {
+    const launched = await launchShell({ onboardingSeen: true, videoDir: 'settings-over-doc' })
+    const { app, page } = launched
+    try {
+      await page.locator('.quick-card', { hasText: 'Word' }).first().click()
+      const docs = await waitForPageWithUrl(app, '://docs/')
+      await docs.waitForSelector('[contenteditable="true"]')
+
+      await page.locator('.tab-settings-btn').click()
+      await expect(page.locator('[role="dialog"]')).toBeVisible()
+      // the editor view is a WebContentsView painted above shell DOM; it must
+      // step aside while the modal is up, then come back on close
+      await expect.poll(() => editorViewVisible(app)).toBe(false)
+      await page.keyboard.press('Escape')
+      await expect(page.locator('[role="dialog"]')).toHaveCount(0)
+      await expect.poll(() => editorViewVisible(app)).toBe(true)
+    } finally {
+      await closeAndSaveVideo(launched, 'settings-over-doc')
+    }
+  })
 })
+
+function editorViewVisible(app: Parameters<typeof waitForPageWithUrl>[0]): Promise<boolean> {
+  return app.evaluate(({ BrowserWindow }) => {
+    const win = BrowserWindow.getAllWindows()[0]
+    const view = (win?.contentView?.children ?? []).find((child) => {
+      const url = child.webContents?.getURL?.() ?? ''
+      return url.includes('://docs/')
+    })
+    return view?.getVisible?.() ?? false
+  })
+}

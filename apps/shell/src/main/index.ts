@@ -5200,6 +5200,9 @@ function registerTabsIpc(): void {
     if (typeof id !== 'string' || !id) return
     return tabManager?.closeTab(id)
   })
+  ipcMain.handle(TABS_CHANNELS.setContentVisible, (_event, visible: unknown) => {
+    if (typeof visible === 'boolean') tabManager?.setContentVisible(visible)
+  })
   ipcMain.handle(TABS_CHANNELS.reorder, (_event, id: string, toIndex: number) => {
     if (typeof id === 'string' && Number.isInteger(toIndex)) tabManager?.reorderTab(id, toIndex)
   })
@@ -6050,9 +6053,9 @@ function installBackToHomeItems(): void {
   setSlidesExtraFileMenuItems([backToHomeItem])
 }
 
-/** The Settings view lives in the Home tab, so every app's menu points here:
- *  ⌘, lands on it from anywhere in the suite. The window comes back first if
- *  it was hidden or minimized, and asking again re-opens the same panel —
+/** The Settings modal is shell DOM above the tab content: ⌘, opens it from
+ *  anywhere in the suite without switching tabs. The window comes back first
+ *  if it was hidden or minimized, and asking again re-opens the same panel —
  *  the renderer keeps one. */
 function openSettingsView(): void {
   const win = shellWindow ?? BrowserWindow.getFocusedWindow()
@@ -6060,7 +6063,6 @@ function openSettingsView(): void {
   if (win.isMinimized()) win.restore()
   win.show()
   win.focus()
-  tabManager?.openHomeTab()
   win.webContents.send(HOME_CHANNELS.openSettings, { section: 'general' })
 }
 

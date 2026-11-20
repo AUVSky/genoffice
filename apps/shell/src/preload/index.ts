@@ -341,6 +341,9 @@ const tabsApi: TabsApi = {
   async close(id) {
     await ipcRenderer.invoke(TABS_CHANNELS.close, id)
   },
+  async setContentVisible(visible) {
+    await ipcRenderer.invoke(TABS_CHANNELS.setContentVisible, visible)
+  },
   async showNewMenu(x, y) {
     await ipcRenderer.invoke(TABS_CHANNELS.showNewMenu, x, y)
   },

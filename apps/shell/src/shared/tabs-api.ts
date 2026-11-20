@@ -38,6 +38,12 @@ export interface TabsApi {
   activate(id: string): Promise<void>
   close(id: string): Promise<void>
   /**
+   * show or hide the active editor view. The shell's Settings modal is DOM and
+   * the editor is a WebContentsView painted above it, so the view steps aside
+   * while Settings is open and returns when it closes.
+   */
+  setContentVisible(visible: boolean): Promise<void>
+  /**
    * pop up the native "+" new-file menu (new doc/sheet/slides, open local
    * file) at (x, y) in window CSS coordinates. Native because the content area
    * below the strip is a WebContentsView that would cover any DOM dropdown.
@@ -103,6 +109,7 @@ export const TABS_CHANNELS = {
   list: 'tabs:list',
   activate: 'tabs:activate',
   close: 'tabs:close',
+  setContentVisible: 'tabs:set-content-visible',
   showNewMenu: 'tabs:show-new-menu',
   showTabMenu: 'tabs:show-tab-menu',
   detach: 'tabs:detach',

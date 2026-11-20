@@ -90,6 +90,8 @@ export class TabManager {
     { id: HOME_ID, kind: 'home', view: null, title: 'GenOffice', lastActiveAt: Date.now() },
   ]
   private activeId: string = HOME_ID
+  /** false while the shell's Settings modal covers the content area */
+  private contentVisible = true
   private nextId = 1
   /** tab whose page entered HTML fullscreen (e.g. slides slideshow) — its view covers the tab strip */
   private htmlFullScreenId: string | null = null
@@ -464,6 +466,13 @@ export class TabManager {
     return id
   }
 
+  /** Settings is shell DOM, and the editor view paints above it: step aside. */
+  setContentVisible(visible: boolean): void {
+    if (this.contentVisible === visible) return
+    this.contentVisible = visible
+    for (const t of this.tabs) t.view?.setVisible(visible && t.id === this.activeId)
+  }
+
   activateTab(id: string): void {
     const target = this.tabs.find((t) => t.id === id)
     if (!target) return
@@ -472,7 +481,7 @@ export class TabManager {
     const previous = this.tabs.find((t) => t.id === this.activeId)
     if (previous) previous.lastActiveAt = now
     target.lastActiveAt = now
-    for (const t of this.tabs) t.view?.setVisible(t.id === id)
+    for (const t of this.tabs) t.view?.setVisible(this.contentVisible && t.id === id)
     const bounds = this.contentBounds()
     // a bring-forward while the window is minimized or mid-restore must not
     // zero-size the view being activated (same guard as layout())
