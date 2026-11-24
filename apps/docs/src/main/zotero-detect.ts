@@ -35,7 +35,9 @@ function zoteroListening(host: string, port: number): Promise<boolean> {
       socket.destroy()
       resolve(up)
     }
-    socket.setTimeout(500, () => done(false))
+    // loopback connect is immediate in normal use; the generous timeout keeps
+    // the probe from losing to a loaded CI box scheduling the test server
+    socket.setTimeout(10_000, () => done(false))
     socket.once('connect', () => done(true))
     socket.once('error', () => done(false))
   })

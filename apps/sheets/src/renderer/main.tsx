@@ -7,6 +7,8 @@ import '@genoffice/ui/screentip.css'
 import '@genoffice/ui/color-picker.css'
 import '@genoffice/ui/dropdown.css'
 import '@genoffice/ui/ribbon-collapse.css'
+import '@genoffice/ui/markdown.css'
+import '@genoffice/ui/image-viewer.css'
 import '@univerjs/preset-sheets-core/lib/index.css'
 
 import { App } from './App'
