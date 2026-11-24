@@ -246,6 +246,11 @@ export interface HomeApi {
   /** whether the documents open at the last close reopen at launch (default off) */
   getRestoreLastSession(): Promise<boolean>
   setRestoreLastSession(on: boolean): Promise<void>
+  /** folders excluded from recents, search and session restore (#2844) */
+  getExcludedFolders(): Promise<string[]>
+  setExcludedFolders(paths: string[]): Promise<string[]>
+  /** a directory picker for the exclusion editor; no side effects */
+  pickExcludedFolder(): Promise<string | null>
   /** name on comments and tracked changes; `value` is the stored override ('' = use `fallback`, the OS account) */
   getAuthorName(): Promise<AuthorNameSetting>
   getLegacyImportPrompt(): Promise<boolean>
@@ -388,6 +393,9 @@ export const HOME_CHANNELS = {
   setTabSleepEnabled: 'home:set-tab-sleep-enabled',
   getRestoreLastSession: 'home:get-restore-last-session',
   setRestoreLastSession: 'home:set-restore-last-session',
+  getExcludedFolders: 'home:get-excluded-folders',
+  setExcludedFolders: 'home:set-excluded-folders',
+  pickExcludedFolder: 'home:pick-excluded-folder',
   getAuthorName: 'home:get-author-name',
   getLegacyImportPrompt: 'home:get-legacy-import-prompt',
   setLegacyImportPrompt: 'home:set-legacy-import-prompt',
