@@ -1,6 +1,6 @@
 # Quick start: the interface and the basics
 
-GenOffice runs entirely on your machine. One window holds five editors — Word (`.docx`), Excel (`.xlsx`), PowerPoint (`.pptx`), PDF and Markdown. The files are real Office files, interchangeable with Word, Excel and PowerPoint. No network is used.
+Office runs entirely on your machine. One window holds five editors — Word (`.docx`), Excel (`.xlsx`), PowerPoint (`.pptx`), PDF and Markdown. The files are real Office files, interchangeable with Word, Excel and PowerPoint. No network is used.
 
 ## The start screen
 

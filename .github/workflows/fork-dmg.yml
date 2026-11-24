@@ -54,7 +54,7 @@ jobs:
       - name: Upload dmg
         uses: actions/upload-artifact@v4
         with:
-          name: GenOffice-arm64-dmg
+          name: Office-arm64-dmg
           path: apps/shell/release/*.dmg
           if-no-files-found: error
           retention-days: 14

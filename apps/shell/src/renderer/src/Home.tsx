@@ -788,8 +788,11 @@ export function Home() {
   const [fileSortMenuOpen, setFileSortMenuOpen] = useState(false)
   const fileSortRef = useRef<HTMLDivElement>(null)
   const [rowMenu, setRowMenu] = useState<string | null>(null)
+  // right-click: place the same row menu at the pointer instead of under the … button
+  const [rowMenuAt, setRowMenuAt] = useState<{ x: number; y: number } | null>(null)
   // actions cell (… button + menu) of the row whose menu is open — the dismissal guard root
   const rowMenuWrapRef = useRef<HTMLSpanElement>(null)
+  const rowMenuPopRef = useRef<HTMLDivElement>(null)
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set())
   const [renaming, setRenaming] = useState<{ path: string; value: string } | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<string[] | null>(null)
@@ -1050,6 +1053,31 @@ export function Home() {
   useDismissablePopover(rowMenu !== null, () => setRowMenu(null), {
     inside: () => [rowMenuWrapRef.current],
   })
+
+  // Keep a pointer-opened row menu inside the viewport (the anchored … menu is
+  // already handled by CSS position-try rules).
+  useLayoutEffect(() => {
+    if (!rowMenuAt || !rowMenu) return
+    const el = rowMenuPopRef.current
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    const left = Math.max(8, Math.min(rowMenuAt.x, window.innerWidth - rect.width - 8))
+    const top = Math.max(8, Math.min(rowMenuAt.y, window.innerHeight - rect.height - 8))
+    el.style.left = `${left}px`
+    el.style.top = `${top}px`
+  }, [rowMenu, rowMenuAt])
+
+  // A pointer-opened menu is not anchored to its row, so list scrolling must
+  // dismiss it rather than leave it floating over different files.
+  useEffect(() => {
+    if (!rowMenuAt) return
+    const close = (event: Event) => {
+      if (rowMenuPopRef.current?.contains(event.target as Node)) return
+      setRowMenu(null)
+    }
+    window.addEventListener('scroll', close, true)
+    return () => window.removeEventListener('scroll', close, true)
+  }, [rowMenuAt])
   useDismissablePopover(folderMenu !== null, () => setFolderMenu(null), {
     inside: () => [folderMenuWrapRef.current],
   })
@@ -1376,6 +1404,15 @@ export function Home() {
           tabIndex={0}
           draggable={!isRenaming && !entry.missing}
           onDragStart={(e) => onRowDragStart(e, dragPathsFor(entry.path, context))}
+          onContextMenu={(event) => {
+            // Keep the rename field's native editing menu; everywhere else the
+            // row menu is the browser context menu, opened where the pointer is.
+            if (isRenaming) return
+            event.preventDefault()
+            event.stopPropagation()
+            setRowMenu(entry.path)
+            setRowMenuAt({ x: event.clientX, y: event.clientY })
+          }}
           onClick={() => {
             if (isRenaming) return
             if (entry.missing) setConfirmMissing(entry)
@@ -1453,7 +1490,16 @@ export function Home() {
               className="more-btn"
               aria-label={t('moreActions')}
               aria-expanded={rowMenu === entry.path}
-              onClick={() => setRowMenu(rowMenu === entry.path ? null : entry.path)}
+              onClick={() => {
+                // a menu opened at the pointer moves back under the … button;
+                // pressing the button again on an anchored menu closes it
+                if (rowMenu === entry.path && rowMenuAt === null) {
+                  setRowMenu(null)
+                  return
+                }
+                setRowMenu(entry.path)
+                setRowMenuAt(null)
+              }}
             >
               <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
                 <circle cx="3.2" cy="8" r="1.4" fill="currentColor" />
@@ -1462,7 +1508,12 @@ export function Home() {
               </svg>
             </button>
             {rowMenu === entry.path && (
-              <div className="row-menu" role="menu">
+              <div
+                className={`row-menu${rowMenuAt ? ' row-menu-at-pointer' : ''}`}
+                role="menu"
+                ref={rowMenuAt ? rowMenuPopRef : undefined}
+                style={rowMenuAt ? { left: rowMenuAt.x, top: rowMenuAt.y } : undefined}
+              >
                 <button
                   role="menuitem"
                   onClick={() => {

@@ -1,0 +1,73 @@
+name: Fork Windows Installer
+
+# Builds the offline fork's x64 NSIS installer on GitHub's Windows runner.
+# No signing secrets are used: the exe, installer and native helpers stay
+# unsigned, exactly like a local `npm run dist:win`.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  nsis:
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - name: Runner
+        run: node --version && npm --version && rustc --version
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Setup Rust
+        # The Sheets xlsx sidecar and the Windows clipboard helper.
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: x86_64-pc-windows-msvc
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            apps/sheets/native/xlsx-engine
+            apps/sheets/native/win-clipboard-helper
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Add Windows optional binaries
+        shell: bash
+        # The fork's lockfile is generated on macOS. npm's optional-dependency
+        # bug leaves Rollup's and esbuild's win32-x64 packages out of a Windows
+        # install, so pin them to the versions already in the tree.
+        run: |
+          npm install --no-save --no-audit --no-fund \
+            "@rollup/rollup-win32-x64-msvc@$(node -p "require('rollup/package.json').version")" \
+            "@esbuild/win32-x64@$(node -p "require('esbuild/package.json').version")"
+
+      - name: Generate fixtures
+        run: |
+          npm run fixtures
+          npm run fixtures -w @genoffice/sheets
+
+      - name: Build installer
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: npm run dist:win
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: Office-x64-installer
+          path: apps/shell/release/*.exe
+          if-no-files-found: error
+          retention-days: 14

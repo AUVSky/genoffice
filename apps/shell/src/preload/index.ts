@@ -292,6 +292,12 @@ const homeApi: HomeApi = {
     const result: unknown = await ipcRenderer.invoke(HOME_CHANNELS.getAppVersion)
     return typeof result === 'string' ? result : ''
   },
+  async setWindowControlsDisabled(disabled) {
+    await ipcRenderer.invoke(HOME_CHANNELS.setWindowControlsDisabled, disabled)
+  },
+  async uninstallApp() {
+    await ipcRenderer.invoke(HOME_CHANNELS.uninstallApp)
+  },
   onOpenSettings(handler) {
     const listener = (_event: IpcRendererEvent, target: { section: string }) => handler(target)
     ipcRenderer.on(HOME_CHANNELS.openSettings, listener)

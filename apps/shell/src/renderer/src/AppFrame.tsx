@@ -22,8 +22,15 @@ export function AppFrame() {
   // Settings modal would be behind it. Hide the active view while Settings is
   // open and bring it back on close; Home also stays visible behind the modal
   // instead of leaving an empty content area.
+  //
+  // The native caption buttons sit above this document too: dim them with the
+  // backdrop and take them out of service for as long as Settings is open.
   useEffect(() => {
     void window.aiOfficeTabs.setContentVisible(!settingsOpen)
+    void window.aiOffice.setWindowControlsDisabled(settingsOpen).catch(() => {})
+    return () => {
+      if (settingsOpen) void window.aiOffice.setWindowControlsDisabled(false).catch(() => {})
+    }
   }, [settingsOpen])
 
   return (

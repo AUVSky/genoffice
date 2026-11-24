@@ -94,7 +94,8 @@ import {
   writeAppSettingThen,
 } from './app-settings'
 import { OPEN_DOCUMENTS_FILE, clearOpenDocuments, publishOpenDocuments } from './open-documents'
-import { installOfflineGuards } from './offline'
+import { installOfflineCommandLineSwitches, installOfflineGuards } from './offline'
+import { requestUninstall } from './uninstall'
 import {
   LAST_SESSION_DOCUMENTS_KEY,
   RESTORE_LAST_SESSION_KEY,
@@ -289,7 +290,7 @@ import {
 } from './detached-windows'
 
 /**
- * GenOffice unified shell: ONE Electron app, ONE BrowserWindow, hosting the
+ * Office unified shell: ONE Electron app, ONE BrowserWindow, hosting the
  * docs and sheets modules as WebContentsView tabs behind a WPS-style tab
  * strip. The shell owns the lifecycle — single-instance lock, file-
  * association routing by extension, and per-active-tab menu switching.
@@ -310,7 +311,7 @@ for (const stream of [process.stdout, process.stderr]) {
 
 // ANY unpacked run (`npm run shell`, `npm run dev`, `npx electron .`) must not
 // share the installed app's userData or single-instance lock — otherwise a dev
-// run silently quits and forwards its argv to the running installed GenOffice.
+// run silently quits and forwards its argv to the running installed Office.
 // GENOFFICE_USER_DATA: test drivers point this at a scratch dir so an
 // automated instance can run alongside the dev or installed instance
 // (separate lock). Honoured in packaged builds too: the release smoke test
@@ -320,21 +321,25 @@ if (process.env.GENOFFICE_USER_DATA) {
 } else if (!app.isPackaged) {
   // The dev profile used to live in "GenOffice Dev"; the space breaks
   // unquoted shell expansions, rsync targets and .desktop Exec= lines, and
-  // XDG config entries are single tokens (genoffice#1817). "GenOffice-Dev" keeps the
-  // family naming of the packaged profile ("GenOffice"). The old directory
+  // XDG config entries are single tokens (genoffice#1817). "Office-Dev" keeps the
+  // family naming of the packaged profile ("Office"). A previous dev directory
   // moves once — it sits on the same volume as appData, so the rename is
   // atomic, and a concurrent dev instance keeps its open file handles.
   const appData = app.getPath('appData')
-  const devDir = join(appData, 'GenOffice-Dev')
-  const oldDevDir = join(appData, 'GenOffice Dev')
+  const devDir = join(appData, 'Office-Dev')
+  const legacyDevDirs = [join(appData, 'GenOffice-Dev'), join(appData, 'GenOffice Dev')]
   let userData = devDir
-  if (existsSync(oldDevDir) && !existsSync(devDir)) {
-    try {
-      renameSync(oldDevDir, devDir)
-    } catch {
-      // another dev instance holds the directory: keep using the old one so
-      // the profile is not lost and the move is retried on the next launch
-      userData = oldDevDir
+  if (!existsSync(devDir)) {
+    for (const oldDevDir of legacyDevDirs) {
+      if (!existsSync(oldDevDir)) continue
+      try {
+        renameSync(oldDevDir, devDir)
+      } catch {
+        // another dev instance holds the directory: keep using the old one so
+        // the profile is not lost and the move is retried on the next launch
+        userData = oldDevDir
+      }
+      break
     }
   }
   app.setPath('userData', userData)
@@ -352,12 +357,19 @@ if (headlessArgv.kind !== 'none') {
   app.dock?.hide()
 }
 
-// The product rename from "AI Office" to GenOffice changed the userData path; migrate old user data once
+// Product renames changed the userData path (AI Office → GenOffice → Office);
+// copy the newest legacy profile once while the new one is still empty.
 if (app.isPackaged) {
-  const oldDir = join(app.getPath('appData'), 'AI Office')
   const newDir = app.getPath('userData')
   const newEmpty = !existsSync(newDir) || readdirSync(newDir).length === 0
-  if (newEmpty && existsSync(oldDir)) cpSync(oldDir, newDir, { recursive: true })
+  if (newEmpty) {
+    for (const legacy of ['GenOffice', 'AI Office']) {
+      const oldDir = join(app.getPath('appData'), legacy)
+      if (!existsSync(oldDir)) continue
+      cpSync(oldDir, newDir, { recursive: true })
+      break
+    }
+  }
 }
 
 // module build outputs: packaged builds carry them as extraResources
@@ -417,6 +429,9 @@ configureMarkdownRuntime({
 // same file when they pick up i18n later. GENOFFICE_LANG overrides for tests.
 
 const APP_SETTINGS_PATH = () => join(app.getPath('userData'), 'app-settings.json')
+// Before the app is ready: Chromium reads these switches once at startup.
+installOfflineCommandLineSwitches()
+
 const OPEN_DOCUMENTS_PATH = () => join(app.getPath('userData'), OPEN_DOCUMENTS_FILE)
 /** only the instance holding the single-instance lock may write or remove the registry */
 let ownsOpenDocumentsRegistry = false
@@ -3900,12 +3915,56 @@ function installUiScale(): void {
   })
 }
 
+/** settings (or another full-window modal) owns the title bar while it is open */
+let windowControlsDisabled = false
+let windowControlState: {
+  minimizable: boolean
+  maximizable: boolean
+  closable: boolean
+} | null = null
+
 function refreshTitleBarOverlay(): void {
   if (process.platform === 'darwin' || !shellWindow || shellWindow.isDestroyed()) return
-  shellWindow.setTitleBarOverlay(tabStripOverlay(nativeTheme.shouldUseDarkColors, currentUiScale))
+  shellWindow.setTitleBarOverlay(
+    tabStripOverlay(nativeTheme.shouldUseDarkColors, currentUiScale, windowControlsDisabled),
+  )
+}
+
+/**
+ * The native caption buttons are painted above the renderer, so the settings
+ * backdrop cannot cover them. While a full-window modal is open, blend the
+ * overlay with that backdrop and take the three buttons out of service; put
+ * back the previous states and the normal strip colours on close.
+ */
+function setWindowControlsDisabled(disabled: boolean): void {
+  const win = shellWindow
+  if (!win || win.isDestroyed() || windowControlsDisabled === disabled) return
+  windowControlsDisabled = disabled
+  if (disabled) {
+    windowControlState = {
+      minimizable: win.isMinimizable(),
+      maximizable: win.isMaximizable(),
+      closable: win.isClosable(),
+    }
+    win.setMinimizable(false)
+    win.setMaximizable(false)
+    win.setClosable(false)
+  } else {
+    const state = windowControlState
+    if (state) {
+      win.setMinimizable(state.minimizable)
+      win.setMaximizable(state.maximizable)
+      win.setClosable(state.closable)
+    }
+    windowControlState = null
+  }
+  refreshTitleBarOverlay()
 }
 
 function createShellWindow(): void {
+  // a fresh window starts with its caption buttons enabled
+  windowControlsDisabled = false
+  windowControlState = null
   // Last session's geometry, when a display can still show it (issue #2049).
   // A saved position on an unplugged monitor falls back to the default
   // placement rather than opening where it cannot be grabbed.
@@ -3921,7 +3980,11 @@ function createShellWindow(): void {
     ...(restored ? { x: restored.x, y: restored.y } : {}),
     minWidth: SHELL_WINDOW_MIN_WIDTH,
     minHeight: SHELL_WINDOW_MIN_HEIGHT,
-    title: 'GenOffice',
+    title: 'Office',
+    // Stay hidden until the first frame is ready: Windows otherwise shows the
+    // shell's remembered placement/snap state for a moment before the final
+    // bounds and tab layout settle, which reads as a full-screen flash.
+    show: false,
     // Paint the theme's surface before the renderer's first frame so the window
     // does not flash white in dark mode. nativeTheme.themeSource is already set
     // from the saved theme in app.whenReady, before this window is created.
@@ -3951,11 +4014,31 @@ function createShellWindow(): void {
     },
   })
   // the stored rectangle is the normal-state one, so a maximized session
-  // reopens maximized instead of as a screen-sized ordinary window
-  if (restored?.maximized) win.maximize()
+  // reopens maximized instead of as a screen-sized ordinary window; reveal only
+  // after the shell has painted, once the final bounds are in place
+  let revealed = false
+  const reveal = () => {
+    if (revealed || win.isDestroyed()) return
+    revealed = true
+    if (restored?.maximized) win.maximize()
+    if (!win.isVisible()) win.show()
+  }
+  win.once('ready-to-show', () => setImmediate(reveal))
+  const revealFallback = setTimeout(reveal, 2500)
+  win.once('show', () => clearTimeout(revealFallback))
   shellWindow = win
+  // a reload drops the renderer-side settings state; never leave the caption
+  // buttons disabled because the old renderer could not call the IPC
+  win.webContents.on('did-finish-load', () => {
+    if (windowControlsDisabled) setWindowControlsDisabled(false)
+  })
   nativeTheme.on('updated', refreshTitleBarOverlay)
-  win.once('closed', () => nativeTheme.off('updated', refreshTitleBarOverlay))
+  win.once('closed', () => {
+    clearTimeout(revealFallback)
+    nativeTheme.off('updated', refreshTitleBarOverlay)
+    windowControlsDisabled = false
+    windowControlState = null
+  })
   // dragging the window by the tab strip's blank (draggable) area produces no
   // DOM event anywhere — will-move is the only signal to dismiss popovers
   win.on('will-move', () => broadcastChromePressed())
@@ -4426,6 +4509,20 @@ function statEntries(paths: string[]): Promise<RecentEntry[]> {
 
 function registerHomeIpc(): void {
   ipcMain.handle(HOME_CHANNELS.getAppVersion, (): string => app.getVersion())
+
+  // Only the shell renderer owns the caption buttons; an editor view must not
+  // be able to disable the window it is embedded in.
+  ipcMain.handle(HOME_CHANNELS.setWindowControlsDisabled, (event, disabled: unknown) => {
+    if (!shellWindow || event.sender !== shellWindow.webContents) return
+    if (typeof disabled === 'boolean') setWindowControlsDisabled(disabled)
+  })
+
+  // The uninstaller removes the app and optionally this profile; only the
+  // shell renderer can ask for it.
+  ipcMain.handle(HOME_CHANNELS.uninstallApp, async (event) => {
+    if (!shellWindow || event.sender !== shellWindow.webContents) return
+    await requestUninstall(shellWindow, currentLang())
+  })
 
   ipcMain.handle(HOME_CHANNELS.recents, (_event, query: unknown): Promise<RecentPage> =>
     pageRecentPaths(readRecentFiles(), query, new Set(readStarredFiles())),

@@ -37,6 +37,36 @@ export function installOfflineGuard(target: Session): void {
   target.webRequest.onBeforeRequest((details, callback) => {
     callback({ cancel: !isAllowedRequest(details.url) })
   })
+  // Chromium downloads Hunspell dictionaries from Google's CDN on its own;
+  // that request is issued by the browser, not by a renderer, so the session
+  // filter above never sees it (observed on a packaged Windows build as
+  // https://redirector.gvt1.com/edgedl/chrome/dict/en-us-10-1.bdic). The
+  // offline build ships no spelling correction, so turn the checker off at
+  // the session level as well.
+  try {
+    target.setSpellCheckerEnabled(false)
+    target.setSpellCheckerLanguages([])
+  } catch {
+    // older Electron: the request filter still covers renderer traffic
+  }
+}
+
+/**
+ * Chromium-level switches for the air-gapped build. Call before `app.ready`:
+ * component updates, domain reliability, pings and background networking are
+ * browser-initiated and bypass the per-session request filter.
+ *
+ * The DNS blackhole is packaged-only so the Vite dev servers on localhost
+ * still resolve during `npm run dev`.
+ */
+export function installOfflineCommandLineSwitches(): void {
+  app.commandLine.appendSwitch('disable-background-networking')
+  app.commandLine.appendSwitch('disable-component-update')
+  app.commandLine.appendSwitch('disable-domain-reliability')
+  app.commandLine.appendSwitch('no-pings')
+  if (app.isPackaged) {
+    app.commandLine.appendSwitch('host-resolver-rules', 'MAP * ~NOTFOUND')
+  }
 }
 
 /** install on the default session and every session created later */

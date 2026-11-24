@@ -9,8 +9,11 @@
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const ROOT = new URL('..', import.meta.url).pathname
+// fileURLToPath, not URL.pathname: on Windows the pathname is "/D:/…" and
+// path.join would turn it into "D:\\D:\\…".
+const ROOT = fileURLToPath(new URL('..', import.meta.url))
 const ROOTS = ['apps', 'packages']
 
 const BANNED = [
@@ -57,7 +60,9 @@ function walk(dir) {
       continue
     }
     if (!/\.(ts|tsx|mts|cts)$/.test(name)) continue
-    if (/(^|\/)(tests?|__tests__)\//.test(path)) continue
+    // normalize separators so the test-folder rule also applies on Windows
+    const relPath = relative(ROOT, path).replaceAll('\\', '/')
+    if (/(^|\/)(tests?|__tests__)\//.test(relPath)) continue
     const text = readFileSync(path, 'utf8')
     const lines = text.split('\n')
     lines.forEach((line, index) => {

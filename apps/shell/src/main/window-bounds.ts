@@ -107,23 +107,70 @@ export function parseShellWindowState(value: unknown): ShellWindowState | null {
  * whose visible remainder is a sliver of its bottom edge fails here on
  * purpose: nothing left to grab means the user cannot move it back.
  */
-export function isShellWindowVisible(state: WindowRect, workAreas: readonly WindowRect[]): boolean {
+/** The work area whose title-strip overlap is largest, or null when none is reachable. */
+function workAreaForTitleStrip(
+  state: WindowRect,
+  workAreas: readonly WindowRect[],
+): WindowRect | null {
   const strip = Math.min(state.height, TITLE_STRIP_HEIGHT)
-  return workAreas.some((area) => {
+  let best: WindowRect | null = null
+  let bestOverlap = 0
+  for (const area of workAreas) {
     const overlapWidth =
       Math.min(state.x + state.width, area.x + area.width) - Math.max(state.x, area.x)
     const overlapHeight =
       Math.min(state.y + strip, area.y + area.height) - Math.max(state.y, area.y)
-    return (
-      overlapWidth >= MIN_VISIBLE_WIDTH &&
-      overlapHeight >= Math.min(strip, MIN_VISIBLE_STRIP_HEIGHT)
-    )
-  })
+    if (
+      overlapWidth < MIN_VISIBLE_WIDTH ||
+      overlapHeight < Math.min(strip, MIN_VISIBLE_STRIP_HEIGHT)
+    ) {
+      continue
+    }
+    // Prefer the display that shows the most of the title strip.
+    const overlap = overlapWidth * overlapHeight
+    if (overlap > bestOverlap) {
+      bestOverlap = overlap
+      best = area
+    }
+  }
+  return best
+}
+
+export function isShellWindowVisible(state: WindowRect, workAreas: readonly WindowRect[]): boolean {
+  return workAreaForTitleStrip(state, workAreas) !== null
 }
 
 /**
- * The saved state when it exists, parses, and some display can still show it;
- * null means "open at the default placement".
+ * Keep a restored rectangle wholly inside the work area that shows its title
+ * strip. A saved DIP rectangle can be larger than the current work area after
+ * a display or scale change (a window saved at 100 % on a 1440p screen is
+ * almost full-height at 150 %); Windows then snaps or repositions the
+ * too-large window on show, which reads as a full-screen flash before the
+ * normal window appears. Clamping before construction removes that OS dance.
+ */
+export function fitShellWindowState(
+  state: ShellWindowState,
+  workAreas: readonly WindowRect[],
+): ShellWindowState | null {
+  const area = workAreaForTitleStrip(state, workAreas)
+  if (!area) return null
+  const width = Math.min(state.width, area.width)
+  const height = Math.min(state.height, area.height)
+  const maxX = area.x + area.width - width
+  const maxY = area.y + area.height - height
+  return {
+    x: Math.min(Math.max(state.x, area.x), maxX),
+    y: Math.min(Math.max(state.y, area.y), maxY),
+    width,
+    height,
+    maximized: state.maximized,
+  }
+}
+
+/**
+ * The saved state when it exists, parses, and some display can still show it,
+ * fitted wholly into that display's work area; null means "open at the
+ * default placement".
  */
 export function readShellWindowState(
   settingsPath: string,
@@ -131,7 +178,7 @@ export function readShellWindowState(
 ): ShellWindowState | null {
   const parsed = parseShellWindowState(readAppSettings(settingsPath)[WINDOW_BOUNDS_KEY])
   if (!parsed) return null
-  return isShellWindowVisible(parsed, workAreas) ? parsed : null
+  return fitShellWindowState(parsed, workAreas)
 }
 
 /** The members the save path needs off a live window (BrowserWindow satisfies this). */

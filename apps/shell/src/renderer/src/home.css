@@ -965,6 +965,17 @@ body.vib .home {
   animation: menu-in 0.1s ease;
 }
 
+/* Right-click opens the same menu at the pointer instead of under the … anchor.
+   left/top are inline and clamped to the viewport by Home.tsx. */
+.row-menu.row-menu-at-pointer {
+  position-anchor: none;
+  position-try-fallbacks: none;
+  position-visibility: always;
+  right: auto;
+  bottom: auto;
+  max-width: calc(100vw - 16px);
+}
+
 /* If neither side fits, keep the menu inside the viewport and scroll its items. */
 @position-try --row-menu-viewport {
   top: 8px;

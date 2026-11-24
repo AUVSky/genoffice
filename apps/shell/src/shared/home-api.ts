@@ -220,6 +220,10 @@ export interface HomeApi {
   onOpenSettings(handler: (target: { section: string }) => void): () => void
   /** app version (from package.json / electron app.getVersion) */
   getAppVersion(): Promise<string>
+  /** while a full-window modal is open: dim and disable the native caption buttons */
+  setWindowControlsDisabled(disabled: boolean): Promise<void>
+  /** confirm, quit, and run the platform uninstaller (app + optional user data) */
+  uninstallApp(): Promise<void>
   /** current UI theme preference (persisted in userData/app-settings.json) */
   getTheme(): Promise<UiTheme>
   /** switch + persist the UI theme; broadcasts 'app:theme-changed' to all web contents */
@@ -251,7 +255,7 @@ export interface HomeApi {
   setPdfDefaultZoom(zoom: PdfDefaultZoom): Promise<PdfDefaultZoom>
   /** persist; broadcasts 'app:author-name-changed' (the effective name) to all web contents */
   setAuthorName(value: string): Promise<AuthorNameSetting>
-  /** effective default save folder for new/untitled files (configured in userData/app-settings.json, falls back to <Documents>/GenOffice) */
+  /** effective default save folder for new/untitled files (configured in userData/app-settings.json, falls back to <Documents>/Office) */
   getDefaultSaveDir(): Promise<string>
   /** directory picker to change the default save folder; resolves to the new folder, or null when canceled or the pick was unusable */
   pickDefaultSaveDir(): Promise<string | null>
@@ -369,6 +373,8 @@ export const HOME_CHANNELS = {
   getLanguage: 'home:get-language',
   setLanguage: 'home:set-language',
   getAppVersion: 'home:get-app-version',
+  setWindowControlsDisabled: 'home:set-window-controls-disabled',
+  uninstallApp: 'home:uninstall-app',
   openSettings: 'home:open-settings',
   getTheme: 'home:get-theme',
   setTheme: 'home:set-theme',

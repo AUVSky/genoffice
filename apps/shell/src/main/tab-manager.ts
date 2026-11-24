@@ -87,7 +87,7 @@ const HOME_ID = 'home'
  */
 export class TabManager {
   private readonly tabs: TabRecord[] = [
-    { id: HOME_ID, kind: 'home', view: null, title: 'GenOffice', lastActiveAt: Date.now() },
+    { id: HOME_ID, kind: 'home', view: null, title: 'Office', lastActiveAt: Date.now() },
   ]
   private activeId: string = HOME_ID
   /** false while the shell's Settings modal covers the content area */
@@ -346,7 +346,7 @@ export class TabManager {
       id,
       kind: 'help',
       view,
-      title: this.untitled('help', 'GenOffice Help'),
+      title: this.untitled('help', 'Office Help'),
       lastActiveAt: Date.now(),
     })
     this.activateTab(id)
@@ -366,7 +366,7 @@ export class TabManager {
       lastActiveAt: Date.now(),
       kind: 'docs',
       view,
-      title: openPath ? basename(openPath) : this.untitled('docs', 'GenOffice Docs'),
+      title: openPath ? basename(openPath) : this.untitled('docs', 'Office Docs'),
       filePath: openPath,
     })
     this.activateTab(id)

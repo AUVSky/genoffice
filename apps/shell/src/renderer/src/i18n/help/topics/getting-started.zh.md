@@ -1,6 +1,6 @@
 # 快速入门：界面与基本操作
 
-GenOffice 完全在你的电脑上运行。一个窗口里装着五个编辑器：Word（`.docx`）、Excel（`.xlsx`）、PowerPoint（`.pptx`）、PDF 和 Markdown。文件是真正的 Office 文件，与 Word、Excel、PowerPoint 互通，全程不需要联网。
+Office 完全在你的电脑上运行。一个窗口里装着五个编辑器：Word（`.docx`）、Excel（`.xlsx`）、PowerPoint（`.pptx`）、PDF 和 Markdown。文件是真正的 Office 文件，与 Word、Excel、PowerPoint 互通，全程不需要联网。
 
 ## 启动页
 

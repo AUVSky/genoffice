@@ -518,6 +518,21 @@ export function SettingsModal({ onClose, target }: SettingsModalProps) {
                     }}
                   />
                 </div>
+                <h4 className="set-pane-subtitle">{t('setGrpUninstall')}</h4>
+                <div className="set-field">
+                  <div className="set-field-text">
+                    <div className="set-field-stack">
+                      <div className="set-field-label">{t('setUninstall')}</div>
+                      <div className="set-field-desc">{t('setUninstallDesc')}</div>
+                    </div>
+                  </div>
+                  <button
+                    className="set-btn danger"
+                    onClick={() => void window.aiOffice.uninstallApp?.().catch(() => {})}
+                  >
+                    {t('intgUninstall')}
+                  </button>
+                </div>
               </>
             )}
             {section === 'about' && (

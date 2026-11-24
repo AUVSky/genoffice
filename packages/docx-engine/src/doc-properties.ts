@@ -264,9 +264,9 @@ function blankAppPropertiesXml(): string {
   )
 }
 
-/** Application a new GenOffice document records in docProps/app.xml */
-export const NEW_DOCUMENT_APPLICATION = 'GenOffice'
-/** Template a new GenOffice document records (Word's own default) */
+/** Application a new Office document records in docProps/app.xml */
+export const NEW_DOCUMENT_APPLICATION = 'Office'
+/** Template a new Office document records (Word's own default) */
 export const NEW_DOCUMENT_TEMPLATE = 'Normal.dotm'
 /**
  * OOXML AppVersion uses a two-component XX.YYYY value, not semver
