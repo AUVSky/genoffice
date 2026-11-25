@@ -362,8 +362,11 @@ if (headlessArgv.kind !== 'none') {
 }
 
 // Product renames changed the userData path (AI Office → GenOffice → Office);
-// copy the newest legacy profile once while the new one is still empty.
-if (app.isPackaged) {
+// copy the newest legacy profile once while the new one is still empty. A
+// scratch profile from GENOFFICE_USER_DATA stays isolated: copying the real
+// profile into it would defeat the test separation and can stall on a large
+// cache.
+if (app.isPackaged && !process.env.GENOFFICE_USER_DATA) {
   const newDir = app.getPath('userData')
   const newEmpty = !existsSync(newDir) || readdirSync(newDir).length === 0
   if (newEmpty) {
